@@ -1,6 +1,9 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FileText, Search, TrendingUp, Shield, Users, CheckCircle } from "lucide-react";
+import { Link } from "react-router-dom";
+
 const Index = () => {
   return <div className="min-h-screen bg-white">
       {/* Header */}
@@ -168,7 +171,7 @@ Singapore (068914)</p>
             <div>
               <h3 className="font-semibold text-gray-900 mb-4">Legal</h3>
               <ul className="space-y-2">
-                <li><a href="#" className="text-gray-600 hover:text-blue-600">Terms of Use</a></li>
+                <li><Link to="/about-us/terms-of-use" className="text-gray-600 hover:text-blue-600">Terms of Use</Link></li>
                 <li><a href="#" className="text-gray-600 hover:text-blue-600">Additional Terms of Use</a></li>
                 <li><a href="#" className="text-gray-600 hover:text-blue-600">Privacy Policy</a></li>
               </ul>
@@ -191,4 +194,5 @@ Singapore (068914)</p>
       </footer>
     </div>;
 };
+
 export default Index;
