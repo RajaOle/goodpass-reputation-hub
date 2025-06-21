@@ -1,8 +1,8 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FileText, Search, TrendingUp, Shield, Users, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
+import SignUpForm from "@/components/SignUpForm";
 
 const Index = () => {
   return <div className="min-h-screen bg-white">
@@ -26,9 +26,7 @@ const Index = () => {
             {/* Auth Buttons */}
             <div className="flex items-center space-x-4">
               <button className="text-gray-600 hover:text-blue-600 font-medium">Login</button>
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
-                Sign Up
-              </Button>
+              <SignUpForm />
             </div>
           </div>
         </div>
