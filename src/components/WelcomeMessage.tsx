@@ -71,9 +71,11 @@ const WelcomeMessage: React.FC<WelcomeMessageProps> = ({ fullName }) => {
 
             {/* Action Buttons */}
             <div className="space-y-3">
-              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3">
-                Go to Dashboard
-              </Button>
+              <Link to="/dashboard">
+                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3">
+                  Go to Dashboard
+                </Button>
+              </Link>
               <Link to="/make-report" className="block">
                 <Button variant="outline" className="w-full text-blue-600 border-blue-600 hover:bg-blue-50">
                   Start writing your first report →
