@@ -1,57 +1,74 @@
-
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-
 const PrivacyPolicy = () => {
   const [activeSection, setActiveSection] = useState("");
-
   useEffect(() => {
     const handleScroll = () => {
       const sections = document.querySelectorAll("section[id]");
       let current = "";
-      
-      sections.forEach((section) => {
+      sections.forEach(section => {
         const rect = section.getBoundingClientRect();
         if (rect.top <= 100) {
           current = section.id;
         }
       });
-      
       setActiveSection(current);
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
     if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
+      element.scrollIntoView({
+        behavior: "smooth"
+      });
     }
   };
-
-  const tableOfContents = [
-    { id: "introduction", title: "Introduction" },
-    { id: "information-we-collect", title: "Information We Collect" },
-    { id: "how-we-use-information", title: "How We Use Your Information" },
-    { id: "sharing-disclosure", title: "Sharing and Disclosure of Information" },
-    { id: "data-retention", title: "Data Retention" },
-    { id: "data-security", title: "Data Security" },
-    { id: "your-rights", title: "Your Rights and Choices" },
-    { id: "cookies", title: "Cookies and Tracking Technologies" },
-    { id: "third-party", title: "Third-Party Services" },
-    { id: "children", title: "Children's Privacy" },
-    { id: "international", title: "International Data Transfers" },
-    { id: "changes", title: "Changes to This Privacy Policy" },
-    { id: "contact", title: "Contact Us" }
-  ];
-
-  return (
-    <div className="min-h-screen bg-white">
+  const tableOfContents = [{
+    id: "introduction",
+    title: "Introduction"
+  }, {
+    id: "information-we-collect",
+    title: "Information We Collect"
+  }, {
+    id: "how-we-use-information",
+    title: "How We Use Your Information"
+  }, {
+    id: "sharing-disclosure",
+    title: "Sharing and Disclosure of Information"
+  }, {
+    id: "data-retention",
+    title: "Data Retention"
+  }, {
+    id: "data-security",
+    title: "Data Security"
+  }, {
+    id: "your-rights",
+    title: "Your Rights and Choices"
+  }, {
+    id: "cookies",
+    title: "Cookies and Tracking Technologies"
+  }, {
+    id: "third-party",
+    title: "Third-Party Services"
+  }, {
+    id: "children",
+    title: "Children's Privacy"
+  }, {
+    id: "international",
+    title: "International Data Transfers"
+  }, {
+    id: "changes",
+    title: "Changes to This Privacy Policy"
+  }, {
+    id: "contact",
+    title: "Contact Us"
+  }];
+  return <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="border-b border-gray-200 sticky top-0 bg-white z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -77,19 +94,9 @@ const PrivacyPolicy = () => {
           <div className="sticky top-24">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Table of Contents</h3>
             <nav className="space-y-2">
-              {tableOfContents.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => scrollToSection(item.id)}
-                  className={`block w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
-                    activeSection === item.id
-                      ? "bg-blue-100 text-blue-800 font-medium"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-                  }`}
-                >
+              {tableOfContents.map(item => <button key={item.id} onClick={() => scrollToSection(item.id)} className={`block w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${activeSection === item.id ? "bg-blue-100 text-blue-800 font-medium" : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"}`}>
                   {item.title}
-                </button>
-              ))}
+                </button>)}
             </nav>
           </div>
         </aside>
@@ -483,7 +490,7 @@ const PrivacyPolicy = () => {
                     <div>
                       <h4 className="font-semibold text-gray-900 mb-2">Data Protection Officer</h4>
                       <p className="text-sm text-gray-600 mb-1">Email: dpo@goodpass.id</p>
-                      <p className="text-sm text-gray-600 mb-1">Address: Jakarta, Indonesia</p>
+                      <p className="text-sm text-gray-600 mb-1">Address:  Singapore</p>
                       <p className="text-sm text-gray-600">For data rights requests</p>
                     </div>
                   </div>
@@ -496,8 +503,6 @@ const PrivacyPolicy = () => {
           </div>
         </main>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default PrivacyPolicy;
