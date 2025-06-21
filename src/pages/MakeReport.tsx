@@ -1,8 +1,8 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { FileText, Search, TrendingUp, Shield, Users, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
+import SignUpForm from "@/components/SignUpForm";
 
 const MakeReport = () => {
   return (
@@ -29,135 +29,128 @@ const MakeReport = () => {
             {/* Auth Buttons */}
             <div className="flex items-center space-x-4">
               <Link to="/login" className="text-gray-600 hover:text-blue-600 font-medium">Login</Link>
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white">Sign Up</Button>
+              <SignUpForm />
             </div>
           </div>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <h1 className="text-5xl font-bold text-gray-900 mb-6">
-            Build Your Financial
-            <br />
-            <span className="text-blue-600">Reputation</span>
-          </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
-            Goodpass creates a trusted community where friends and family can report loan 
-            commitments, helping you build a verifiable financial reputation for better access to 
-            credit.
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        {/* Page Header */}
+        <div className="text-center mb-16">
+          <h1 className="text-4xl font-bold text-gray-900 mb-6">Make a Report</h1>
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            Join Goodpass to build trust and transparency in your community. Whether you're an individual 
+            or an institution, contributing to our platform helps create a more inclusive ecosystem.
           </p>
-          <div className="flex justify-center space-x-4">
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg">
-              Get Started Now
-            </Button>
-            <button className="text-blue-600 hover:text-blue-700 font-medium text-lg">
-              Learn More
-            </button>
-          </div>
         </div>
-      </section>
 
-      {/* How Goodpass Works */}
-      <section className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">How Goodpass Works</h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Our peer-to-peer platform enables transparent financial reporting between trusted 
-              contacts
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-8">
-            <Card className="text-center p-8 bg-white border border-gray-200 hover:shadow-lg transition-shadow">
-              <CardContent className="pt-6">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <FileText className="w-8 h-8 text-blue-600" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Make Reports</h3>
-                <p className="text-gray-600">Report loan commitments and repayment history with trusted friends, family members, or business partners.</p>
-              </CardContent>
-            </Card>
-            
-            <Card className="text-center p-8 bg-white border border-gray-200 hover:shadow-lg transition-shadow">
-              <CardContent className="pt-6">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Search className="w-8 h-8 text-green-600" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Make Inquiries</h3>
-                <p className="text-gray-600">Check financial reputation and history before making lending decisions or entering partnerships.</p>
-              </CardContent>
-            </Card>
-            
-            <Card className="text-center p-8 bg-white border border-gray-200 hover:shadow-lg transition-shadow">
-              <CardContent className="pt-6">
-                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <TrendingUp className="w-8 h-8 text-purple-600" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Build Reputation</h3>
-                <p className="text-gray-600">Establish a verifiable track record that opens doors to better financial opportunities and trust.</p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Trusted by Communities */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-6">
-                Trusted by Communities
+        {/* Two Column Layout */}
+        <div className="grid lg:grid-cols-2 gap-12">
+          {/* Individual Section */}
+          <Card className="bg-white border border-gray-200 shadow-lg">
+            <CardContent className="p-8">
+              <h2 className="text-2xl font-bold text-blue-600 text-center mb-6">
+                Why Individuals Should Contribute to
                 <br />
-                Worldwide
+                Goodpass Reports
               </h2>
-              <p className="text-lg text-gray-600 mb-8">
-                Our platform is built on trust and transparency. Every report is 
-                verified and encrypted to protect your privacy while building your 
-                financial reputation.
-              </p>
               
-              <div className="space-y-4">
-                <div className="flex items-center space-x-3">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-gray-700">Bank-level security and encryption</span>
+              <div className="mb-8">
+                <img 
+                  src="/lovable-uploads/c4ff4d6e-8eff-417b-8039-114063f75a51.jpg" 
+                  alt="Individual working" 
+                  className="w-full h-64 object-cover rounded-lg mb-6"
+                />
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Build Your Credit Profile</h3>
+                  <p className="text-gray-600 text-sm">
+                    By contributing to or creating reports on Goodpass, individuals can establish a trusted 
+                    GP Score, improving their chances of securing loans from banks or investors, even 
+                    without a formal credit history.
+                  </p>
                 </div>
-                <div className="flex items-center space-x-3">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-gray-700">Community-verified reports</span>
+
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Strengthen Community Trust</h3>
+                  <p className="text-gray-600 text-sm">
+                    Reporting accurate loan or behavioral data on Goodpass fosters transparency, helping 
+                    individuals build a reputation for reliability and trustworthiness within their community.
+                  </p>
                 </div>
-                <div className="flex items-center space-x-3">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-gray-700">Privacy-first approach</span>
+
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Simplify Personal Lending</h3>
+                  <p className="text-gray-600 text-sm">
+                    Goodpass automates tracking and reminders for informal loans, reducing awkwardness 
+                    and ensuring smoother financial interactions with peers, while contributing to a shared 
+                    credit ecosystem.
+                  </p>
                 </div>
               </div>
-            </div>
-            
-            <div className="relative">
-              <img alt="People collaborating" className="rounded-lg shadow-lg" src="/lovable-uploads/c4ff4d6e-8eff-417b-8039-114063f75a51.jpg" />
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Call to Action */}
-      <section className="py-20 bg-blue-600">
-        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-white mb-4">
-            Ready to Build Your Financial Reputation?
-          </h2>
-          <p className="text-xl text-blue-100 mb-8">
-            Join thousands of users who are already building trust through our 
-            community-based platform.
-          </p>
-          <Button className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 text-lg font-semibold">
-            Get Started Today
-          </Button>
+              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-8 py-3">
+                Start Individual Report
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Institution Section */}
+          <Card className="bg-white border border-gray-200 shadow-lg">
+            <CardContent className="p-8">
+              <h2 className="text-2xl font-bold text-green-600 text-center mb-6">
+                Why Institutions Should Contribute to
+                <br />
+                Goodpass Commitment Reports
+              </h2>
+              
+              <div className="mb-8">
+                <img 
+                  src="/lovable-uploads/c4ff4d6e-8eff-417b-8039-114063f75a51.jpg" 
+                  alt="Institution workspace" 
+                  className="w-full h-64 object-cover rounded-lg mb-6"
+                />
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Enhance Financial Inclusion</h3>
+                  <p className="text-gray-600 text-sm">
+                    By contributing verified commitment reports to Goodpass, institutions help build 
+                    community-based credit scores, enabling business to get access for funding not only to 
+                    formal institution but additional lines of credit from suppliers.
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Reduce Lending Risks</h3>
+                  <p className="text-gray-600 text-sm">
+                    Providing accurate data to Goodpass's platform allows institutions to leverage 
+                    comprehensive credit behavior insights, minimizing the business commitment of a non-
+                    payment fraud risk.
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">Strengthen Community Trust</h3>
+                  <p className="text-gray-600 text-sm">
+                    Participating as a reporter in Goodpass fosters transparency and accountability, 
+                    reinforcing trust within communities and supporting ethical lending practices.
+                  </p>
+                </div>
+              </div>
+
+              <Button className="w-full bg-green-600 hover:bg-green-700 text-white mt-8 py-3">
+                Start Institution Report
+              </Button>
+            </CardContent>
+          </Card>
         </div>
-      </section>
+      </div>
 
       {/* Footer */}
       <footer className="bg-white border-t border-gray-200">
