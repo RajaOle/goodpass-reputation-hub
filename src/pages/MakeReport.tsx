@@ -3,22 +3,24 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FileText, Search, TrendingUp, Shield, Users, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
-import SignUpForm from "@/components/SignUpForm";
 
-const Index = () => {
-  return <div className="min-h-screen bg-white">
+const MakeReport = () => {
+  return (
+    <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex items-center">
-              <img src="/lovable-uploads/c10eb088-0cd8-47ba-b004-d8600fb18116.png" alt="Goodpass Logo" className="h-8 w-auto" />
+              <Link to="/">
+                <img src="/lovable-uploads/c10eb088-0cd8-47ba-b004-d8600fb18116.png" alt="Goodpass Logo" className="h-8 w-auto" />
+              </Link>
             </div>
             
             {/* Navigation Menu */}
             <nav className="hidden md:flex space-x-8">
-              <Link to="/make-report" className="text-gray-600 hover:text-blue-600 font-medium">Make a Report</Link>
+              <Link to="/make-report" className="text-blue-600 font-medium">Make a Report</Link>
               <a href="#" className="text-gray-600 hover:text-blue-600 font-medium">Make Inquiries</a>
               <a href="#" className="text-gray-600 hover:text-blue-600 font-medium">Developers</a>
               <a href="#" className="text-gray-600 hover:text-blue-600 font-medium">Pricing</a>
@@ -27,7 +29,7 @@ const Index = () => {
             {/* Auth Buttons */}
             <div className="flex items-center space-x-4">
               <Link to="/login" className="text-gray-600 hover:text-blue-600 font-medium">Login</Link>
-              <SignUpForm />
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white">Sign Up</Button>
             </div>
           </div>
         </div>
@@ -121,7 +123,7 @@ const Index = () => {
               <div className="space-y-4">
                 <div className="flex items-center space-x-3">
                   <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-gray-700">Bank-level reports and encryption</span>
+                  <span className="text-gray-700">Bank-level security and encryption</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <CheckCircle className="w-5 h-5 text-green-500" />
@@ -162,7 +164,9 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid md:grid-cols-4 gap-8">
             <div className="md:col-span-2">
-              <img src="/lovable-uploads/c10eb088-0cd8-47ba-b004-d8600fb18116.png" alt="Goodpass Logo" className="h-8 w-auto mb-4" />
+              <Link to="/">
+                <img src="/lovable-uploads/c10eb088-0cd8-47ba-b004-d8600fb18116.png" alt="Goodpass Logo" className="h-8 w-auto mb-4" />
+              </Link>
               <p className="text-gray-600 max-w-md">160 Robinson Road, #14-04 Singapore Business Federation Center
 Singapore (068914)</p>
             </div>
@@ -191,7 +195,8 @@ Singapore (068914)</p>
           </div>
         </div>
       </footer>
-    </div>;
+    </div>
+  );
 };
 
-export default Index;
+export default MakeReport;
