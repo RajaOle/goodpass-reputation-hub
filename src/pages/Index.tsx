@@ -173,7 +173,7 @@ Singapore (068914)</p>
               <ul className="space-y-2">
                 <li><Link to="/about-us/terms-of-use" className="text-gray-600 hover:text-blue-600">Terms of Use</Link></li>
                 <li><Link to="/about-us/terms-of-use/additional-terms-of-use" className="text-gray-600 hover:text-blue-600">Additional Terms of Use</Link></li>
-                <li><a href="#" className="text-gray-600 hover:text-blue-600">Privacy Policy</a></li>
+                <li><Link to="/about-us/privacy-policy" className="text-gray-600 hover:text-blue-600">Privacy Policy</Link></li>
               </ul>
             </div>
             
