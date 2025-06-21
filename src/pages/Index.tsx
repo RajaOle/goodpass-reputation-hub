@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FileText, Search, TrendingUp, Shield, Users, CheckCircle } from "lucide-react";
@@ -21,7 +20,7 @@ const Index = () => {
               <Link to="/make-report" className="text-gray-600 hover:text-blue-600 font-medium">Make a Report</Link>
               <a href="#" className="text-gray-600 hover:text-blue-600 font-medium">Make Inquiries</a>
               <a href="#" className="text-gray-600 hover:text-blue-600 font-medium">Developers</a>
-              <a href="#" className="text-gray-600 hover:text-blue-600 font-medium">Pricing</a>
+              <Link to="/pricing" className="text-gray-600 hover:text-blue-600 font-medium">Pricing</Link>
             </nav>
             
             {/* Auth Buttons */}
