@@ -37,7 +37,7 @@ const FullNameForm: React.FC<FullNameFormProps> = ({ onSubmit }) => {
       <div className="max-w-md w-full space-y-8">
         {/* Back Button */}
         <div className="flex justify-start">
-          <Link to="/login" className="flex items-center text-gray-600 hover:text-blue-600 transition-colors">
+          <Link to="/" className="flex items-center text-gray-600 hover:text-blue-600 transition-colors">
             <ArrowLeft className="h-5 w-5 mr-2" />
             Back
           </Link>

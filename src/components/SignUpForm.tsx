@@ -1,9 +1,11 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import CountryCodeSelector from './CountryCodeSelector';
 
 interface PasswordValidation {
@@ -15,6 +17,7 @@ interface PasswordValidation {
 }
 
 const SignUpForm = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [countryCode, setCountryCode] = useState('+1');
@@ -22,6 +25,7 @@ const SignUpForm = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   const [passwordValidation, setPasswordValidation] = useState<PasswordValidation>({
     minLength: false,
     hasUpperCase: false,
@@ -55,11 +59,18 @@ const SignUpForm = () => {
     // Implement Google OAuth here
   };
 
-  const handleCreateAccount = (e: React.FormEvent) => {
+  const handleCreateAccount = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isPasswordValid && doPasswordsMatch && email && phoneNumber) {
+      setIsCreatingAccount(true);
       console.log('Creating account with:', { email, phoneNumber: `${countryCode}${phoneNumber}` });
-      // Implement account creation logic here
+      
+      // Simulate account creation API call
+      setTimeout(() => {
+        setIsCreatingAccount(false);
+        // Navigate to signup success page
+        navigate('/signup-success');
+      }, 1500);
     }
   };
 
@@ -237,9 +248,9 @@ const SignUpForm = () => {
             <Button 
               type="submit" 
               className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3"
-              disabled={!isPasswordValid || !doPasswordsMatch || !email || !phoneNumber}
+              disabled={!isPasswordValid || !doPasswordsMatch || !email || !phoneNumber || isCreatingAccount}
             >
-              Create account
+              {isCreatingAccount ? 'Creating account...' : 'Create account'}
             </Button>
 
             {/* Back Button */}
