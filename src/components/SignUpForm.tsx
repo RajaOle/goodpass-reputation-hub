@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
+import CountryCodeSelector from './CountryCodeSelector';
 
 interface PasswordValidation {
   minLength: boolean;
@@ -134,16 +134,10 @@ const SignUpForm = () => {
                 Phone number
               </Label>
               <div className="flex mt-1">
-                <select
+                <CountryCodeSelector
                   value={countryCode}
-                  onChange={(e) => setCountryCode(e.target.value)}
-                  className="flex h-10 rounded-md rounded-r-none border border-r-0 border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                >
-                  <option value="+1">US +1</option>
-                  <option value="+44">UK +44</option>
-                  <option value="+65">SG +65</option>
-                  <option value="+91">IN +91</option>
-                </select>
+                  onChange={setCountryCode}
+                />
                 <Input
                   id="phone"
                   type="tel"
@@ -154,7 +148,7 @@ const SignUpForm = () => {
                   required
                 />
               </div>
-              <p className="text-xs text-gray-500 mt-1">Selected: +1xxxxxxxxx</p>
+              <p className="text-xs text-gray-500 mt-1">Selected: {countryCode}xxxxxxxxx</p>
             </div>
 
             {/* Password Field */}
