@@ -83,10 +83,7 @@ const Index = () => {
                   <Search className="w-8 h-8 text-green-600" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">Make Inquiries</h3>
-                <p className="text-gray-600">
-                  Check financial reputation and lending history through our 
-                  secure verification system.
-                </p>
+                <p className="text-gray-600">Check financial reputation and history before making lending decisions or entering partnerships.</p>
               </CardContent>
             </Card>
             
