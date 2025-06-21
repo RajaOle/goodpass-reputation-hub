@@ -93,10 +93,7 @@ const Index = () => {
                   <TrendingUp className="w-8 h-8 text-purple-600" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">Build Reputation</h3>
-                <p className="text-gray-600">
-                  Establish a verifiable track record that opens doors to better 
-                  financial opportunities.
-                </p>
+                <p className="text-gray-600">Establish a verifiable track record that opens doors to better financial opportunities and trust.</p>
               </CardContent>
             </Card>
           </div>
