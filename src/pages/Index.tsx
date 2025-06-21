@@ -1,22 +1,15 @@
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FileText, Search, TrendingUp, Shield, Users, CheckCircle } from "lucide-react";
-
 const Index = () => {
-  return (
-    <div className="min-h-screen bg-white">
+  return <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex items-center">
-              <img 
-                src="/lovable-uploads/c10eb088-0cd8-47ba-b004-d8600fb18116.png" 
-                alt="Goodpass Logo" 
-                className="h-8 w-auto"
-              />
+              <img src="/lovable-uploads/c10eb088-0cd8-47ba-b004-d8600fb18116.png" alt="Goodpass Logo" className="h-8 w-auto" />
             </div>
             
             {/* Navigation Menu */}
@@ -80,10 +73,7 @@ const Index = () => {
                   <FileText className="w-8 h-8 text-blue-600" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-4">Make Reports</h3>
-                <p className="text-gray-600">
-                  Report loan commitments and financial interactions with trusted 
-                  friends and family members.
-                </p>
+                <p className="text-gray-600">Report loan commitments and repayment history with trusted friends, family members, or business partners.</p>
               </CardContent>
             </Card>
             
@@ -149,11 +139,7 @@ const Index = () => {
             </div>
             
             <div className="relative">
-              <img 
-                src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
-                alt="People collaborating"
-                className="rounded-lg shadow-lg"
-              />
+              <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" alt="People collaborating" className="rounded-lg shadow-lg" />
             </div>
           </div>
         </div>
@@ -180,11 +166,7 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid md:grid-cols-4 gap-8">
             <div className="md:col-span-2">
-              <img 
-                src="/lovable-uploads/c10eb088-0cd8-47ba-b004-d8600fb18116.png" 
-                alt="Goodpass Logo" 
-                className="h-8 w-auto mb-4"
-              />
+              <img src="/lovable-uploads/c10eb088-0cd8-47ba-b004-d8600fb18116.png" alt="Goodpass Logo" className="h-8 w-auto mb-4" />
               <p className="text-gray-600 max-w-md">
                 Building financial trust through community-based reputation reporting.
               </p>
@@ -214,8 +196,6 @@ const Index = () => {
           </div>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
