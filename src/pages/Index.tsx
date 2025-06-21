@@ -161,9 +161,8 @@ const Index = () => {
           <div className="grid md:grid-cols-4 gap-8">
             <div className="md:col-span-2">
               <img src="/lovable-uploads/c10eb088-0cd8-47ba-b004-d8600fb18116.png" alt="Goodpass Logo" className="h-8 w-auto mb-4" />
-              <p className="text-gray-600 max-w-md">
-                Building financial trust through community-based reputation reporting.
-              </p>
+              <p className="text-gray-600 max-w-md">160 Robinson Road, #14-04 Singapore Business Federation Center
+Singapore (068914)</p>
             </div>
             
             <div>
