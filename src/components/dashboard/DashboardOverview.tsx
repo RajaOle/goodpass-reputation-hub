@@ -1,10 +1,12 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText, Users, TrendingUp, Plus, Search, CreditCard } from 'lucide-react';
+import NewReportDialog from '../report-dialog/NewReportDialog';
 
 const DashboardOverview = () => {
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
+
   return (
     <div className="space-y-8">
       {/* Welcome Section */}
@@ -53,7 +55,10 @@ const DashboardOverview = () => {
       <div>
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Button className="h-16 bg-blue-600 hover:bg-blue-700 text-white justify-start">
+          <Button 
+            className="h-16 bg-blue-600 hover:bg-blue-700 text-white justify-start"
+            onClick={() => setIsReportDialogOpen(true)}
+          >
             <Plus className="h-5 w-5 mr-3" />
             <div className="text-left">
               <div className="font-medium">Write New Report</div>
@@ -113,6 +118,11 @@ const DashboardOverview = () => {
           </CardContent>
         </Card>
       </div>
+
+      <NewReportDialog 
+        open={isReportDialogOpen} 
+        onOpenChange={setIsReportDialogOpen} 
+      />
     </div>
   );
 };
