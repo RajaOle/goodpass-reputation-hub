@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -5,26 +6,84 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+
+// Dummy accounts for testing
+const DUMMY_ACCOUNTS = {
+  admin: {
+    email: 'admin@goodpass.com',
+    password: 'admin123',
+    role: 'admin',
+    name: 'Admin User'
+  },
+  user: {
+    email: 'user@goodpass.com',
+    password: 'user123',
+    role: 'user',
+    name: 'Regular User'
+  }
+};
 
 const SignInForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Sign in attempt:', { email, password });
-    // TODO: Implement actual sign in logic
+    setIsLoading(true);
+
+    // Check dummy accounts
+    const account = Object.values(DUMMY_ACCOUNTS).find(
+      acc => acc.email === email && acc.password === password
+    );
+
+    if (account) {
+      // Store user data in localStorage (simple session management)
+      localStorage.setItem('currentUser', JSON.stringify({
+        email: account.email,
+        role: account.role,
+        name: account.name
+      }));
+
+      toast({
+        title: "Login Successful",
+        description: `Welcome back, ${account.name}!`,
+      });
+
+      // Navigate to dashboard
+      navigate('/dashboard');
+    } else {
+      toast({
+        title: "Login Failed",
+        description: "Invalid email or password. Please try the demo accounts.",
+        variant: "destructive",
+      });
+    }
+
+    setIsLoading(false);
   };
 
   const handleGoogleSignIn = () => {
     console.log('Google sign in clicked');
-    // TODO: Implement Google sign in
+    toast({
+      title: "Feature Not Available",
+      description: "Google sign-in is not implemented yet. Please use demo accounts.",
+      variant: "destructive",
+    });
   };
 
   const handleBackClick = () => {
     navigate(-1);
+  };
+
+  const fillDemoCredentials = (accountType: 'admin' | 'user') => {
+    const account = DUMMY_ACCOUNTS[accountType];
+    setEmail(account.email);
+    setPassword(account.password);
   };
 
   return (
@@ -59,6 +118,31 @@ const SignInForm = () => {
           </CardHeader>
           
           <CardContent className="px-8 pb-8">
+            {/* Demo Accounts Section */}
+            <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <h3 className="text-sm font-semibold text-blue-900 mb-3">Demo Accounts</h3>
+              <div className="space-y-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fillDemoCredentials('admin')}
+                  className="w-full text-xs border-blue-300 text-blue-700 hover:bg-blue-100"
+                >
+                  Admin: admin@goodpass.com / admin123
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fillDemoCredentials('user')}
+                  className="w-full text-xs border-green-300 text-green-700 hover:bg-green-100"
+                >
+                  User: user@goodpass.com / user123
+                </Button>
+              </div>
+            </div>
+
             <div className="mb-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Sign In</h3>
               <p className="text-sm text-gray-600">Enter your credentials to access your account</p>
@@ -110,8 +194,12 @@ const SignInForm = () => {
                 </a>
               </div>
               
-              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white">
-                Sign In
+              <Button 
+                type="submit" 
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                disabled={isLoading}
+              >
+                {isLoading ? 'Signing In...' : 'Sign In'}
               </Button>
             </form>
             
