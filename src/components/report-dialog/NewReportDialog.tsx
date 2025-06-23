@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -32,12 +31,33 @@ const reportSchema = z.object({
     collateral: z.string().optional(),
   }),
   reporteeInformation: z.object({
-    companyName: z.string().min(2, 'Company name must be at least 2 characters'),
-    contactPerson: z.string().min(2, 'Contact person name must be at least 2 characters'),
-    phoneNumber: z.string().min(10, 'Please enter a valid phone number'),
-    email: z.string().email('Please enter a valid email address'),
-    address: z.string().min(10, 'Please provide a complete address'),
-    website: z.string().url('Please enter a valid URL').optional().or(z.literal('')),
+    type: z.enum(['personal', 'business']),
+    personalInfo: z.object({
+      firstName: z.string().min(2, 'First name must be at least 2 characters'),
+      lastName: z.string().min(2, 'Last name must be at least 2 characters'),
+      phoneNumber: z.string().min(10, 'Please enter a valid phone number'),
+      email: z.string().email('Please enter a valid email address'),
+      address: z.string().min(10, 'Please provide a complete address'),
+    }).optional(),
+    businessInfo: z.object({
+      companyName: z.string().min(2, 'Company name must be at least 2 characters'),
+      contactPerson: z.string().min(2, 'Contact person name must be at least 2 characters'),
+      phoneNumber: z.string().min(10, 'Please enter a valid phone number'),
+      email: z.string().email('Please enter a valid email address'),
+      address: z.string().min(10, 'Please provide a complete address'),
+      website: z.string().url('Please enter a valid URL').optional().or(z.literal('')),
+    }).optional(),
+  }).refine((data) => {
+    if (data.type === 'personal') {
+      return data.personalInfo && Object.values(data.personalInfo).every(val => val && val.trim() !== '');
+    }
+    if (data.type === 'business') {
+      return data.businessInfo && data.businessInfo.companyName && data.businessInfo.contactPerson && 
+             data.businessInfo.phoneNumber && data.businessInfo.email && data.businessInfo.address;
+    }
+    return false;
+  }, {
+    message: 'Please fill in all required fields for the selected reportee type',
   }),
   supportingDocuments: z.object({
     documents: z.array(z.instanceof(File)),
@@ -67,12 +87,22 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({ open, onOpenChange })
         collateral: '',
       },
       reporteeInformation: {
-        companyName: '',
-        contactPerson: '',
-        phoneNumber: '',
-        email: '',
-        address: '',
-        website: '',
+        type: 'personal',
+        personalInfo: {
+          firstName: '',
+          lastName: '',
+          phoneNumber: '',
+          email: '',
+          address: '',
+        },
+        businessInfo: {
+          companyName: '',
+          contactPerson: '',
+          phoneNumber: '',
+          email: '',
+          address: '',
+          website: '',
+        },
       },
       supportingDocuments: {
         documents: [],

@@ -9,13 +9,27 @@ export interface LoanInformation {
   collateral?: string;
 }
 
-export interface ReporteeInformation {
+export interface PersonalReporteeInformation {
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  email: string;
+  address: string;
+}
+
+export interface BusinessReporteeInformation {
   companyName: string;
   contactPerson: string;
   phoneNumber: string;
   email: string;
   address: string;
   website?: string;
+}
+
+export interface ReporteeInformation {
+  type: 'personal' | 'business';
+  personalInfo?: PersonalReporteeInformation;
+  businessInfo?: BusinessReporteeInformation;
 }
 
 export interface SupportingDocuments {
