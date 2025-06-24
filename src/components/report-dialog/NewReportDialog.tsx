@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -14,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
-import { Check, ChevronLeft, ChevronRight, FileText, DollarSign, User } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { ReportFormData, Report } from '@/types/report';
 import { useReports } from '@/contexts/ReportsContext';
 import LoanInformationForm from './LoanInformationForm';
@@ -53,13 +52,6 @@ const reportSchema = z.object({
   }),
 });
 
-interface NewReportDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  isDraft?: boolean;
-  reportId?: string;
-}
-
 const steps = [
   { 
     id: 1, 
@@ -83,6 +75,13 @@ const steps = [
     description: 'Add any supporting documents to strengthen the report.'
   },
 ];
+
+interface NewReportDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  isDraft?: boolean;
+  reportId?: string;
+}
 
 const NewReportDialog: React.FC<NewReportDialogProps> = ({ 
   open, 
@@ -247,11 +246,10 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
           </DialogHeader>
         </div>
 
-        {/* Progress Indicator */}
-        <div className="px-6 py-4 bg-white border-b">
-          <div className="flex items-center justify-between mb-4">
+        {/* Simplified Progress Indicator */}
+        <div className="px-6 py-3 bg-white border-b">
+          <div className="flex items-center justify-between mb-2">
             {steps.map((step, index) => {
-              const StepIcon = step.icon;
               const isCompleted = currentStep > step.id;
               const isCurrent = currentStep === step.id;
               
@@ -260,32 +258,26 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
                   <div className="flex flex-col items-center">
                     <div 
                       className={`
-                        w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300
+                        w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium transition-all duration-300
                         ${isCompleted 
-                          ? 'bg-green-500 text-white shadow-lg' 
+                          ? 'bg-green-500 text-white' 
                           : isCurrent 
-                          ? 'bg-blue-500 text-white shadow-lg' 
+                          ? 'bg-blue-500 text-white' 
                           : 'bg-gray-200 text-gray-500'
                         }
                       `}
                     >
-                      {isCompleted ? (
-                        <Check className="h-5 w-5" />
-                      ) : (
-                        <StepIcon className="h-5 w-5" />
-                      )}
+                      {step.id}
                     </div>
-                    <div className="text-center mt-2">
-                      <p className={`text-sm font-medium ${isCurrent ? 'text-blue-600' : 'text-gray-500'}`}>
-                        {step.name}
-                      </p>
-                    </div>
+                    <p className={`text-xs mt-1 ${isCurrent ? 'text-blue-600 font-medium' : 'text-gray-500'}`}>
+                      {step.name}
+                    </p>
                   </div>
                   
                   {index < steps.length - 1 && (
                     <div 
                       className={`
-                        flex-1 h-1 mx-4 rounded transition-all duration-300
+                        flex-1 h-0.5 mx-3 rounded transition-all duration-300
                         ${isCompleted ? 'bg-green-500' : 'bg-gray-200'}
                       `}
                     />
@@ -295,7 +287,7 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
             })}
           </div>
           
-          <Progress value={getProgress()} className="h-2" />
+          <Progress value={getProgress()} className="h-1" />
         </div>
 
         {/* Form Content */}
@@ -303,12 +295,12 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               {/* Step Card */}
-              <div className="bg-white rounded-xl shadow-sm border p-8 transition-all duration-300">
-                <div className="text-center mb-8">
-                  <h3 className="text-2xl font-semibold text-gray-900 mb-2">
+              <div className="bg-white rounded-xl shadow-sm border p-6 transition-all duration-300">
+                <div className="text-center mb-6">
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
                     {currentStepData.title}
                   </h3>
-                  <p className="text-gray-600">
+                  <p className="text-gray-600 text-sm">
                     {currentStepData.description}
                   </p>
                 </div>
@@ -333,7 +325,7 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
               </div>
 
               {/* Navigation */}
-              <div className="flex items-center justify-between pt-6 border-t bg-gray-50 -mx-6 px-6 -mb-6 pb-6">
+              <div className="flex items-center justify-between pt-4 border-t bg-gray-50 -mx-6 px-6 -mb-6 pb-4">
                 <div className="flex space-x-3">
                   {currentStep > 1 && (
                     <Button 
