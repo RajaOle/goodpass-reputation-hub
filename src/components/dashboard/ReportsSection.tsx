@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Report, ReportStatus } from '@/types/report';
@@ -29,7 +28,7 @@ const ReportsSection = () => {
         disbursementDate: '2024-01-15',
         dueDate: '2026-01-15',
         loanPurpose: 'home-improvement',
-        repaymentPlan: 'monthly',
+        repaymentPlan: 'installment',
         installmentCount: 24,
         applicationInterest: 0,
         applicationLateFee: 0,
@@ -63,7 +62,7 @@ const ReportsSection = () => {
         disbursementDate: '2024-01-10',
         dueDate: '2027-01-10',
         loanPurpose: 'business-expansion',
-        repaymentPlan: 'monthly',
+        repaymentPlan: 'installment',
         installmentCount: 36,
         applicationInterest: 0,
         applicationLateFee: 0,

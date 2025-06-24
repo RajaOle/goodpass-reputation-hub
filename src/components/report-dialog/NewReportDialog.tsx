@@ -31,7 +31,7 @@ const reportSchema = z.object({
     dueDate: z.string().optional(),
     loanPurpose: z.enum(['business-expansion', 'debt-consolidation', 'home-improvement', 'education', 'medical-expenses', 'wedding', 'travel', 'investment', 'emergency', 'other']),
     customLoanPurpose: z.string().optional(),
-    repaymentPlan: z.enum(['one-time', 'weekly', 'bi-weekly', 'monthly', 'quarterly', 'semi-annually', 'annually']),
+    repaymentPlan: z.enum(['single-payment', 'installment', 'open-payment']),
     installmentCount: z.number().optional(),
     applicationInterest: z.number().default(0),
     applicationLateFee: z.number().default(0),
@@ -48,13 +48,13 @@ const reportSchema = z.object({
     message: "Please provide a detailed description when selecting 'Other' as loan purpose (at least 10 characters)",
     path: ["customLoanPurpose"],
   }).refine((data) => {
-    // Require installment count for non-one-time repayment plans
-    if (data.repaymentPlan !== 'one-time') {
+    // Require installment count for installment repayment plan
+    if (data.repaymentPlan === 'installment') {
       return data.installmentCount && data.installmentCount > 0;
     }
     return true;
   }, {
-    message: "Number of installments is required for the selected repayment plan",
+    message: "Number of installments is required for installment repayment plan",
     path: ["installmentCount"],
   }).refine((data) => {
     // Require collateral description when collateral is not 'none'
@@ -134,7 +134,7 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
         dueDate: '',
         loanPurpose: 'business-expansion',
         customLoanPurpose: '',
-        repaymentPlan: 'monthly',
+        repaymentPlan: 'installment',
         installmentCount: undefined,
         applicationInterest: 0,
         applicationLateFee: 0,
