@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from '@/components/ui/badge';
-import { Plus, CreditCard, Eye } from 'lucide-react';
+import { Plus, Search, Eye } from 'lucide-react';
 import NewReportDialog from '../report-dialog/NewReportDialog';
 import ReportDetailsDialog from './ReportDetailsDialog';
 import { Report } from '@/types/report';
@@ -159,10 +159,10 @@ const MakeReportSection = () => {
           </Button>
 
           <Button variant="outline" className="h-16 justify-start">
-            <CreditCard className="h-5 w-5 mr-3" />
+            <Search className="h-5 w-5 mr-3" />
             <div className="text-left">
-              <div className="font-medium">Purchase Credits</div>
-              <div className="text-sm text-gray-600">Access premium features</div>
+              <div className="font-medium">Search Records</div>
+              <div className="text-sm text-gray-600">Find reports and reviews</div>
             </div>
           </Button>
         </div>
