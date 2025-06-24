@@ -1,8 +1,6 @@
-
 export interface LoanInformation {
   loanType: 'personal' | 'business' | 'mortgage' | 'auto' | 'student' | 'other';
   loanAmount: number;
-  interestRate: number;
   loanTerm: number;
   monthlyPayment: number;
   loanPurpose: string;
