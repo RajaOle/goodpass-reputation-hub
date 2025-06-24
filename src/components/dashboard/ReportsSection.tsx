@@ -288,9 +288,10 @@ const ReportsSection = () => {
                     </TableRow>
                   ))}
                 </TableBody>
-              </CardContent>
-            </Card>
-          </TabsContent>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         {(['draft', 'pending', 'verified', 'rejected'] as ReportStatus[]).map((status) => (
           <TabsContent key={status} value={status}>
