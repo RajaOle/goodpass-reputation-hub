@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,7 +45,8 @@ const ReportsSection = () => {
         loanAmount: 50000000,
         loanTerm: 24,
         monthlyPayment: 2500000,
-        loanPurpose: 'Home renovation and improvement'
+        loanPurpose: 'Home renovation and improvement',
+        paymentMethod: 'installments'
       },
       reporteeInformation: {
         fullName: 'John Doe',
@@ -67,7 +69,8 @@ const ReportsSection = () => {
         loanAmount: 100000000,
         loanTerm: 36,
         monthlyPayment: 3500000,
-        loanPurpose: 'Business expansion'
+        loanPurpose: 'Business expansion',
+        paymentMethod: 'installments'
       },
       reporteeInformation: {
         fullName: 'Jane Smith',
