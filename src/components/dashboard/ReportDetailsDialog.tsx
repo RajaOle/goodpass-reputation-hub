@@ -117,10 +117,6 @@ const ReportDetailsDialog: React.FC<ReportDetailsDialogProps> = ({
                 <span className="ml-2">{formatCurrency(report.loanInformation.loanAmount)}</span>
               </div>
               <div>
-                <span className="font-medium">Interest Rate:</span>
-                <span className="ml-2">{report.loanInformation.interestRate}%</span>
-              </div>
-              <div>
                 <span className="font-medium">Loan Term:</span>
                 <span className="ml-2">{report.loanInformation.loanTerm} months</span>
               </div>
