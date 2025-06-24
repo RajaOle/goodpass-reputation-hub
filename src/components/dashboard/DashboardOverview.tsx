@@ -1,11 +1,147 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, Users, TrendingUp, Plus, Search, CreditCard } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { FileText, Users, TrendingUp, Plus, Search, CreditCard, Eye } from 'lucide-react';
 import NewReportDialog from '../report-dialog/NewReportDialog';
+import ReportDetailsDialog from './ReportDetailsDialog';
+import { Report } from '@/types/report';
 
 const DashboardOverview = () => {
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+
+  // Mock recent reports data
+  const recentReports: Report[] = [
+    {
+      id: '1',
+      status: 'pending',
+      loanInformation: {
+        loanType: 'personal',
+        loanAmount: 50000000,
+        loanTerm: 24,
+        monthlyPayment: 2500000,
+        loanPurpose: 'Home renovation and improvement',
+        paymentMethod: 'installments'
+      },
+      reporteeInformation: {
+        fullName: 'John Doe',
+        phoneNumber: '+6281234567890',
+        email: 'john@example.com'
+      },
+      supportingDocuments: {
+        documents: [],
+        additionalNotes: 'All documents provided'
+      },
+      createdAt: '2024-01-20T10:00:00Z',
+      updatedAt: '2024-01-20T10:00:00Z',
+      submittedAt: '2024-01-20T10:00:00Z'
+    },
+    {
+      id: '2',
+      status: 'verified',
+      loanInformation: {
+        loanType: 'business',
+        loanAmount: 100000000,
+        loanTerm: 36,
+        monthlyPayment: 3500000,
+        loanPurpose: 'Business expansion',
+        paymentMethod: 'one-time'
+      },
+      reporteeInformation: {
+        fullName: 'Jane Smith',
+        phoneNumber: '+6281234567891',
+        email: 'jane@example.com'
+      },
+      supportingDocuments: {
+        documents: [],
+        additionalNotes: 'Business license attached'
+      },
+      createdAt: '2024-01-18T10:00:00Z',
+      updatedAt: '2024-01-18T10:00:00Z',
+      submittedAt: '2024-01-18T10:00:00Z'
+    }
+  ];
+
+  // Mock recent activities
+  const recentActivities = [
+    {
+      id: '1',
+      reportId: 'R001',
+      borrowerName: 'John Doe',
+      message: '✅ Report Submitted — Your loan report for John Doe is now under review',
+      timestamp: '2024-01-20T14:30:00Z',
+      type: 'report-submitted'
+    },
+    {
+      id: '2',
+      message: 'GP Score increased by 15 points',
+      timestamp: '2024-01-20T15:00:00Z',
+      type: 'score-update'
+    },
+    {
+      id: '3',
+      reportId: 'R002',
+      borrowerName: 'Jane Smith',
+      message: '✅ Report Submitted — Your loan report for Jane Smith is now under review',
+      timestamp: '2024-01-19T10:15:00Z',
+      type: 'report-submitted'
+    }
+  ];
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0
+    }).format(amount);
+  };
+
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      pending: { label: '🟡 Under Review', variant: 'secondary' as const },
+      verified: { label: '✅ Verified', variant: 'default' as const },
+      rejected: { label: '❌ Rejected', variant: 'destructive' as const },
+      'partially-verified': { label: '⚠️ Partially Verified', variant: 'secondary' as const }
+    };
+
+    return (
+      <Badge variant={statusConfig[status as keyof typeof statusConfig]?.variant || 'secondary'}>
+        {statusConfig[status as keyof typeof statusConfig]?.label || status}
+      </Badge>
+    );
+  };
+
+  const getTimeAgo = (timestamp: string) => {
+    const now = new Date();
+    const time = new Date(timestamp);
+    const diffInHours = Math.floor((now.getTime() - time.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays}d ago`;
+    
+    const diffInWeeks = Math.floor(diffInDays / 7);
+    return `${diffInWeeks}w ago`;
+  };
+
+  const handleViewReport = (report: Report) => {
+    setSelectedReport(report);
+    setIsDetailsOpen(true);
+  };
+
+  const handleActivityClick = (activity: any) => {
+    if (activity.type === 'report-submitted' && activity.reportId) {
+      const report = recentReports.find(r => r.id === activity.reportId.replace('R00', ''));
+      if (report) {
+        handleViewReport(report);
+      }
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -84,36 +220,60 @@ const DashboardOverview = () => {
         </div>
       </div>
 
+      {/* Recent Reports Section */}
+      <div>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Your Recent Reports</h2>
+        <Card>
+          <CardContent className="p-6">
+            <div className="space-y-4">
+              {recentReports.map((report) => (
+                <div key={report.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <h3 className="font-medium text-gray-900">{report.reporteeInformation.fullName}</h3>
+                      {getStatusBadge(report.status)}
+                    </div>
+                    <div className="flex items-center space-x-4 text-sm text-gray-600">
+                      <span>{formatCurrency(report.loanInformation.loanAmount)}</span>
+                      <span className="capitalize">{report.loanInformation.paymentMethod === 'installments' ? 'Installment' : 'One-Time'}</span>
+                      <span>{getTimeAgo(report.createdAt)}</span>
+                    </div>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleViewReport(report)}
+                    className="flex items-center space-x-1"
+                  >
+                    <Eye className="h-4 w-4" />
+                    <span>View Details</span>
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Recent Activity */}
       <div>
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Recent Activity</h2>
         <Card>
           <CardContent className="p-6">
             <div className="space-y-4">
-              <div className="flex items-start space-x-3">
-                <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-                <div>
-                  <p className="text-sm font-medium">Report submitted successfully</p>
-                  <p className="text-xs text-gray-600">Your review of "ABC Company" has been published</p>
-                  <p className="text-xs text-gray-500">2 hours ago</p>
+              {recentActivities.map((activity) => (
+                <div 
+                  key={activity.id} 
+                  className={`flex items-start space-x-3 ${activity.type === 'report-submitted' ? 'cursor-pointer hover:bg-gray-50 p-2 rounded-lg -m-2' : ''}`}
+                  onClick={() => handleActivityClick(activity)}
+                >
+                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">{activity.message}</p>
+                    <p className="text-xs text-gray-500">{getTimeAgo(activity.timestamp)}</p>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-start space-x-3">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                <div>
-                  <p className="text-sm font-medium">GP Score increased</p>
-                  <p className="text-xs text-gray-600">Your score improved by 15 points</p>
-                  <p className="text-xs text-gray-500">1 day ago</p>
-                </div>
-              </div>
-              <div className="flex items-start space-x-3">
-                <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
-                <div>
-                  <p className="text-sm font-medium">Profile completed</p>
-                  <p className="text-xs text-gray-600">Welcome to Goodpass!</p>
-                  <p className="text-xs text-gray-500">3 days ago</p>
-                </div>
-              </div>
+              ))}
             </div>
           </CardContent>
         </Card>
@@ -123,6 +283,14 @@ const DashboardOverview = () => {
         open={isReportDialogOpen} 
         onOpenChange={setIsReportDialogOpen} 
       />
+
+      {selectedReport && (
+        <ReportDetailsDialog
+          open={isDetailsOpen}
+          onOpenChange={setIsDetailsOpen}
+          report={selectedReport}
+        />
+      )}
     </div>
   );
 };
