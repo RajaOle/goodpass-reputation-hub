@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Control, useWatch } from 'react-hook-form';
 import { format } from 'date-fns';
@@ -93,6 +92,7 @@ const LoanInformationForm: React.FC<LoanInformationFormProps> = ({ control }) =>
 
         {/* Loan Amount and Type */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Loan Amount */}
           <FormField
             control={control}
             name="loanInformation.loanAmount"
@@ -123,6 +123,7 @@ const LoanInformationForm: React.FC<LoanInformationFormProps> = ({ control }) =>
             )}
           />
 
+          {/* Loan Type */}
           <FormField
             control={control}
             name="loanInformation.loanType"
@@ -208,99 +209,13 @@ const LoanInformationForm: React.FC<LoanInformationFormProps> = ({ control }) =>
           />
         )}
 
-        {/* Date Information */}
+        {/* Due Date Section (Agreement and Disbursement dates are now shown in header) */}
         <div className="space-y-6">
           <h3 className="font-medium text-gray-900 flex items-center space-x-2">
             <CalendarIcon className="h-4 w-4 text-blue-600" />
-            <span>Loan Timeline Information</span>
+            <span>Loan Due Date</span>
           </h3>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Agreement Date */}
-            <FormField
-              control={control}
-              name="loanInformation.agreementDate"
-              render={({ field }) => (
-                <FormItem className="space-y-3">
-                  <FormLabel className="text-base font-medium text-gray-900">
-                    Agreement Date <span className="text-red-500">*</span>
-                  </FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "h-12 w-full text-base border-2 border-gray-200 focus:border-blue-500 transition-colors justify-start text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {field.value ? format(new Date(field.value), "PPP") : "Select agreement date"}
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value ? new Date(field.value) : undefined}
-                        onSelect={(date) => field.onChange(date?.toISOString().split('T')[0])}
-                        initialFocus
-                        className="pointer-events-auto"
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormDescription className="text-gray-500">
-                    Date when the loan agreement was signed
-                  </FormDescription>
-                  <FormMessage className="text-red-500" />
-                </FormItem>
-              )}
-            />
-
-            {/* Disbursement Date */}
-            <FormField
-              control={control}
-              name="loanInformation.disbursementDate"
-              render={({ field }) => (
-                <FormItem className="space-y-3">
-                  <FormLabel className="text-base font-medium text-gray-900">
-                    Disbursement Date <span className="text-red-500">*</span>
-                  </FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "h-12 w-full text-base border-2 border-gray-200 focus:border-blue-500 transition-colors justify-start text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {field.value ? format(new Date(field.value), "PPP") : "Select disbursement date"}
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value ? new Date(field.value) : undefined}
-                        onSelect={(date) => field.onChange(date?.toISOString().split('T')[0])}
-                        initialFocus
-                        className="pointer-events-auto"
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormDescription className="text-gray-500">
-                    Date when the loan funds were disbursed
-                  </FormDescription>
-                  <FormMessage className="text-red-500" />
-                </FormItem>
-              )}
-            />
-          </div>
-
           {/* Due Date with Optional Checkbox */}
           <FormField
             control={control}

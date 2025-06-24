@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { format } from 'date-fns';
 import {
   Dialog,
   DialogContent,
@@ -19,7 +20,7 @@ import { useReports } from '@/contexts/ReportsContext';
 import LoanInformationForm from './LoanInformationForm';
 import ReporteeInformationForm from './ReporteeInformationForm';
 import SupportingDocumentsForm from './SupportingDocumentsForm';
-import { DollarSign, User, FileText } from 'lucide-react';
+import { DollarSign, User, FileText, Calendar } from 'lucide-react';
 
 const reportSchema = z.object({
   loanInformation: z.object({
@@ -121,6 +122,9 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
   const { toast } = useToast();
   const { addReport } = useReports();
 
+  // Get today's date in ISO format
+  const todayISOString = new Date().toISOString().split('T')[0];
+
   const form = useForm<ReportFormData>({
     resolver: zodResolver(reportSchema),
     mode: 'onChange',
@@ -129,8 +133,8 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
         loanName: '',
         loanType: 'personal',
         loanAmount: 0,
-        agreementDate: '',
-        disbursementDate: '',
+        agreementDate: todayISOString,
+        disbursementDate: todayISOString,
         dueDate: '',
         loanPurpose: 'business-expansion',
         customLoanPurpose: '',
@@ -270,14 +274,38 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
       <DialogContent className="max-w-4xl max-h-[95vh] overflow-hidden p-0">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-3 border-b">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-semibold text-gray-900">
-              Create New Report
-            </DialogTitle>
-            <DialogDescription className="text-gray-600 text-sm mt-1">
-              Follow the steps below to create a comprehensive loan report
-            </DialogDescription>
-          </DialogHeader>
+          <div className="flex justify-between items-start">
+            <DialogHeader className="flex-1">
+              <DialogTitle className="text-lg font-semibold text-gray-900">
+                Create New Report
+              </DialogTitle>
+              <DialogDescription className="text-gray-600 text-sm mt-1">
+                Follow the steps below to create a comprehensive loan report
+              </DialogDescription>
+            </DialogHeader>
+            
+            {/* Timestamp Information */}
+            <div className="bg-white/80 rounded-lg p-3 ml-4 min-w-[200px]">
+              <div className="flex items-center space-x-2 mb-2">
+                <Calendar className="h-4 w-4 text-blue-600" />
+                <span className="text-sm font-medium text-gray-700">Report Information</span>
+              </div>
+              <div className="space-y-1 text-xs text-gray-600">
+                <div className="flex justify-between">
+                  <span>Report Date:</span>
+                  <span className="font-medium">{format(new Date(), 'MMM dd, yyyy')}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Agreement Date:</span>
+                  <span className="font-medium">{format(new Date(), 'MMM dd, yyyy')}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Disbursement Date:</span>
+                  <span className="font-medium">{format(new Date(), 'MMM dd, yyyy')}</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Simplified Progress Indicator */}
