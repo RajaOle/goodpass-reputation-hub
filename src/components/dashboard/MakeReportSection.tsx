@@ -1,99 +1,253 @@
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState } from 'react';
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PenTool, FileText, Star, AlertCircle } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Search, CreditCard, Eye } from 'lucide-react';
+import NewReportDialog from '../report-dialog/NewReportDialog';
+import ReportDetailsDialog from './ReportDetailsDialog';
+import { Report } from '@/types/report';
 
 const MakeReportSection = () => {
-  const reportTypes = [
+  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+
+  // Mock reports data - same as dashboard
+  const recentReports: Report[] = [
     {
-      title: "Business Review",
-      description: "Share your experience with a company or service",
-      icon: Star,
-      color: "bg-yellow-100 text-yellow-600"
+      id: '1',
+      status: 'pending',
+      loanInformation: {
+        loanType: 'personal',
+        loanAmount: 50000000,
+        loanTerm: 24,
+        monthlyPayment: 2500000,
+        loanPurpose: 'Home renovation and improvement',
+        paymentMethod: 'installments'
+      },
+      reporteeInformation: {
+        fullName: 'John Doe',
+        phoneNumber: '+6281234567890',
+        email: 'john@example.com'
+      },
+      supportingDocuments: {
+        documents: [],
+        additionalNotes: 'All documents provided'
+      },
+      createdAt: '2024-01-20T10:00:00Z',
+      updatedAt: '2024-01-20T10:00:00Z',
+      submittedAt: '2024-01-20T10:00:00Z'
     },
     {
-      title: "Issue Report",
-      description: "Report problems or concerns about a business",
-      icon: AlertCircle,
-      color: "bg-red-100 text-red-600"
-    },
-    {
-      title: "General Feedback",
-      description: "Provide feedback or suggestions",
-      icon: FileText,
-      color: "bg-blue-100 text-blue-600"
+      id: '2',
+      status: 'verified',
+      loanInformation: {
+        loanType: 'business',
+        loanAmount: 100000000,
+        loanTerm: 36,
+        monthlyPayment: 3500000,
+        loanPurpose: 'Business expansion',
+        paymentMethod: 'one-time'
+      },
+      reporteeInformation: {
+        fullName: 'Jane Smith',
+        phoneNumber: '+6281234567891',
+        email: 'jane@example.com'
+      },
+      supportingDocuments: {
+        documents: [],
+        additionalNotes: 'Business license attached'
+      },
+      createdAt: '2024-01-18T10:00:00Z',
+      updatedAt: '2024-01-18T10:00:00Z',
+      submittedAt: '2024-01-18T10:00:00Z'
     }
   ];
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0
+    }).format(amount);
+  };
+
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      pending: { label: '🟡 Under Review', variant: 'secondary' as const },
+      verified: { label: '✅ Verified', variant: 'default' as const },
+      rejected: { label: '❌ Rejected', variant: 'destructive' as const },
+      'partially-verified': { label: '⚠️ Partially Verified', variant: 'secondary' as const }
+    };
+
+    return (
+      <Badge variant={statusConfig[status as keyof typeof statusConfig]?.variant || 'secondary'}>
+        {statusConfig[status as keyof typeof statusConfig]?.label || status}
+      </Badge>
+    );
+  };
+
+  const getTimeAgo = (timestamp: string) => {
+    const now = new Date();
+    const time = new Date(timestamp);
+    const diffInHours = Math.floor((now.getTime() - time.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    
+    const diffInDays = Math.floor(diffInHours / 24);
+    if (diffInDays < 7) return `${diffInDays}d ago`;
+    
+    const diffInWeeks = Math.floor(diffInDays / 7);
+    return `${diffInWeeks}w ago`;
+  };
+
+  const handleViewReport = (report: Report) => {
+    setSelectedReport(report);
+    setIsDetailsOpen(true);
+  };
+
+  const recentActivities = [
+    {
+      id: '1',
+      reportId: 'R001',
+      borrowerName: 'John Doe',
+      message: '✅ Report Submitted — Your loan report for John Doe is now under review',
+      timestamp: '2024-01-20T14:30:00Z',
+      type: 'report-submitted'
+    },
+    {
+      id: '2',
+      message: 'GP Score increased by 15 points',
+      timestamp: '2024-01-20T15:00:00Z',
+      type: 'score-update'
+    },
+    {
+      id: '3',
+      reportId: 'R002',
+      borrowerName: 'Jane Smith',
+      message: '✅ Report Submitted — Your loan report for Jane Smith is now under review',
+      timestamp: '2024-01-19T10:15:00Z',
+      type: 'report-submitted'
+    }
+  ];
+
+  const handleActivityClick = (activity: any) => {
+    if (activity.type === 'report-submitted' && activity.reportId) {
+      const report = recentReports.find(r => r.id === activity.reportId.replace('R00', ''));
+      if (report) {
+        handleViewReport(report);
+      }
+    }
+  };
+
   return (
     <div className="space-y-8">
+      {/* Quick Actions */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Make a Report</h1>
-        <p className="text-gray-600">Share your experiences to help build a more transparent community.</p>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Button 
+            className="h-16 bg-blue-600 hover:bg-blue-700 text-white justify-start"
+            onClick={() => setIsReportDialogOpen(true)}
+          >
+            <Plus className="h-5 w-5 mr-3" />
+            <div className="text-left">
+              <div className="font-medium">Write New Report</div>
+              <div className="text-sm opacity-90">Share your experience</div>
+            </div>
+          </Button>
+
+          <Button variant="outline" className="h-16 justify-start">
+            <Search className="h-5 w-5 mr-3" />
+            <div className="text-left">
+              <div className="font-medium">Search Records</div>
+              <div className="text-sm text-gray-600">Find reports and reviews</div>
+            </div>
+          </Button>
+
+          <Button variant="outline" className="h-16 justify-start">
+            <CreditCard className="h-5 w-5 mr-3" />
+            <div className="text-left">
+              <div className="font-medium">Purchase Credits</div>
+              <div className="text-sm text-gray-600">Access premium features</div>
+            </div>
+          </Button>
+        </div>
       </div>
 
-      {/* Report Types */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {reportTypes.map((type, index) => {
-          const Icon = type.icon;
-          return (
-            <Card key={index} className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardHeader>
-                <div className={`w-12 h-12 rounded-lg ${type.color} flex items-center justify-center mb-4`}>
-                  <Icon className="h-6 w-6" />
-                </div>
-                <CardTitle className="text-lg">{type.title}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 mb-4">{type.description}</p>
-                <Link to="/make-report">
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                    Start Report
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-
-      {/* Recent Reports */}
+      {/* Your Recent Reports */}
       <div>
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Your Recent Reports</h2>
         <Card>
           <CardContent className="p-6">
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <PenTool className="h-5 w-5 text-blue-600" />
-                  <div>
-                    <p className="font-medium">ABC Company Review</p>
-                    <p className="text-sm text-gray-600">Submitted 2 hours ago</p>
+              {recentReports.map((report) => (
+                <div key={report.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <h3 className="font-medium text-gray-900">{report.reporteeInformation.fullName}</h3>
+                      {getStatusBadge(report.status)}
+                    </div>
+                    <div className="flex items-center space-x-4 text-sm text-gray-600">
+                      <span>{formatCurrency(report.loanInformation.loanAmount)}</span>
+                      <span className="capitalize">{report.loanInformation.paymentMethod === 'installments' ? 'Installment' : 'One-Time'}</span>
+                      <span>{getTimeAgo(report.createdAt)}</span>
+                    </div>
                   </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleViewReport(report)}
+                    className="flex items-center space-x-1"
+                  >
+                    <Eye className="h-4 w-4" />
+                    <span>View Details</span>
+                  </Button>
                 </div>
-                <span className="px-3 py-1 bg-green-100 text-green-800 text-sm rounded-full">
-                  Published
-                </span>
-              </div>
-              
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <PenTool className="h-5 w-5 text-blue-600" />
-                  <div>
-                    <p className="font-medium">XYZ Service Feedback</p>
-                    <p className="text-sm text-gray-600">Submitted 1 day ago</p>
-                  </div>
-                </div>
-                <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-sm rounded-full">
-                  Under Review
-                </span>
-              </div>
+              ))}
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Recent Activity */}
+      <div>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Recent Activity</h2>
+        <Card>
+          <CardContent className="p-6">
+            <div className="space-y-4">
+              {recentActivities.map((activity) => (
+                <div 
+                  key={activity.id} 
+                  className={`flex items-start space-x-3 ${activity.type === 'report-submitted' ? 'cursor-pointer hover:bg-gray-50 p-2 rounded-lg -m-2' : ''}`}
+                  onClick={() => handleActivityClick(activity)}
+                >
+                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">{activity.message}</p>
+                    <p className="text-xs text-gray-500">{getTimeAgo(activity.timestamp)}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <NewReportDialog 
+        open={isReportDialogOpen} 
+        onOpenChange={setIsReportDialogOpen} 
+      />
+
+      {selectedReport && (
+        <ReportDetailsDialog
+          open={isDetailsOpen}
+          onOpenChange={setIsDetailsOpen}
+          report={selectedReport}
+        />
+      )}
     </div>
   );
 };
