@@ -107,19 +107,19 @@ const MakeReportSection = () => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 lg:space-y-8">
       {/* Quick Actions */}
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
-        <div className="flex">
+        <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Quick Actions</h2>
+        <div className="flex justify-start">
           <Button 
-            className="bg-blue-600 hover:bg-blue-700 text-white justify-start h-16 w-auto"
+            className="bg-blue-600 hover:bg-blue-700 text-white justify-start h-14 sm:h-16 w-auto px-4 sm:px-6"
             onClick={() => setIsReportDialogOpen(true)}
           >
-            <Plus className="h-5 w-5 mr-3" />
+            <Plus className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3 flex-shrink-0" />
             <div className="text-left">
-              <div className="font-medium">Write New Report</div>
-              <div className="text-sm opacity-90">Share your experience</div>
+              <div className="font-medium text-sm sm:text-base">Write New Report</div>
+              <div className="text-xs sm:text-sm opacity-90">Share your experience</div>
             </div>
           </Button>
         </div>
@@ -127,49 +127,49 @@ const MakeReportSection = () => {
 
       {/* Your Recent Reports */}
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Your Recent Reports</h2>
+        <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Your Recent Reports</h2>
         <Card>
-          <CardContent className="p-6">
-            <div className="space-y-4">
+          <CardContent className="p-4 sm:p-6">
+            <div className="space-y-3 sm:space-y-4">
               {reports.map((report) => (
-                <div key={report.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <h3 className="font-medium text-gray-900">{report.reporteeInformation.fullName}</h3>
+                <div key={report.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg space-y-3 sm:space-y-0">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 mb-2">
+                      <h3 className="font-medium text-gray-900 text-sm sm:text-base truncate">{report.reporteeInformation.fullName}</h3>
                       {getStatusBadge(report.status)}
                     </div>
-                    <div className="flex items-center space-x-4 text-sm text-gray-600">
-                      <span>{formatCurrency(report.loanInformation.loanAmount)}</span>
+                    <div className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-4 text-xs sm:text-sm text-gray-600">
+                      <span className="font-medium">{formatCurrency(report.loanInformation.loanAmount)}</span>
                       <span className="capitalize">{report.loanInformation.paymentMethod === 'installments' ? 'Installment' : 'One-Time'}</span>
                       <span>{getTimeAgo(report.createdAt)}</span>
                     </div>
                   </div>
-                  <div className="flex space-x-2">
+                  <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
                     <Button 
                       variant="outline" 
                       size="sm"
                       onClick={() => handleProcessReport(report)}
-                      className="flex items-center space-x-1"
+                      className="flex items-center justify-center space-x-1 text-xs sm:text-sm w-full sm:w-auto"
                     >
-                      <Edit className="h-4 w-4" />
+                      <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
                       <span>Process</span>
                     </Button>
                     <Button 
                       variant="outline" 
                       size="sm"
                       onClick={() => handleRestructure(report)}
-                      className="flex items-center space-x-1"
+                      className="flex items-center justify-center space-x-1 text-xs sm:text-sm w-full sm:w-auto"
                     >
-                      <RefreshCw className="h-4 w-4" />
+                      <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4" />
                       <span>Restructure</span>
                     </Button>
                     <Button 
                       variant="outline" 
                       size="sm"
                       onClick={() => handleProcessPayment(report)}
-                      className="flex items-center space-x-1"
+                      className="flex items-center justify-center space-x-1 text-xs sm:text-sm w-full sm:w-auto"
                     >
-                      <CreditCard className="h-4 w-4" />
+                      <CreditCard className="h-3 w-3 sm:h-4 sm:w-4" />
                       <span>Payment</span>
                     </Button>
                   </div>
@@ -182,19 +182,19 @@ const MakeReportSection = () => {
 
       {/* Recent Activity */}
       <div>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Recent Activity</h2>
+        <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-3 sm:mb-4">Recent Activity</h2>
         <Card>
-          <CardContent className="p-6">
-            <div className="space-y-4">
+          <CardContent className="p-4 sm:p-6">
+            <div className="space-y-3 sm:space-y-4">
               {recentActivities.map((activity) => (
                 <div 
                   key={activity.id} 
                   className={`flex items-start space-x-3 ${activity.type === 'report-submitted' ? 'cursor-pointer hover:bg-gray-50 p-2 rounded-lg -m-2' : ''}`}
                   onClick={() => handleActivityClick(activity)}
                 >
-                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">{activity.message}</p>
+                  <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs sm:text-sm font-medium break-words">{activity.message}</p>
                     <p className="text-xs text-gray-500">{getTimeAgo(activity.timestamp)}</p>
                   </div>
                 </div>
