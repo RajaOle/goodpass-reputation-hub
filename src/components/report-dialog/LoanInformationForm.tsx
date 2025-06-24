@@ -11,9 +11,10 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Info, DollarSign } from 'lucide-react';
+import { Info, DollarSign, CreditCard, Calendar } from 'lucide-react';
 import { ReportFormData } from '@/types/report';
 
 interface LoanInformationFormProps {
@@ -81,7 +82,7 @@ const LoanInformationForm: React.FC<LoanInformationFormProps> = ({ control }) =>
                   <div className="relative">
                     <Input
                       type="text"
-                      placeholder="$0"
+                      placeholder="Enter loan amount"
                       className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 transition-colors pl-8"
                       value={field.value ? formatCurrency(field.value) : ''}
                       onChange={(e) => {
@@ -113,9 +114,9 @@ const LoanInformationForm: React.FC<LoanInformationFormProps> = ({ control }) =>
                   <Input
                     type="number"
                     min="1"
-                    placeholder="24"
+                    placeholder="Enter loan term in months"
                     className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 transition-colors"
-                    {...field}
+                    value={field.value || ''}
                     onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                   />
                 </FormControl>
@@ -127,6 +128,83 @@ const LoanInformationForm: React.FC<LoanInformationFormProps> = ({ control }) =>
             )}
           />
         </div>
+
+        <FormField
+          control={control}
+          name="loanInformation.paymentMethod"
+          render={({ field }) => (
+            <FormItem className="space-y-3">
+              <FormLabel className="text-base font-medium text-gray-900 flex items-center space-x-2">
+                <CreditCard className="h-4 w-4 text-blue-600" />
+                <span>Payment Method</span>
+                <span className="text-red-500">*</span>
+              </FormLabel>
+              <FormControl>
+                <RadioGroup
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  className="flex flex-col space-y-2"
+                >
+                  <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50">
+                    <RadioGroupItem value="one-time" id="one-time" />
+                    <label htmlFor="one-time" className="flex items-center space-x-2 cursor-pointer">
+                      <span>🧾</span>
+                      <span>One-time payment</span>
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50">
+                    <RadioGroupItem value="installments" id="installments" />
+                    <label htmlFor="installments" className="flex items-center space-x-2 cursor-pointer">
+                      <span>📆</span>
+                      <span>Installments</span>
+                    </label>
+                  </div>
+                </RadioGroup>
+              </FormControl>
+              <FormMessage className="text-red-500" />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={control}
+          name="loanInformation.installmentCount"
+          render={({ field }) => (
+            <FormItem className="space-y-3">
+              <FormLabel className="text-base font-medium text-gray-900 flex items-center space-x-2">
+                <Calendar className="h-4 w-4 text-purple-600" />
+                <span>Number of Installments</span>
+                {control._formValues?.loanInformation?.paymentMethod === 'installments' && (
+                  <span className="text-red-500">*</span>
+                )}
+              </FormLabel>
+              <Select 
+                onValueChange={(value) => field.onChange(parseInt(value))} 
+                defaultValue={field.value?.toString()}
+                disabled={control._formValues?.loanInformation?.paymentMethod !== 'installments'}
+              >
+                <FormControl>
+                  <SelectTrigger className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 transition-colors">
+                    <SelectValue placeholder="Select number of payments" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="2">2 payments</SelectItem>
+                  <SelectItem value="3">3 payments</SelectItem>
+                  <SelectItem value="4">4 payments</SelectItem>
+                  <SelectItem value="6">6 payments</SelectItem>
+                  <SelectItem value="12">12 payments</SelectItem>
+                  <SelectItem value="24">24 payments</SelectItem>
+                  <SelectItem value="36">36 payments</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormDescription className="text-gray-500">
+                Only required for installment payments
+              </FormDescription>
+              <FormMessage className="text-red-500" />
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={control}
@@ -142,7 +220,7 @@ const LoanInformationForm: React.FC<LoanInformationFormProps> = ({ control }) =>
                 <div className="relative">
                   <Input
                     type="text"
-                    placeholder="$0"
+                    placeholder="Enter monthly payment amount"
                     className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 transition-colors pl-8"
                     value={field.value ? formatCurrency(field.value) : ''}
                     onChange={(e) => {

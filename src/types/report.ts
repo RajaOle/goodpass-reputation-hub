@@ -5,6 +5,8 @@ export interface LoanInformation {
   monthlyPayment: number;
   loanPurpose: string;
   collateral?: string;
+  paymentMethod: 'one-time' | 'installments';
+  installmentCount?: number;
 }
 
 export interface ReporteeInformation {

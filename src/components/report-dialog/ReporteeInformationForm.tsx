@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Plus, X, User, Phone, Mail, IdCard, Globe } from 'lucide-react';
 import { ReportFormData } from '@/types/report';
+import CountryCodeSelector from '@/components/CountryCodeSelector';
 
 interface ReporteeInformationFormProps {
   control: Control<ReportFormData>;
@@ -20,6 +21,7 @@ interface ReporteeInformationFormProps {
 
 const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({ control }) => {
   const [socialLinks, setSocialLinks] = React.useState<string[]>(['']);
+  const [countryCode, setCountryCode] = React.useState('+62');
 
   const addSocialLink = () => {
     setSocialLinks([...socialLinks, '']);
@@ -70,12 +72,23 @@ const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({ contr
               <span className="text-red-500">*</span>
             </FormLabel>
             <FormControl>
-              <Input
-                type="tel"
-                placeholder="+1 (555) 123-4567"
-                className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 transition-colors"
-                {...field}
-              />
+              <div className="flex">
+                <CountryCodeSelector
+                  value={countryCode}
+                  onChange={setCountryCode}
+                />
+                <Input
+                  type="tel"
+                  placeholder="Enter phone number"
+                  className="h-12 text-base border-2 border-l-0 border-gray-200 focus:border-blue-500 transition-colors rounded-l-none"
+                  value={field.value?.replace(/^\+\d+\s?/, '') || ''}
+                  onChange={(e) => {
+                    const phoneWithoutCode = e.target.value;
+                    const fullPhone = `${countryCode} ${phoneWithoutCode}`;
+                    field.onChange(fullPhone);
+                  }}
+                />
+              </div>
             </FormControl>
             <FormDescription className="text-gray-500 bg-blue-50 p-3 rounded-lg border border-blue-200">
               📱 <strong>Important:</strong> Phone numbers must be unique in our system for accurate credit tracking

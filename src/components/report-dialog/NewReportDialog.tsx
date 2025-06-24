@@ -28,6 +28,16 @@ const reportSchema = z.object({
     monthlyPayment: z.number().min(0, 'Monthly payment cannot be negative'),
     loanPurpose: z.string().min(10, 'Please provide a detailed loan purpose (at least 10 characters)'),
     collateral: z.string().optional(),
+    paymentMethod: z.enum(['one-time', 'installments']),
+    installmentCount: z.number().optional(),
+  }).refine((data) => {
+    if (data.paymentMethod === 'installments') {
+      return data.installmentCount && data.installmentCount > 1;
+    }
+    return true;
+  }, {
+    message: "Number of installments is required when payment method is installments",
+    path: ["installmentCount"],
   }),
   reporteeInformation: z.object({
     fullName: z.string().min(2, 'Full name must be at least 2 characters'),
@@ -62,6 +72,7 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
   reportId 
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<ReportFormData>({
@@ -75,6 +86,8 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
         monthlyPayment: 0,
         loanPurpose: '',
         collateral: '',
+        paymentMethod: 'one-time',
+        installmentCount: undefined,
       },
       reporteeInformation: {
         fullName: '',
@@ -95,14 +108,28 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
   };
 
   const onSubmit = async (data: ReportFormData) => {
+    if (isSubmitting) return; // Prevent duplicate submissions
+    
+    setIsSubmitting(true);
     try {
       console.log('Submitting report:', data);
       
       await new Promise(resolve => setTimeout(resolve, 2000));
       
+      // Log activity to Recent Activity Feed
+      const activityLog = {
+        id: Date.now().toString(),
+        reportId: `R${Date.now()}`,
+        action: `✅ Report Submitted — Your review of ${data.reporteeInformation.fullName} has been published`,
+        timestamp: new Date().toISOString(),
+        details: `${data.loanInformation.loanType} loan report submitted successfully`
+      };
+      
+      console.log('Activity logged:', activityLog);
+      
       toast({
         title: "🎉 Report Submitted Successfully!",
-        description: "Your loan report is now pending review. We'll notify you once it's processed.",
+        description: `Your loan report for ${data.reporteeInformation.fullName} is now pending review. We'll notify you once it's processed.`,
       });
       
       form.reset();
@@ -114,6 +141,8 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
         description: "Something went wrong. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -150,7 +179,9 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
     }
   };
 
-  const handleNext = async () => {
+  const handleNext = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault(); // Prevent form submission
+    
     const fieldsToValidate = getFieldsForStep(currentStep);
     const isValid = await form.trigger(fieldsToValidate);
     
@@ -159,7 +190,9 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
     }
   };
 
-  const handlePrevious = () => {
+  const handlePrevious = (e?: React.FormEvent) => {
+    if (e) e.preventDefault(); // Prevent form submission
+    
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }
@@ -306,6 +339,7 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
                     variant="outline" 
                     onClick={saveDraft}
                     className="flex items-center space-x-2"
+                    disabled={isSubmitting}
                   >
                     <span>💾</span>
                     <span>Save Draft</span>
@@ -315,8 +349,9 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
                     <Button 
                       type="button" 
                       variant="outline" 
-                      onClick={handlePrevious}
+                      onClick={(e) => handlePrevious(e)}
                       className="flex items-center space-x-2"
+                      disabled={isSubmitting}
                     >
                       <ChevronLeft className="h-4 w-4" />
                       <span>Previous</span>
@@ -329,6 +364,7 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
                     type="button" 
                     variant="outline" 
                     onClick={() => onOpenChange(false)}
+                    disabled={isSubmitting}
                   >
                     Cancel
                   </Button>
@@ -336,8 +372,8 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
                   {currentStep < steps.length ? (
                     <Button 
                       type="button" 
-                      onClick={handleNext}
-                      disabled={!isCurrentStepValid()}
+                      onClick={(e) => handleNext(e)}
+                      disabled={!isCurrentStepValid() || isSubmitting}
                       className="bg-blue-600 hover:bg-blue-700 flex items-center space-x-2"
                     >
                       <span>Next Step</span>
@@ -346,11 +382,11 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
                   ) : (
                     <Button 
                       type="submit" 
-                      disabled={!form.formState.isValid}
+                      disabled={!form.formState.isValid || isSubmitting}
                       className="bg-green-600 hover:bg-green-700 flex items-center space-x-2"
                     >
                       <span>✨</span>
-                      <span>Submit Report</span>
+                      <span>{isSubmitting ? 'Submitting...' : 'Submit Report'}</span>
                     </Button>
                   )}
                 </div>
