@@ -1,11 +1,12 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from '@/components/ui/badge';
-import { FileText, Users, TrendingUp, Plus, Search, CreditCard, Eye } from 'lucide-react';
+import { FileText, Users, TrendingUp, Plus, Search, CreditCard, Edit, RefreshCw } from 'lucide-react';
 import NewReportDialog from '../report-dialog/NewReportDialog';
 import ReportDetailsDialog from './ReportDetailsDialog';
+import PaymentDialog from './PaymentDialog';
+import RestructureDialog from './RestructureDialog';
 import { Report } from '@/types/report';
 import { useReports } from '@/contexts/ReportsContext';
 
@@ -13,6 +14,8 @@ const DashboardOverview = () => {
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [isRestructureOpen, setIsRestructureOpen] = useState(false);
   const { reports } = useReports();
 
   // Mock recent activities
@@ -79,16 +82,26 @@ const DashboardOverview = () => {
     return `${diffInWeeks}w ago`;
   };
 
-  const handleViewReport = (report: Report) => {
+  const handleProcessReport = (report: Report) => {
     setSelectedReport(report);
     setIsDetailsOpen(true);
+  };
+
+  const handleRestructure = (report: Report) => {
+    setSelectedReport(report);
+    setIsRestructureOpen(true);
+  };
+
+  const handleProcessPayment = (report: Report) => {
+    setSelectedReport(report);
+    setIsPaymentOpen(true);
   };
 
   const handleActivityClick = (activity: any) => {
     if (activity.type === 'report-submitted' && activity.reportId) {
       const report = reports.find(r => r.id === activity.reportId.replace('R00', ''));
       if (report) {
-        handleViewReport(report);
+        handleProcessReport(report);
       }
     }
   };
@@ -189,15 +202,35 @@ const DashboardOverview = () => {
                       <span>{getTimeAgo(report.createdAt)}</span>
                     </div>
                   </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleViewReport(report)}
-                    className="flex items-center space-x-1"
-                  >
-                    <Eye className="h-4 w-4" />
-                    <span>View Details</span>
-                  </Button>
+                  <div className="flex space-x-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleProcessReport(report)}
+                      className="flex items-center space-x-1"
+                    >
+                      <Edit className="h-4 w-4" />
+                      <span>Process</span>
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleRestructure(report)}
+                      className="flex items-center space-x-1"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                      <span>Restructure</span>
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleProcessPayment(report)}
+                      className="flex items-center space-x-1"
+                    >
+                      <CreditCard className="h-4 w-4" />
+                      <span>Payment</span>
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -235,11 +268,23 @@ const DashboardOverview = () => {
       />
 
       {selectedReport && (
-        <ReportDetailsDialog
-          open={isDetailsOpen}
-          onOpenChange={setIsDetailsOpen}
-          report={selectedReport}
-        />
+        <>
+          <ReportDetailsDialog
+            open={isDetailsOpen}
+            onOpenChange={setIsDetailsOpen}
+            report={selectedReport}
+          />
+          <PaymentDialog
+            open={isPaymentOpen}
+            onOpenChange={setIsPaymentOpen}
+            report={selectedReport}
+          />
+          <RestructureDialog
+            open={isRestructureOpen}
+            onOpenChange={setIsRestructureOpen}
+            report={selectedReport}
+          />
+        </>
       )}
     </div>
   );
