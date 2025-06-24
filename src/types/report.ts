@@ -1,3 +1,4 @@
+
 export interface LoanInformation {
   loanType: 'personal' | 'business' | 'mortgage' | 'auto' | 'student' | 'other';
   loanAmount: number;
@@ -5,7 +6,7 @@ export interface LoanInformation {
   monthlyPayment: number;
   loanPurpose: string;
   collateral?: string;
-  paymentMethod: 'one-time' | 'installments';
+  paymentMethod: 'one-time' | 'installments' | 'open-payment';
   installmentCount?: number;
 }
 
@@ -24,17 +25,28 @@ export interface SupportingDocuments {
 
 export type ReportStatus = 'draft' | 'pending' | 'verified' | 'rejected' | 'partially-verified';
 
-export type PaymentMethod = 'full' | 'installment';
+export type PaymentMethod = 'full' | 'installment' | 'open-payment';
+
+export interface OpenPayment {
+  id: string;
+  amount: number;
+  date: string;
+  notes?: string;
+  runningBalance: number;
+}
 
 export interface PaymentInfo {
   method: PaymentMethod;
-  status: 'lunas' | 'belum-lunas';
+  status: 'paid' | 'unpaid';
   installments?: {
     number: number;
     amount: number;
     dueDate: string;
-    status: 'lunas' | 'belum-lunas';
+    status: 'paid' | 'unpaid';
   }[];
+  openPayments?: OpenPayment[];
+  totalPaid?: number;
+  remainingBalance?: number;
 }
 
 export interface Report {

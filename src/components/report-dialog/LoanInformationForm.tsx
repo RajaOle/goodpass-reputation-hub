@@ -11,7 +11,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Info, DollarSign, Calendar } from 'lucide-react';
@@ -146,21 +145,28 @@ const LoanInformationForm: React.FC<LoanInformationFormProps> = ({ control }) =>
             <FormItem className="space-y-3">
               <FormLabel className="text-base font-medium text-gray-900 flex items-center space-x-2">
                 <DollarSign className="h-4 w-4 text-green-600" />
-                <span>Monthly Payment</span>
+                <span>
+                  {paymentMethod === 'open-payment' ? 'Expected Payment Amount' : 'Monthly Payment'}
+                </span>
                 <span className="text-red-500">*</span>
                 <Tooltip>
                   <TooltipTrigger>
                     <Info className="h-4 w-4 text-gray-400" />
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Expected monthly payment amount for this loan</p>
+                    <p>
+                      {paymentMethod === 'open-payment' 
+                        ? 'Expected payment amount (can be flexible)'
+                        : 'Expected monthly payment amount for this loan'
+                      }
+                    </p>
                   </TooltipContent>
                 </Tooltip>
               </FormLabel>
               <FormControl>
                 <Input
                   type="text"
-                  placeholder="Enter monthly payment amount"
+                  placeholder={paymentMethod === 'open-payment' ? 'Enter expected payment amount' : 'Enter monthly payment amount'}
                   className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 transition-colors"
                   value={field.value ? formatCurrency(field.value) : ''}
                   onChange={(e) => {
@@ -172,7 +178,10 @@ const LoanInformationForm: React.FC<LoanInformationFormProps> = ({ control }) =>
                 />
               </FormControl>
               <FormDescription className="text-gray-500">
-                Monthly payment amount in IDR
+                {paymentMethod === 'open-payment' 
+                  ? 'Expected payment amount in IDR (flexible)'
+                  : 'Monthly payment amount in IDR'
+                }
               </FormDescription>
               <FormMessage className="text-red-500" />
             </FormItem>
@@ -183,28 +192,27 @@ const LoanInformationForm: React.FC<LoanInformationFormProps> = ({ control }) =>
           control={control}
           name="loanInformation.paymentMethod"
           render={({ field }) => (
-            <FormItem className="space-y-4">
+            <FormItem className="space-y-3">
               <FormLabel className="text-base font-medium text-gray-900">
                 Payment Method <span className="text-red-500">*</span>
               </FormLabel>
-              <FormControl>
-                <div className="flex items-center justify-between p-4 border-2 border-gray-200 rounded-lg">
-                  <div className="flex items-center space-x-4">
-                    <span className={`font-medium ${field.value === 'one-time' ? 'text-blue-600' : 'text-gray-500'}`}>
-                      🧾 One-Time
-                    </span>
-                    <Switch
-                      checked={field.value === 'installments'}
-                      onCheckedChange={(checked) => {
-                        field.onChange(checked ? 'installments' : 'one-time');
-                      }}
-                    />
-                    <span className={`font-medium ${field.value === 'installments' ? 'text-blue-600' : 'text-gray-500'}`}>
-                      📆 Installment
-                    </span>
-                  </div>
-                </div>
-              </FormControl>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 transition-colors">
+                    <SelectValue placeholder="Select payment method" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="one-time">🧾 One-Time Payment</SelectItem>
+                  <SelectItem value="installments">📆 Fixed Installments</SelectItem>
+                  <SelectItem value="open-payment">💰 Open Payment (Flexible)</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormDescription className="text-gray-500">
+                {paymentMethod === 'one-time' && 'Single payment for the entire loan amount'}
+                {paymentMethod === 'installments' && 'Fixed monthly installments'}
+                {paymentMethod === 'open-payment' && 'Flexible payment amounts and timing'}
+              </FormDescription>
               <FormMessage className="text-red-500" />
             </FormItem>
           )}
