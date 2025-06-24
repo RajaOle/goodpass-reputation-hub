@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -112,7 +113,7 @@ const MakeReportSection = () => {
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 gap-4">
           <Button 
-            className="h-16 bg-blue-600 hover:bg-blue-700 text-white justify-start"
+            className="bg-blue-600 hover:bg-blue-700 text-white justify-start px-6 py-4"
             onClick={() => setIsReportDialogOpen(true)}
           >
             <Plus className="h-5 w-5 mr-3" />
