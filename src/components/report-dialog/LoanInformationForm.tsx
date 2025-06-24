@@ -67,26 +67,6 @@ const LoanInformationForm: React.FC<LoanInformationFormProps> = ({ control }) =>
 
       <FormField
         control={control}
-        name="loanInformation.interestRate"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Interest Rate (%) *</FormLabel>
-            <FormControl>
-              <Input
-                type="number"
-                step="0.01"
-                placeholder="Enter interest rate"
-                {...field}
-                onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={control}
         name="loanInformation.loanTerm"
         render={({ field }) => (
           <FormItem>
