@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { Control, useWatch } from 'react-hook-form';
+import { format } from 'date-fns';
 import {
   FormControl,
   FormDescription,
@@ -15,8 +16,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Info, DollarSign, Calendar, ChevronDown, ChevronUp, FileText, Shield } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Info, DollarSign, Calendar as CalendarIcon, ChevronDown, ChevronUp, FileText, Shield } from 'lucide-react';
 import { ReportFormData } from '@/types/report';
+import { cn } from '@/lib/utils';
 
 interface LoanInformationFormProps {
   control: Control<ReportFormData>;
@@ -24,6 +29,7 @@ interface LoanInformationFormProps {
 
 const LoanInformationForm: React.FC<LoanInformationFormProps> = ({ control }) => {
   const [isCollateralOpen, setIsCollateralOpen] = useState(false);
+  const [noDueDate, setNoDueDate] = useState(false);
   
   const repaymentPlan = useWatch({
     control,
@@ -54,15 +60,6 @@ const LoanInformationForm: React.FC<LoanInformationFormProps> = ({ control }) =>
 
   const parseCurrency = (value: string) => {
     return parseFloat(value.replace(/[^0-9]/g, '')) || 0;
-  };
-
-  const formatDate = (dateString: string) => {
-    if (!dateString) return '';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
   };
 
   const getInstallmentOptions = () => {
@@ -223,50 +220,163 @@ const LoanInformationForm: React.FC<LoanInformationFormProps> = ({ control }) =>
           />
         )}
 
-        {/* Date Information Display */}
-        <div className="bg-blue-50 p-4 rounded-lg space-y-3">
+        {/* Date Information */}
+        <div className="space-y-6">
           <h3 className="font-medium text-gray-900 flex items-center space-x-2">
-            <Calendar className="h-4 w-4 text-blue-600" />
+            <CalendarIcon className="h-4 w-4 text-blue-600" />
             <span>Loan Timeline Information</span>
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Agreement Date */}
             <FormField
               control={control}
               name="loanInformation.agreementDate"
               render={({ field }) => (
-                <div>
-                  <span className="font-medium text-gray-700">Agreement Date:</span>
-                  <p className="text-gray-600 mt-1">
-                    {field.value ? formatDate(field.value) : 'Not specified'}
-                  </p>
-                </div>
+                <FormItem className="space-y-3">
+                  <FormLabel className="text-base font-medium text-gray-900">
+                    Agreement Date <span className="text-red-500">*</span>
+                  </FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "h-12 w-full text-base border-2 border-gray-200 focus:border-blue-500 transition-colors justify-start text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {field.value ? format(new Date(field.value), "PPP") : "Select agreement date"}
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value ? new Date(field.value) : undefined}
+                        onSelect={(date) => field.onChange(date?.toISOString().split('T')[0])}
+                        initialFocus
+                        className="pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormDescription className="text-gray-500">
+                    Date when the loan agreement was signed
+                  </FormDescription>
+                  <FormMessage className="text-red-500" />
+                </FormItem>
               )}
             />
+
+            {/* Disbursement Date */}
             <FormField
               control={control}
               name="loanInformation.disbursementDate"
               render={({ field }) => (
-                <div>
-                  <span className="font-medium text-gray-700">Disbursement Date:</span>
-                  <p className="text-gray-600 mt-1">
-                    {field.value ? formatDate(field.value) : 'Not specified'}
-                  </p>
-                </div>
-              )}
-            />
-            <FormField
-              control={control}
-              name="loanInformation.dueDate"
-              render={({ field }) => (
-                <div>
-                  <span className="font-medium text-gray-700">Due Date:</span>
-                  <p className="text-gray-600 mt-1">
-                    {field.value ? formatDate(field.value) : 'No Due Date'}
-                  </p>
-                </div>
+                <FormItem className="space-y-3">
+                  <FormLabel className="text-base font-medium text-gray-900">
+                    Disbursement Date <span className="text-red-500">*</span>
+                  </FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "h-12 w-full text-base border-2 border-gray-200 focus:border-blue-500 transition-colors justify-start text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {field.value ? format(new Date(field.value), "PPP") : "Select disbursement date"}
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value ? new Date(field.value) : undefined}
+                        onSelect={(date) => field.onChange(date?.toISOString().split('T')[0])}
+                        initialFocus
+                        className="pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormDescription className="text-gray-500">
+                    Date when the loan funds were disbursed
+                  </FormDescription>
+                  <FormMessage className="text-red-500" />
+                </FormItem>
               )}
             />
           </div>
+
+          {/* Due Date with Optional Checkbox */}
+          <FormField
+            control={control}
+            name="loanInformation.dueDate"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <FormLabel className="text-base font-medium text-gray-900">
+                  Due Date
+                </FormLabel>
+                
+                <div className="flex items-center space-x-2 mb-3">
+                  <Checkbox
+                    id="no-due-date"
+                    checked={noDueDate}
+                    onCheckedChange={(checked) => {
+                      setNoDueDate(checked === true);
+                      if (checked) {
+                        field.onChange(undefined);
+                      }
+                    }}
+                  />
+                  <label
+                    htmlFor="no-due-date"
+                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    No Due Date
+                  </label>
+                </div>
+
+                {!noDueDate && (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "h-12 w-full text-base border-2 border-gray-200 focus:border-blue-500 transition-colors justify-start text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {field.value ? format(new Date(field.value), "PPP") : "Select due date"}
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value ? new Date(field.value) : undefined}
+                        onSelect={(date) => field.onChange(date?.toISOString().split('T')[0])}
+                        initialFocus
+                        className="pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                )}
+
+                <FormDescription className="text-gray-500">
+                  {noDueDate ? "This loan has no specific due date" : "Final due date for the loan (optional)"}
+                </FormDescription>
+                <FormMessage className="text-red-500" />
+              </FormItem>
+            )}
+          />
         </div>
 
         {/* Repayment Plan */}
