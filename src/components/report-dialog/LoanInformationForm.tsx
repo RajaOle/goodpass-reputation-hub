@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Control, useWatch } from 'react-hook-form';
 import {
   FormControl,
@@ -12,8 +12,10 @@ import {
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Info, DollarSign, Calendar } from 'lucide-react';
+import { Info, DollarSign, Calendar, ChevronDown, ChevronUp, FileText, Shield } from 'lucide-react';
 import { ReportFormData } from '@/types/report';
 
 interface LoanInformationFormProps {
@@ -21,10 +23,24 @@ interface LoanInformationFormProps {
 }
 
 const LoanInformationForm: React.FC<LoanInformationFormProps> = ({ control }) => {
-  const paymentMethod = useWatch({
+  const [isCollateralOpen, setIsCollateralOpen] = useState(false);
+  
+  const repaymentPlan = useWatch({
     control,
-    name: 'loanInformation.paymentMethod',
-    defaultValue: 'one-time'
+    name: 'loanInformation.repaymentPlan',
+    defaultValue: 'monthly'
+  });
+
+  const loanPurpose = useWatch({
+    control,
+    name: 'loanInformation.loanPurpose',
+    defaultValue: 'business-expansion'
+  });
+
+  const collateral = useWatch({
+    control,
+    name: 'loanInformation.collateral',
+    defaultValue: 'none'
   });
 
   const formatCurrency = (value: number) => {
@@ -40,217 +56,118 @@ const LoanInformationForm: React.FC<LoanInformationFormProps> = ({ control }) =>
     return parseFloat(value.replace(/[^0-9]/g, '')) || 0;
   };
 
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const getInstallmentOptions = () => {
+    switch (repaymentPlan) {
+      case 'weekly': return [4, 8, 12, 16, 20, 24, 52];
+      case 'bi-weekly': return [2, 4, 6, 8, 12, 16, 24, 26];
+      case 'monthly': return [3, 6, 9, 12, 18, 24, 36, 48, 60];
+      case 'quarterly': return [2, 4, 6, 8, 12, 16, 20];
+      case 'semi-annually': return [2, 4, 6, 8, 10];
+      case 'annually': return [2, 3, 4, 5, 7, 10];
+      default: return [12];
+    }
+  };
+
   return (
     <TooltipProvider>
       <div className="space-y-6">
+        {/* Loan Name */}
         <FormField
           control={control}
-          name="loanInformation.loanType"
-          render={({ field }) => (
-            <FormItem className="space-y-3">
-              <FormLabel className="text-base font-medium text-gray-900">
-                Loan Type <span className="text-red-500">*</span>
-              </FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 transition-colors">
-                    <SelectValue placeholder="Choose the type of loan" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="personal">Personal Loan</SelectItem>
-                  <SelectItem value="business">Business Loan</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage className="text-red-500" />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={control}
-          name="loanInformation.loanAmount"
+          name="loanInformation.loanName"
           render={({ field }) => (
             <FormItem className="space-y-3">
               <FormLabel className="text-base font-medium text-gray-900 flex items-center space-x-2">
-                <DollarSign className="h-4 w-4 text-green-600" />
-                <span>Loan Amount</span>
+                <FileText className="h-4 w-4 text-blue-600" />
+                <span>Loan Name</span>
                 <span className="text-red-500">*</span>
               </FormLabel>
               <FormControl>
                 <Input
-                  type="text"
-                  placeholder="Enter loan amount"
+                  placeholder="e.g., Business Expansion Loan - Q1 2024"
                   className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 transition-colors"
-                  value={field.value ? formatCurrency(field.value) : ''}
-                  onChange={(e) => {
-                    const numericValue = parseCurrency(e.target.value);
-                    field.onChange(numericValue);
-                  }}
+                  {...field}
                 />
               </FormControl>
               <FormDescription className="text-gray-500">
-                Enter the total amount of the loan in IDR
+                Give this loan a descriptive name for easy identification
               </FormDescription>
               <FormMessage className="text-red-500" />
             </FormItem>
           )}
         />
 
-        <FormField
-          control={control}
-          name="loanInformation.loanTerm"
-          render={({ field }) => (
-            <FormItem className="space-y-3">
-              <FormLabel className="text-base font-medium text-gray-900 flex items-center space-x-2">
-                <Calendar className="h-4 w-4 text-blue-600" />
-                <span>Loan Term (in months)</span>
-                <span className="text-red-500">*</span>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Info className="h-4 w-4 text-gray-400" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>How many months is the loan for? Example: 12 months</p>
-                  </TooltipContent>
-                </Tooltip>
-              </FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  min="1"
-                  placeholder="e.g. 12"
-                  className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 transition-colors"
-                  value={field.value || ''}
-                  onChange={(e) => {
-                    const value = parseInt(e.target.value);
-                    if (value >= 0 || e.target.value === '') {
-                      field.onChange(value || 0);
-                    }
-                  }}
-                />
-              </FormControl>
-              <FormDescription className="text-gray-500">
-                Duration of the loan in months
-              </FormDescription>
-              <FormMessage className="text-red-500" />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={control}
-          name="loanInformation.monthlyPayment"
-          render={({ field }) => (
-            <FormItem className="space-y-3">
-              <FormLabel className="text-base font-medium text-gray-900 flex items-center space-x-2">
-                <DollarSign className="h-4 w-4 text-green-600" />
-                <span>
-                  {paymentMethod === 'open-payment' ? 'Expected Payment Amount' : 'Monthly Payment'}
-                </span>
-                <span className="text-red-500">*</span>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Info className="h-4 w-4 text-gray-400" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>
-                      {paymentMethod === 'open-payment' 
-                        ? 'Expected payment amount (can be flexible)'
-                        : 'Expected monthly payment amount for this loan'
-                      }
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </FormLabel>
-              <FormControl>
-                <Input
-                  type="text"
-                  placeholder={paymentMethod === 'open-payment' ? 'Enter expected payment amount' : 'Enter monthly payment amount'}
-                  className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 transition-colors"
-                  value={field.value ? formatCurrency(field.value) : ''}
-                  onChange={(e) => {
-                    const numericValue = parseCurrency(e.target.value);
-                    if (numericValue >= 0) {
-                      field.onChange(numericValue);
-                    }
-                  }}
-                />
-              </FormControl>
-              <FormDescription className="text-gray-500">
-                {paymentMethod === 'open-payment' 
-                  ? 'Expected payment amount in IDR (flexible)'
-                  : 'Monthly payment amount in IDR'
-                }
-              </FormDescription>
-              <FormMessage className="text-red-500" />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={control}
-          name="loanInformation.paymentMethod"
-          render={({ field }) => (
-            <FormItem className="space-y-3">
-              <FormLabel className="text-base font-medium text-gray-900">
-                Payment Method <span className="text-red-500">*</span>
-              </FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 transition-colors">
-                    <SelectValue placeholder="Select payment method" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="one-time">🧾 One-Time Payment</SelectItem>
-                  <SelectItem value="installments">📆 Fixed Installments</SelectItem>
-                  <SelectItem value="open-payment">💰 Open Payment (Flexible)</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormDescription className="text-gray-500">
-                {paymentMethod === 'one-time' && 'Single payment for the entire loan amount'}
-                {paymentMethod === 'installments' && 'Fixed monthly installments'}
-                {paymentMethod === 'open-payment' && 'Flexible payment amounts and timing'}
-              </FormDescription>
-              <FormMessage className="text-red-500" />
-            </FormItem>
-          )}
-        />
-
-        {paymentMethod === 'installments' && (
+        {/* Loan Amount and Type */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField
             control={control}
-            name="loanInformation.installmentCount"
+            name="loanInformation.loanAmount"
             render={({ field }) => (
               <FormItem className="space-y-3">
-                <FormLabel className="text-base font-medium text-gray-900">
-                  Number of Installments <span className="text-red-500">*</span>
+                <FormLabel className="text-base font-medium text-gray-900 flex items-center space-x-2">
+                  <DollarSign className="h-4 w-4 text-green-600" />
+                  <span>Loan Amount</span>
+                  <span className="text-red-500">*</span>
                 </FormLabel>
                 <FormControl>
                   <Input
-                    type="number"
-                    min="2"
-                    placeholder="Enter number of payments"
+                    type="text"
+                    placeholder="Enter loan amount"
                     className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 transition-colors"
-                    value={field.value || ''}
+                    value={field.value ? formatCurrency(field.value) : ''}
                     onChange={(e) => {
-                      const value = parseInt(e.target.value);
-                      if (value >= 2 || e.target.value === '') {
-                        field.onChange(value || undefined);
-                      }
+                      const numericValue = parseCurrency(e.target.value);
+                      field.onChange(numericValue);
                     }}
                   />
                 </FormControl>
                 <FormDescription className="text-gray-500">
-                  How many installment payments will be made?
+                  Total amount of the loan in IDR
                 </FormDescription>
                 <FormMessage className="text-red-500" />
               </FormItem>
             )}
           />
-        )}
 
+          <FormField
+            control={control}
+            name="loanInformation.loanType"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <FormLabel className="text-base font-medium text-gray-900">
+                  Loan Type <span className="text-red-500">*</span>
+                </FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 transition-colors">
+                      <SelectValue placeholder="Choose loan type" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="personal">Personal Loan</SelectItem>
+                    <SelectItem value="business">Business Loan</SelectItem>
+                    <SelectItem value="mortgage">Mortgage</SelectItem>
+                    <SelectItem value="auto">Auto Loan</SelectItem>
+                    <SelectItem value="student">Student Loan</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage className="text-red-500" />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Loan Purpose */}
         <FormField
           control={control}
           name="loanInformation.loanPurpose"
@@ -259,54 +176,333 @@ const LoanInformationForm: React.FC<LoanInformationFormProps> = ({ control }) =>
               <FormLabel className="text-base font-medium text-gray-900">
                 Loan Purpose <span className="text-red-500">*</span>
               </FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Please describe what this loan was used for (e.g., home renovation, business expansion, debt consolidation...)"
-                  className="min-h-[100px] text-base border-2 border-gray-200 focus:border-blue-500 transition-colors resize-none"
-                  {...field}
-                />
-              </FormControl>
-              <FormDescription className="text-gray-500">
-                Minimum 10 characters required
-              </FormDescription>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 transition-colors">
+                    <SelectValue placeholder="Select loan purpose" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="business-expansion">🏢 Business Expansion</SelectItem>
+                  <SelectItem value="debt-consolidation">💳 Debt Consolidation</SelectItem>
+                  <SelectItem value="home-improvement">🏠 Home Improvement</SelectItem>
+                  <SelectItem value="education">📚 Education</SelectItem>
+                  <SelectItem value="medical-expenses">🏥 Medical Expenses</SelectItem>
+                  <SelectItem value="wedding">💒 Wedding</SelectItem>
+                  <SelectItem value="travel">✈️ Travel</SelectItem>
+                  <SelectItem value="investment">📈 Investment</SelectItem>
+                  <SelectItem value="emergency">🚨 Emergency</SelectItem>
+                  <SelectItem value="other">📝 Other</SelectItem>
+                </SelectContent>
+              </Select>
               <FormMessage className="text-red-500" />
             </FormItem>
           )}
         />
 
+        {/* Custom Loan Purpose */}
+        {loanPurpose === 'other' && (
+          <FormField
+            control={control}
+            name="loanInformation.customLoanPurpose"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <FormLabel className="text-base font-medium text-gray-900">
+                  Please specify the loan purpose <span className="text-red-500">*</span>
+                </FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Please describe the specific purpose of this loan..."
+                    className="min-h-[80px] text-base border-2 border-gray-200 focus:border-blue-500 transition-colors resize-none"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage className="text-red-500" />
+              </FormItem>
+            )}
+          />
+        )}
+
+        {/* Date Information Display */}
+        <div className="bg-blue-50 p-4 rounded-lg space-y-3">
+          <h3 className="font-medium text-gray-900 flex items-center space-x-2">
+            <Calendar className="h-4 w-4 text-blue-600" />
+            <span>Loan Timeline Information</span>
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <FormField
+              control={control}
+              name="loanInformation.agreementDate"
+              render={({ field }) => (
+                <div>
+                  <span className="font-medium text-gray-700">Agreement Date:</span>
+                  <p className="text-gray-600 mt-1">
+                    {field.value ? formatDate(field.value) : 'Not specified'}
+                  </p>
+                </div>
+              )}
+            />
+            <FormField
+              control={control}
+              name="loanInformation.disbursementDate"
+              render={({ field }) => (
+                <div>
+                  <span className="font-medium text-gray-700">Disbursement Date:</span>
+                  <p className="text-gray-600 mt-1">
+                    {field.value ? formatDate(field.value) : 'Not specified'}
+                  </p>
+                </div>
+              )}
+            />
+            <FormField
+              control={control}
+              name="loanInformation.dueDate"
+              render={({ field }) => (
+                <div>
+                  <span className="font-medium text-gray-700">Due Date:</span>
+                  <p className="text-gray-600 mt-1">
+                    {field.value ? formatDate(field.value) : 'No Due Date'}
+                  </p>
+                </div>
+              )}
+            />
+          </div>
+        </div>
+
+        {/* Repayment Plan */}
         <FormField
           control={control}
-          name="loanInformation.collateral"
+          name="loanInformation.repaymentPlan"
           render={({ field }) => (
             <FormItem className="space-y-3">
-              <FormLabel className="text-base font-medium text-gray-900 flex items-center space-x-2">
-                <span>Collateral</span>
-                <span className="text-gray-500">(optional)</span>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Info className="h-4 w-4 text-gray-400" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="max-w-xs">
-                      Assets pledged as security for the loan (e.g., property, vehicle, savings account)
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
+              <FormLabel className="text-base font-medium text-gray-900">
+                Repayment Plan <span className="text-red-500">*</span>
               </FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="e.g., 2020 Honda Civic, Property deed for 123 Main St, Certificate of Deposit #12345..."
-                  className="min-h-[80px] text-base border-2 border-gray-200 focus:border-blue-500 transition-colors resize-none"
-                  {...field}
-                />
-              </FormControl>
-              <FormDescription className="text-gray-500">
-                Only required for secured loans
-              </FormDescription>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 transition-colors">
+                    <SelectValue placeholder="Select repayment frequency" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="one-time">💰 One-Time Payment</SelectItem>
+                  <SelectItem value="weekly">📅 Weekly</SelectItem>
+                  <SelectItem value="bi-weekly">📋 Bi-Weekly</SelectItem>
+                  <SelectItem value="monthly">🗓️ Monthly</SelectItem>
+                  <SelectItem value="quarterly">📊 Quarterly</SelectItem>
+                  <SelectItem value="semi-annually">📈 Semi-Annually</SelectItem>
+                  <SelectItem value="annually">📆 Annually</SelectItem>
+                </SelectContent>
+              </Select>
               <FormMessage className="text-red-500" />
             </FormItem>
           )}
         />
+
+        {/* Installment Count */}
+        {repaymentPlan !== 'one-time' && (
+          <FormField
+            control={control}
+            name="loanInformation.installmentCount"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <FormLabel className="text-base font-medium text-gray-900">
+                  Number of Installments <span className="text-red-500">*</span>
+                </FormLabel>
+                <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
+                  <FormControl>
+                    <SelectTrigger className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 transition-colors">
+                      <SelectValue placeholder="Select number of installments" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {getInstallmentOptions().map((count) => (
+                      <SelectItem key={count} value={count.toString()}>
+                        {count} installments
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormDescription className="text-gray-500">
+                  How many {repaymentPlan} payments will be made?
+                </FormDescription>
+                <FormMessage className="text-red-500" />
+              </FormItem>
+            )}
+          />
+        )}
+
+        {/* Application Fees (Disabled) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormField
+            control={control}
+            name="loanInformation.applicationInterest"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <FormLabel className="text-base font-medium text-gray-500 flex items-center space-x-2">
+                  <span>Application Interest (%)</span>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Info className="h-4 w-4 text-gray-400" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Interest rate applied to this loan (calculated automatically)</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="0.00"
+                    className="h-12 text-base border-2 border-gray-200 bg-gray-50 cursor-not-allowed"
+                    disabled
+                    value={field.value || 0}
+                  />
+                </FormControl>
+                <FormDescription className="text-gray-500">
+                  Auto-calculated based on loan terms
+                </FormDescription>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={control}
+            name="loanInformation.applicationLateFee"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <FormLabel className="text-base font-medium text-gray-500 flex items-center space-x-2">
+                  <span>Application Late Fee</span>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Info className="h-4 w-4 text-gray-400" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Late fee amount for overdue payments (calculated automatically)</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    type="text"
+                    placeholder="Rp 0"
+                    className="h-12 text-base border-2 border-gray-200 bg-gray-50 cursor-not-allowed"
+                    disabled
+                    value={field.value ? formatCurrency(field.value) : 'Rp 0'}
+                  />
+                </FormControl>
+                <FormDescription className="text-gray-500">
+                  Auto-calculated based on loan terms
+                </FormDescription>
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Collateral Information (Expandable) */}
+        <Collapsible open={isCollateralOpen} onOpenChange={setIsCollateralOpen}>
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="outline"
+              className="w-full justify-between h-12 text-base border-2 border-gray-200 hover:border-blue-500 transition-colors"
+              type="button"
+            >
+              <div className="flex items-center space-x-2">
+                <Shield className="h-4 w-4 text-orange-600" />
+                <span>Collateral Information</span>
+                <span className="text-gray-500">(optional)</span>
+              </div>
+              {isCollateralOpen ? (
+                <ChevronUp className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="space-y-4 pt-4">
+            <FormField
+              control={control}
+              name="loanInformation.collateral"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel className="text-base font-medium text-gray-900">
+                    Collateral Type
+                  </FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 transition-colors">
+                        <SelectValue placeholder="Select collateral type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="none">🚫 No Collateral</SelectItem>
+                      <SelectItem value="property">🏠 Property/Real Estate</SelectItem>
+                      <SelectItem value="vehicle">🚗 Vehicle</SelectItem>
+                      <SelectItem value="savings">💰 Savings Account</SelectItem>
+                      <SelectItem value="stocks">📈 Stocks/Securities</SelectItem>
+                      <SelectItem value="jewelry">💎 Jewelry</SelectItem>
+                      <SelectItem value="equipment">🔧 Equipment/Machinery</SelectItem>
+                      <SelectItem value="other">📝 Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )}
+            />
+
+            {collateral !== 'none' && (
+              <>
+                <FormField
+                  control={control}
+                  name="loanInformation.collateralDescription"
+                  render={({ field }) => (
+                    <FormItem className="space-y-3">
+                      <FormLabel className="text-base font-medium text-gray-900">
+                        Collateral Description
+                      </FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Please provide detailed description of the collateral..."
+                          className="min-h-[100px] text-base border-2 border-gray-200 focus:border-blue-500 transition-colors resize-none"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription className="text-gray-500">
+                        Include serial numbers, addresses, or other identifying information
+                      </FormDescription>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={control}
+                  name="loanInformation.collateralValue"
+                  render={({ field }) => (
+                    <FormItem className="space-y-3">
+                      <FormLabel className="text-base font-medium text-gray-900">
+                        Estimated Collateral Value
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          placeholder="Enter estimated value"
+                          className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 transition-colors"
+                          value={field.value ? formatCurrency(field.value) : ''}
+                          onChange={(e) => {
+                            const numericValue = parseCurrency(e.target.value);
+                            field.onChange(numericValue);
+                          }}
+                        />
+                      </FormControl>
+                      <FormDescription className="text-gray-500">
+                        Current market value of the collateral in IDR
+                      </FormDescription>
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
+          </CollapsibleContent>
+        </Collapsible>
       </div>
     </TooltipProvider>
   );

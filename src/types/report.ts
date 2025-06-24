@@ -1,13 +1,24 @@
 
 export interface LoanInformation {
+  loanName: string;
   loanType: 'personal' | 'business' | 'mortgage' | 'auto' | 'student' | 'other';
   loanAmount: number;
-  loanTerm: number;
-  monthlyPayment: number;
-  loanPurpose: string;
-  collateral?: string;
-  paymentMethod: 'one-time' | 'installments' | 'open-payment';
+  agreementDate: string;
+  disbursementDate: string;
+  dueDate?: string; // Optional field
+  loanPurpose: 'business-expansion' | 'debt-consolidation' | 'home-improvement' | 'education' | 'medical-expenses' | 'wedding' | 'travel' | 'investment' | 'emergency' | 'other';
+  customLoanPurpose?: string; // For when 'other' is selected
+  repaymentPlan: 'one-time' | 'weekly' | 'bi-weekly' | 'monthly' | 'quarterly' | 'semi-annually' | 'annually';
   installmentCount?: number;
+  applicationInterest: number;
+  applicationLateFee: number;
+  collateral: 'none' | 'property' | 'vehicle' | 'savings' | 'stocks' | 'jewelry' | 'equipment' | 'other';
+  collateralDescription?: string;
+  collateralValue?: number;
+  // Legacy fields for backward compatibility
+  loanTerm?: number;
+  monthlyPayment?: number;
+  paymentMethod?: 'one-time' | 'installments' | 'open-payment';
 }
 
 export interface ReporteeInformation {

@@ -23,22 +23,48 @@ import { DollarSign, User, FileText } from 'lucide-react';
 
 const reportSchema = z.object({
   loanInformation: z.object({
+    loanName: z.string().min(3, 'Loan name must be at least 3 characters'),
     loanType: z.enum(['personal', 'business', 'mortgage', 'auto', 'student', 'other']),
     loanAmount: z.number().min(1, 'Loan amount must be greater than 0'),
-    loanTerm: z.number().min(1, 'Loan term must be at least 1 month'),
-    monthlyPayment: z.number().min(0, 'Monthly payment cannot be negative'),
-    loanPurpose: z.string().min(10, 'Please provide a detailed loan purpose (at least 10 characters)'),
-    collateral: z.string().optional(),
-    paymentMethod: z.enum(['one-time', 'installments', 'open-payment']),
+    agreementDate: z.string().optional(),
+    disbursementDate: z.string().optional(),
+    dueDate: z.string().optional(),
+    loanPurpose: z.enum(['business-expansion', 'debt-consolidation', 'home-improvement', 'education', 'medical-expenses', 'wedding', 'travel', 'investment', 'emergency', 'other']),
+    customLoanPurpose: z.string().optional(),
+    repaymentPlan: z.enum(['one-time', 'weekly', 'bi-weekly', 'monthly', 'quarterly', 'semi-annually', 'annually']),
     installmentCount: z.number().optional(),
+    applicationInterest: z.number().default(0),
+    applicationLateFee: z.number().default(0),
+    collateral: z.enum(['none', 'property', 'vehicle', 'savings', 'stocks', 'jewelry', 'equipment', 'other']).default('none'),
+    collateralDescription: z.string().optional(),
+    collateralValue: z.number().optional(),
   }).refine((data) => {
-    if (data.paymentMethod === 'installments') {
-      return data.installmentCount && data.installmentCount > 1;
+    // Require custom loan purpose when 'other' is selected
+    if (data.loanPurpose === 'other') {
+      return data.customLoanPurpose && data.customLoanPurpose.length >= 10;
     }
     return true;
   }, {
-    message: "Number of installments is required when payment method is installments",
+    message: "Please provide a detailed description when selecting 'Other' as loan purpose (at least 10 characters)",
+    path: ["customLoanPurpose"],
+  }).refine((data) => {
+    // Require installment count for non-one-time repayment plans
+    if (data.repaymentPlan !== 'one-time') {
+      return data.installmentCount && data.installmentCount > 0;
+    }
+    return true;
+  }, {
+    message: "Number of installments is required for the selected repayment plan",
     path: ["installmentCount"],
+  }).refine((data) => {
+    // Require collateral description when collateral is not 'none'
+    if (data.collateral !== 'none') {
+      return data.collateralDescription && data.collateralDescription.length >= 10;
+    }
+    return true;
+  }, {
+    message: "Please provide a detailed description of the collateral (at least 10 characters)",
+    path: ["collateralDescription"],
   }),
   reporteeInformation: z.object({
     fullName: z.string().min(2, 'Full name must be at least 2 characters'),
@@ -100,14 +126,21 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
     mode: 'onChange',
     defaultValues: {
       loanInformation: {
+        loanName: '',
         loanType: 'personal',
         loanAmount: 0,
-        loanTerm: 0,
-        monthlyPayment: 0,
-        loanPurpose: '',
-        collateral: '',
-        paymentMethod: 'one-time',
+        agreementDate: '',
+        disbursementDate: '',
+        dueDate: '',
+        loanPurpose: 'business-expansion',
+        customLoanPurpose: '',
+        repaymentPlan: 'monthly',
         installmentCount: undefined,
+        applicationInterest: 0,
+        applicationLateFee: 0,
+        collateral: 'none',
+        collateralDescription: '',
+        collateralValue: undefined,
       },
       reporteeInformation: {
         fullName: '',
