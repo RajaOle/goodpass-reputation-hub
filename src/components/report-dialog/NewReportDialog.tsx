@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,7 +14,8 @@ import { Form } from '@/components/ui/form';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { Check, ChevronLeft, ChevronRight, FileText, DollarSign, User } from 'lucide-react';
-import { ReportFormData } from '@/types/report';
+import { ReportFormData, Report } from '@/types/report';
+import { useReports } from '@/contexts/ReportsContext';
 import LoanInformationForm from './LoanInformationForm';
 import ReporteeInformationForm from './ReporteeInformationForm';
 import SupportingDocumentsForm from './SupportingDocumentsForm';
@@ -92,6 +92,7 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { addReport } = useReports();
 
   const form = useForm<ReportFormData>({
     resolver: zodResolver(reportSchema),
@@ -134,6 +135,21 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
       
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Create new report object
+      const newReport: Report = {
+        id: Date.now().toString(),
+        status: 'pending',
+        loanInformation: data.loanInformation,
+        reporteeInformation: data.reporteeInformation,
+        supportingDocuments: data.supportingDocuments,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        submittedAt: new Date().toISOString()
+      };
+
+      // Add report to context
+      addReport(newReport);
       
       // Log activity to Recent Activity Feed
       const activityLog = {

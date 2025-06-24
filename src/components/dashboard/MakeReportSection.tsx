@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,63 +7,13 @@ import { Plus, Search, Eye } from 'lucide-react';
 import NewReportDialog from '../report-dialog/NewReportDialog';
 import ReportDetailsDialog from './ReportDetailsDialog';
 import { Report } from '@/types/report';
+import { useReports } from '@/contexts/ReportsContext';
 
 const MakeReportSection = () => {
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-
-  // Mock reports data - same as dashboard
-  const recentReports: Report[] = [
-    {
-      id: '1',
-      status: 'pending',
-      loanInformation: {
-        loanType: 'personal',
-        loanAmount: 50000000,
-        loanTerm: 24,
-        monthlyPayment: 2500000,
-        loanPurpose: 'Home renovation and improvement',
-        paymentMethod: 'installments'
-      },
-      reporteeInformation: {
-        fullName: 'John Doe',
-        phoneNumber: '+6281234567890',
-        email: 'john@example.com'
-      },
-      supportingDocuments: {
-        documents: [],
-        additionalNotes: 'All documents provided'
-      },
-      createdAt: '2024-01-20T10:00:00Z',
-      updatedAt: '2024-01-20T10:00:00Z',
-      submittedAt: '2024-01-20T10:00:00Z'
-    },
-    {
-      id: '2',
-      status: 'verified',
-      loanInformation: {
-        loanType: 'business',
-        loanAmount: 100000000,
-        loanTerm: 36,
-        monthlyPayment: 3500000,
-        loanPurpose: 'Business expansion',
-        paymentMethod: 'one-time'
-      },
-      reporteeInformation: {
-        fullName: 'Jane Smith',
-        phoneNumber: '+6281234567891',
-        email: 'jane@example.com'
-      },
-      supportingDocuments: {
-        documents: [],
-        additionalNotes: 'Business license attached'
-      },
-      createdAt: '2024-01-18T10:00:00Z',
-      updatedAt: '2024-01-18T10:00:00Z',
-      submittedAt: '2024-01-18T10:00:00Z'
-    }
-  ];
+  const { reports } = useReports();
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -134,7 +85,7 @@ const MakeReportSection = () => {
 
   const handleActivityClick = (activity: any) => {
     if (activity.type === 'report-submitted' && activity.reportId) {
-      const report = recentReports.find(r => r.id === activity.reportId.replace('R00', ''));
+      const report = reports.find(r => r.id === activity.reportId.replace('R00', ''));
       if (report) {
         handleViewReport(report);
       }
@@ -174,7 +125,7 @@ const MakeReportSection = () => {
         <Card>
           <CardContent className="p-6">
             <div className="space-y-4">
-              {recentReports.map((report) => (
+              {reports.map((report) => (
                 <div key={report.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-2">
