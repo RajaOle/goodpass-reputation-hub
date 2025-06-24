@@ -9,27 +9,12 @@ export interface LoanInformation {
   collateral?: string;
 }
 
-export interface PersonalReporteeInformation {
-  firstName: string;
-  lastName: string;
-  phoneNumber: string;
-  email: string;
-  address: string;
-}
-
-export interface BusinessReporteeInformation {
-  companyName: string;
-  contactPerson: string;
-  phoneNumber: string;
-  email: string;
-  address: string;
-  website?: string;
-}
-
 export interface ReporteeInformation {
-  type: 'personal' | 'business';
-  personalInfo?: PersonalReporteeInformation;
-  businessInfo?: BusinessReporteeInformation;
+  fullName: string;
+  phoneNumber: string;
+  email?: string;
+  nationalId?: string;
+  socialMediaLinks?: string[];
 }
 
 export interface SupportingDocuments {
@@ -37,8 +22,46 @@ export interface SupportingDocuments {
   additionalNotes?: string;
 }
 
+export type ReportStatus = 'draft' | 'pending' | 'verified' | 'rejected' | 'partially-verified';
+
+export type PaymentMethod = 'full' | 'installment';
+
+export interface PaymentInfo {
+  method: PaymentMethod;
+  status: 'lunas' | 'belum-lunas';
+  installments?: {
+    number: number;
+    amount: number;
+    dueDate: string;
+    status: 'lunas' | 'belum-lunas';
+  }[];
+}
+
+export interface Report {
+  id: string;
+  status: ReportStatus;
+  loanInformation: LoanInformation;
+  reporteeInformation: ReporteeInformation;
+  supportingDocuments: SupportingDocuments;
+  paymentInfo?: PaymentInfo;
+  createdAt: string;
+  updatedAt: string;
+  submittedAt?: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+  rejectionReason?: string;
+}
+
 export interface ReportFormData {
   loanInformation: LoanInformation;
   reporteeInformation: ReporteeInformation;
   supportingDocuments: SupportingDocuments;
+}
+
+export interface ActivityLog {
+  id: string;
+  reportId: string;
+  action: string;
+  timestamp: string;
+  details?: string;
 }

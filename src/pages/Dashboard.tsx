@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import DashboardSidebar from '@/components/DashboardSidebar';
 import DashboardContent from '@/components/DashboardContent';
@@ -6,6 +5,8 @@ import DashboardContent from '@/components/DashboardContent';
 export type DashboardSection = 
   | 'overview' 
   | 'make-report' 
+  | 'reports'
+  | 'activity'
   | 'search' 
   | 'credits' 
   | 'settings' 

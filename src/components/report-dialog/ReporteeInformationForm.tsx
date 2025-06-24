@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Control, useWatch } from 'react-hook-form';
+import { Control } from 'react-hook-form';
 import {
   FormControl,
   FormDescription,
@@ -10,7 +10,8 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Button } from '@/components/ui/button';
+import { Plus, X } from 'lucide-react';
 import { ReportFormData } from '@/types/report';
 
 interface ReporteeInformationFormProps {
@@ -18,255 +19,140 @@ interface ReporteeInformationFormProps {
 }
 
 const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({ control }) => {
-  const reporteeType = useWatch({
-    control,
-    name: 'reporteeInformation.type',
-  });
+  const [socialLinks, setSocialLinks] = React.useState<string[]>(['']);
+
+  const addSocialLink = () => {
+    setSocialLinks([...socialLinks, '']);
+  };
+
+  const removeSocialLink = (index: number) => {
+    setSocialLinks(socialLinks.filter((_, i) => i !== index));
+  };
+
+  const updateSocialLink = (index: number, value: string) => {
+    const newLinks = [...socialLinks];
+    newLinks[index] = value;
+    setSocialLinks(newLinks);
+  };
 
   return (
     <div className="space-y-6">
+      <div>
+        <h3 className="text-lg font-medium mb-4">Reportee Information</h3>
+        <p className="text-sm text-gray-600 mb-6">
+          Provide details about the person or entity you're reporting.
+        </p>
+      </div>
+
       <FormField
         control={control}
-        name="reporteeInformation.type"
+        name="reporteeInformation.fullName"
         render={({ field }) => (
-          <FormItem className="space-y-3">
-            <FormLabel>Who are you reporting? *</FormLabel>
+          <FormItem>
+            <FormLabel>Full Name *</FormLabel>
             <FormControl>
-              <RadioGroup
-                onValueChange={field.onChange}
-                value={field.value}
-                className="flex flex-col space-y-2"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="personal" id="personal" />
-                  <label htmlFor="personal" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                    Individual/Personal
-                  </label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="business" id="business" />
-                  <label htmlFor="business" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                    Business/Company
-                  </label>
-                </div>
-              </RadioGroup>
+              <Input
+                placeholder="Enter full name"
+                {...field}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={control}
+        name="reporteeInformation.phoneNumber"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Phone Number *</FormLabel>
+            <FormControl>
+              <Input
+                type="tel"
+                placeholder="Enter phone number"
+                {...field}
+              />
             </FormControl>
             <FormDescription>
-              Select whether you're reporting an individual or a business entity
+              Phone number must be unique in the system
             </FormDescription>
             <FormMessage />
           </FormItem>
         )}
       />
 
-      {reporteeType === 'personal' && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Personal Information</h3>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <FormField
-              control={control}
-              name="reporteeInformation.personalInfo.firstName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>First Name *</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Enter first name"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+      <FormField
+        control={control}
+        name="reporteeInformation.email"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Email Address (optional)</FormLabel>
+            <FormControl>
+              <Input
+                type="email"
+                placeholder="Enter email address"
+                {...field}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
 
-            <FormField
-              control={control}
-              name="reporteeInformation.personalInfo.lastName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Last Name *</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Enter last name"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+      <FormField
+        control={control}
+        name="reporteeInformation.nationalId"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>National ID / KTP (optional)</FormLabel>
+            <FormControl>
+              <Input
+                placeholder="Enter National ID or KTP number"
+                {...field}
+              />
+            </FormControl>
+            <FormDescription>
+              Provide National ID or KTP for verification purposes
+            </FormDescription>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <div className="space-y-4">
+        <FormLabel>Social Media Links (optional)</FormLabel>
+        {socialLinks.map((link, index) => (
+          <div key={index} className="flex items-center space-x-2">
+            <Input
+              placeholder="Enter social media URL"
+              value={link}
+              onChange={(e) => updateSocialLink(index, e.target.value)}
+              className="flex-1"
             />
+            {socialLinks.length > 1 && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => removeSocialLink(index)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
           </div>
-
-          <FormField
-            control={control}
-            name="reporteeInformation.personalInfo.phoneNumber"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Phone Number *</FormLabel>
-                <FormControl>
-                  <Input
-                    type="tel"
-                    placeholder="Enter phone number"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={control}
-            name="reporteeInformation.personalInfo.email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email Address *</FormLabel>
-                <FormControl>
-                  <Input
-                    type="email"
-                    placeholder="Enter email address"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={control}
-            name="reporteeInformation.personalInfo.address"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Address *</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Enter personal address"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-      )}
-
-      {reporteeType === 'business' && (
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Business Information</h3>
-
-          <FormField
-            control={control}
-            name="reporteeInformation.businessInfo.companyName"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Company Name *</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Enter company name"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={control}
-            name="reporteeInformation.businessInfo.contactPerson"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Contact Person *</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Enter contact person name"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={control}
-            name="reporteeInformation.businessInfo.phoneNumber"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Phone Number *</FormLabel>
-                <FormControl>
-                  <Input
-                    type="tel"
-                    placeholder="Enter phone number"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={control}
-            name="reporteeInformation.businessInfo.email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email Address *</FormLabel>
-                <FormControl>
-                  <Input
-                    type="email"
-                    placeholder="Enter email address"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={control}
-            name="reporteeInformation.businessInfo.address"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Business Address *</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Enter business address"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={control}
-            name="reporteeInformation.businessInfo.website"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Website (optional)</FormLabel>
-                <FormControl>
-                  <Input
-                    type="url"
-                    placeholder="Enter website URL"
-                    {...field}
-                  />
-                </FormControl>
-                <FormDescription>
-                  Company website if available
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-      )}
+        ))}
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={addSocialLink}
+          className="flex items-center space-x-2"
+        >
+          <Plus className="h-4 w-4" />
+          <span>Add Social Media Link</span>
+        </Button>
+      </div>
     </div>
   );
 };

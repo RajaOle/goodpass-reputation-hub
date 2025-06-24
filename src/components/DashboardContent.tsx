@@ -3,6 +3,8 @@ import React from 'react';
 import { DashboardSection } from '@/pages/Dashboard';
 import DashboardOverview from './dashboard/DashboardOverview';
 import MakeReportSection from './dashboard/MakeReportSection';
+import ReportsSection from './dashboard/ReportsSection';
+import RecentActivitySection from './dashboard/RecentActivitySection';
 import SearchRecordsSection from './dashboard/SearchRecordsSection';
 import PurchaseCreditsSection from './dashboard/PurchaseCreditsSection';
 import SettingsSection from './dashboard/SettingsSection';
@@ -20,6 +22,10 @@ const DashboardContent: React.FC<DashboardContentProps> = ({ activeSection }) =>
         return <DashboardOverview />;
       case 'make-report':
         return <MakeReportSection />;
+      case 'reports':
+        return <ReportsSection />;
+      case 'activity':
+        return <RecentActivitySection />;
       case 'search':
         return <SearchRecordsSection />;
       case 'credits':

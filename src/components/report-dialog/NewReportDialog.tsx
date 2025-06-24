@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -31,33 +32,11 @@ const reportSchema = z.object({
     collateral: z.string().optional(),
   }),
   reporteeInformation: z.object({
-    type: z.enum(['personal', 'business']),
-    personalInfo: z.object({
-      firstName: z.string().min(2, 'First name must be at least 2 characters'),
-      lastName: z.string().min(2, 'Last name must be at least 2 characters'),
-      phoneNumber: z.string().min(10, 'Please enter a valid phone number'),
-      email: z.string().email('Please enter a valid email address'),
-      address: z.string().min(10, 'Please provide a complete address'),
-    }).optional(),
-    businessInfo: z.object({
-      companyName: z.string().min(2, 'Company name must be at least 2 characters'),
-      contactPerson: z.string().min(2, 'Contact person name must be at least 2 characters'),
-      phoneNumber: z.string().min(10, 'Please enter a valid phone number'),
-      email: z.string().email('Please enter a valid email address'),
-      address: z.string().min(10, 'Please provide a complete address'),
-      website: z.string().url('Please enter a valid URL').optional().or(z.literal('')),
-    }).optional(),
-  }).refine((data) => {
-    if (data.type === 'personal') {
-      return data.personalInfo && Object.values(data.personalInfo).every(val => val && val.trim() !== '');
-    }
-    if (data.type === 'business') {
-      return data.businessInfo && data.businessInfo.companyName && data.businessInfo.contactPerson && 
-             data.businessInfo.phoneNumber && data.businessInfo.email && data.businessInfo.address;
-    }
-    return false;
-  }, {
-    message: 'Please fill in all required fields for the selected reportee type',
+    fullName: z.string().min(2, 'Full name must be at least 2 characters'),
+    phoneNumber: z.string().min(10, 'Please enter a valid phone number'),
+    email: z.string().email('Please enter a valid email address').optional().or(z.literal('')),
+    nationalId: z.string().optional(),
+    socialMediaLinks: z.array(z.string()).optional(),
   }),
   supportingDocuments: z.object({
     documents: z.array(z.instanceof(File)),
@@ -68,9 +47,16 @@ const reportSchema = z.object({
 interface NewReportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  isDraft?: boolean;
+  reportId?: string;
 }
 
-const NewReportDialog: React.FC<NewReportDialogProps> = ({ open, onOpenChange }) => {
+const NewReportDialog: React.FC<NewReportDialogProps> = ({ 
+  open, 
+  onOpenChange, 
+  isDraft = false,
+  reportId 
+}) => {
   const [currentTab, setCurrentTab] = useState('loan');
   const { toast } = useToast();
 
@@ -87,22 +73,11 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({ open, onOpenChange })
         collateral: '',
       },
       reporteeInformation: {
-        type: 'personal',
-        personalInfo: {
-          firstName: '',
-          lastName: '',
-          phoneNumber: '',
-          email: '',
-          address: '',
-        },
-        businessInfo: {
-          companyName: '',
-          contactPerson: '',
-          phoneNumber: '',
-          email: '',
-          address: '',
-          website: '',
-        },
+        fullName: '',
+        phoneNumber: '',
+        email: '',
+        nationalId: '',
+        socialMediaLinks: [],
       },
       supportingDocuments: {
         documents: [],
@@ -133,7 +108,7 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({ open, onOpenChange })
       
       toast({
         title: "Report Submitted",
-        description: "Your report has been submitted successfully and is under review.",
+        description: "Your report has been submitted successfully and is now pending review.",
       });
       
       form.reset();
@@ -143,6 +118,27 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({ open, onOpenChange })
       toast({
         title: "Error",
         description: "Failed to submit report. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const saveDraft = async () => {
+    try {
+      const data = form.getValues();
+      console.log('Saving draft:', data);
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      toast({
+        title: "Draft Saved",
+        description: "Your report has been saved as a draft.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save draft. Please try again.",
         variant: "destructive",
       });
     }
@@ -192,7 +188,9 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({ open, onOpenChange })
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create New Report</DialogTitle>
+          <DialogTitle>
+            {isDraft ? 'Edit Draft Report' : 'Create New Report'}
+          </DialogTitle>
           <DialogDescription>
             Fill out the form below to submit a new report. All fields marked with * are required.
           </DialogDescription>
@@ -234,6 +232,9 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({ open, onOpenChange })
 
               <DialogFooter className="flex justify-between">
                 <div className="flex space-x-2">
+                  <Button type="button" variant="outline" onClick={saveDraft}>
+                    Save Draft
+                  </Button>
                   {currentTab !== 'loan' && (
                     <Button type="button" variant="outline" onClick={handlePrevious}>
                       Previous
