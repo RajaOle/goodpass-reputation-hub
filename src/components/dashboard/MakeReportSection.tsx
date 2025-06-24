@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Edit, RefreshCw, CreditCard, Eye } from 'lucide-react';
+import { Plus, Edit, RefreshCw, CreditCard, Eye, Search } from 'lucide-react';
 import NewReportDialog from '../report-dialog/NewReportDialog';
 import ReportDetailsDialog from './ReportDetailsDialog';
 import PaymentDialog from './PaymentDialog';
@@ -110,7 +110,7 @@ const MakeReportSection = () => {
       {/* Quick Actions */}
       <div>
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           <Button 
             className="h-16 bg-blue-600 hover:bg-blue-700 text-white justify-start"
             onClick={() => setIsReportDialogOpen(true)}
@@ -119,14 +119,6 @@ const MakeReportSection = () => {
             <div className="text-left">
               <div className="font-medium">Write New Report</div>
               <div className="text-sm opacity-90">Share your experience</div>
-            </div>
-          </Button>
-
-          <Button variant="outline" className="h-16 justify-start">
-            <Search className="h-5 w-5 mr-3" />
-            <div className="text-left">
-              <div className="font-medium">Search Records</div>
-              <div className="text-sm text-gray-600">Find reports and reviews</div>
             </div>
           </Button>
         </div>
