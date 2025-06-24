@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -28,7 +29,7 @@ const reportSchema = z.object({
     monthlyPayment: z.number().min(0, 'Monthly payment cannot be negative'),
     loanPurpose: z.string().min(10, 'Please provide a detailed loan purpose (at least 10 characters)'),
     collateral: z.string().optional(),
-    paymentMethod: z.enum(['one-time', 'installments']),
+    paymentMethod: z.enum(['one-time', 'installments', 'open-payment']),
     installmentCount: z.number().optional(),
   }).refine((data) => {
     if (data.paymentMethod === 'installments') {
