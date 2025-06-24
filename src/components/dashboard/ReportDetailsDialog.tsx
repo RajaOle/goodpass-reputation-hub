@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   Dialog,
@@ -150,8 +149,8 @@ const ReportDetailsDialog: React.FC<ReportDetailsDialogProps> = ({
                 </div>
                 <div>
                   <span className="font-medium">Payment Status:</span>
-                  <Badge variant={report.paymentInfo.status === 'lunas' ? 'default' : 'secondary'} className="ml-2">
-                    {report.paymentInfo.status === 'lunas' ? 'Lunas' : 'Belum Lunas'}
+                  <Badge variant={report.paymentInfo.status === 'paid' ? 'default' : 'secondary'} className="ml-2">
+                    {report.paymentInfo.status === 'paid' ? 'Paid' : 'Unpaid'}
                   </Badge>
                 </div>
                 
@@ -161,15 +160,47 @@ const ReportDetailsDialog: React.FC<ReportDetailsDialogProps> = ({
                     <div className="mt-2 space-y-2">
                       {report.paymentInfo.installments.map((installment) => (
                         <div key={installment.number} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                          <span>Cicilan {installment.number}</span>
+                          <span>Installment {installment.number}</span>
                           <span>{formatCurrency(installment.amount)}</span>
                           <span className="text-sm text-gray-500">{new Date(installment.dueDate).toLocaleDateString()}</span>
-                          <Badge variant={installment.status === 'lunas' ? 'default' : 'secondary'}>
-                            {installment.status === 'lunas' ? 'Lunas' : 'Belum Lunas'}
+                          <Badge variant={installment.status === 'paid' ? 'default' : 'secondary'}>
+                            {installment.status === 'paid' ? 'Paid' : 'Unpaid'}
                           </Badge>
                         </div>
                       ))}
                     </div>
+                  </div>
+                )}
+
+                {report.paymentInfo.openPayments && (
+                  <div>
+                    <span className="font-medium">Open Payments:</span>
+                    <div className="mt-2 space-y-2">
+                      {report.paymentInfo.openPayments.map((payment) => (
+                        <div key={payment.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                          <span>{formatCurrency(payment.amount)}</span>
+                          <span className="text-sm text-gray-500">{new Date(payment.date).toLocaleDateString()}</span>
+                          <span className="text-sm">Balance: {formatCurrency(payment.runningBalance)}</span>
+                          {payment.notes && (
+                            <span className="text-sm text-gray-400">{payment.notes}</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {report.paymentInfo.totalPaid && (
+                      <div className="mt-2 pt-2 border-t">
+                        <div className="flex justify-between">
+                          <span className="font-medium">Total Paid:</span>
+                          <span>{formatCurrency(report.paymentInfo.totalPaid)}</span>
+                        </div>
+                        {report.paymentInfo.remainingBalance && (
+                          <div className="flex justify-between">
+                            <span className="font-medium">Remaining Balance:</span>
+                            <span>{formatCurrency(report.paymentInfo.remainingBalance)}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -83,11 +82,11 @@ const ReportsSection = () => {
       },
       paymentInfo: {
         method: 'installment',
-        status: 'belum-lunas',
+        status: 'unpaid',
         installments: [
-          { number: 1, amount: 3500000, dueDate: '2024-02-15', status: 'lunas' },
-          { number: 2, amount: 3500000, dueDate: '2024-03-15', status: 'lunas' },
-          { number: 3, amount: 3500000, dueDate: '2024-04-15', status: 'belum-lunas' }
+          { number: 1, amount: 3500000, dueDate: '2024-02-15', status: 'paid' },
+          { number: 2, amount: 3500000, dueDate: '2024-03-15', status: 'paid' },
+          { number: 3, amount: 3500000, dueDate: '2024-04-15', status: 'unpaid' }
         ]
       },
       createdAt: '2024-01-10T10:00:00Z',
