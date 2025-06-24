@@ -8,7 +8,7 @@ export interface LoanInformation {
   dueDate?: string; // Optional field
   loanPurpose: 'business-expansion' | 'debt-consolidation' | 'home-improvement' | 'education' | 'medical-expenses' | 'wedding' | 'travel' | 'investment' | 'emergency' | 'other';
   customLoanPurpose?: string; // For when 'other' is selected
-  repaymentPlan: 'one-time' | 'weekly' | 'bi-weekly' | 'monthly' | 'quarterly' | 'semi-annually' | 'annually';
+  repaymentPlan: 'single-payment' | 'installment' | 'open-payment';
   installmentCount?: number;
   applicationInterest: number;
   applicationLateFee: number;

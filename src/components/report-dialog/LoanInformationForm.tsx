@@ -34,7 +34,7 @@ const LoanInformationForm: React.FC<LoanInformationFormProps> = ({ control }) =>
   const repaymentPlan = useWatch({
     control,
     name: 'loanInformation.repaymentPlan',
-    defaultValue: 'monthly'
+    defaultValue: 'installment'
   });
 
   const loanPurpose = useWatch({
@@ -60,18 +60,6 @@ const LoanInformationForm: React.FC<LoanInformationFormProps> = ({ control }) =>
 
   const parseCurrency = (value: string) => {
     return parseFloat(value.replace(/[^0-9]/g, '')) || 0;
-  };
-
-  const getInstallmentOptions = () => {
-    switch (repaymentPlan) {
-      case 'weekly': return [4, 8, 12, 16, 20, 24, 52];
-      case 'bi-weekly': return [2, 4, 6, 8, 12, 16, 24, 26];
-      case 'monthly': return [3, 6, 9, 12, 18, 24, 36, 48, 60];
-      case 'quarterly': return [2, 4, 6, 8, 12, 16, 20];
-      case 'semi-annually': return [2, 4, 6, 8, 10];
-      case 'annually': return [2, 3, 4, 5, 7, 10];
-      default: return [12];
-    }
   };
 
   return (
@@ -379,7 +367,7 @@ const LoanInformationForm: React.FC<LoanInformationFormProps> = ({ control }) =>
           />
         </div>
 
-        {/* Repayment Plan */}
+        {/* Repayment Plan - Simplified to 3 options */}
         <FormField
           control={control}
           name="loanInformation.repaymentPlan"
@@ -391,26 +379,25 @@ const LoanInformationForm: React.FC<LoanInformationFormProps> = ({ control }) =>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 transition-colors">
-                    <SelectValue placeholder="Select repayment frequency" />
+                    <SelectValue placeholder="Select repayment plan" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="one-time">💰 One-Time Payment</SelectItem>
-                  <SelectItem value="weekly">📅 Weekly</SelectItem>
-                  <SelectItem value="bi-weekly">📋 Bi-Weekly</SelectItem>
-                  <SelectItem value="monthly">🗓️ Monthly</SelectItem>
-                  <SelectItem value="quarterly">📊 Quarterly</SelectItem>
-                  <SelectItem value="semi-annually">📈 Semi-Annually</SelectItem>
-                  <SelectItem value="annually">📆 Annually</SelectItem>
+                  <SelectItem value="single-payment">💰 Single Payment</SelectItem>
+                  <SelectItem value="installment">📋 Installment</SelectItem>
+                  <SelectItem value="open-payment">🔄 Open Payment</SelectItem>
                 </SelectContent>
               </Select>
+              <FormDescription className="text-gray-500">
+                Choose how the loan will be repaid
+              </FormDescription>
               <FormMessage className="text-red-500" />
             </FormItem>
           )}
         />
 
-        {/* Installment Count */}
-        {repaymentPlan !== 'one-time' && (
+        {/* Installment Count - Only show for installment plan */}
+        {repaymentPlan === 'installment' && (
           <FormField
             control={control}
             name="loanInformation.installmentCount"
@@ -419,22 +406,18 @@ const LoanInformationForm: React.FC<LoanInformationFormProps> = ({ control }) =>
                 <FormLabel className="text-base font-medium text-gray-900">
                   Number of Installments <span className="text-red-500">*</span>
                 </FormLabel>
-                <Select onValueChange={(value) => field.onChange(parseInt(value))} value={field.value?.toString()}>
-                  <FormControl>
-                    <SelectTrigger className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 transition-colors">
-                      <SelectValue placeholder="Select number of installments" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {getInstallmentOptions().map((count) => (
-                      <SelectItem key={count} value={count.toString()}>
-                        {count} installments
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="Enter number of installments"
+                    className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 transition-colors"
+                    min="1"
+                    value={field.value || ''}
+                    onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)}
+                  />
+                </FormControl>
                 <FormDescription className="text-gray-500">
-                  How many {repaymentPlan} payments will be made?
+                  How many installments will be made to pay off this loan?
                 </FormDescription>
                 <FormMessage className="text-red-500" />
               </FormItem>
