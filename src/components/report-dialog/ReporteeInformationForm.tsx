@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Plus, X, User, Phone, Mail, IdCard, Globe, Upload, Banknote } from 'lucide-react';
 import {
   Select,
@@ -44,6 +45,12 @@ const banks = [
 const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({ control, setValue }) => {
   const [socialLinks, setSocialLinks] = React.useState<string[]>(['']);
   const [countryCode, setCountryCode] = React.useState('+62');
+  
+  // State for toggling optional sections
+  const [showEmail, setShowEmail] = React.useState(false);
+  const [showIdInfo, setShowIdInfo] = React.useState(false);
+  const [showBankInfo, setShowBankInfo] = React.useState(false);
+  const [showSocialMedia, setShowSocialMedia] = React.useState(false);
 
   const addSocialLink = () => {
     setSocialLinks([...socialLinks, '']);
@@ -127,7 +134,62 @@ const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({ contr
         )}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Optional sections toggles */}
+      <div className="space-y-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
+        <h3 className="text-sm font-medium text-gray-900 mb-3">Add Additional Information (Optional)</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="show-email"
+              checked={showEmail}
+              onCheckedChange={(checked) => setShowEmail(checked as boolean)}
+            />
+            <label htmlFor="show-email" className="text-sm font-medium text-gray-700 cursor-pointer flex items-center space-x-1">
+              <Mail className="h-4 w-4 text-purple-600" />
+              <span>Email Address</span>
+            </label>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="show-id"
+              checked={showIdInfo}
+              onCheckedChange={(checked) => setShowIdInfo(checked as boolean)}
+            />
+            <label htmlFor="show-id" className="text-sm font-medium text-gray-700 cursor-pointer flex items-center space-x-1">
+              <IdCard className="h-4 w-4 text-orange-600" />
+              <span>ID Information</span>
+            </label>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="show-bank"
+              checked={showBankInfo}
+              onCheckedChange={(checked) => setShowBankInfo(checked as boolean)}
+            />
+            <label htmlFor="show-bank" className="text-sm font-medium text-gray-700 cursor-pointer flex items-center space-x-1">
+              <Banknote className="h-4 w-4 text-green-600" />
+              <span>Bank Account</span>
+            </label>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="show-social"
+              checked={showSocialMedia}
+              onCheckedChange={(checked) => setShowSocialMedia(checked as boolean)}
+            />
+            <label htmlFor="show-social" className="text-sm font-medium text-gray-700 cursor-pointer flex items-center space-x-1">
+              <Globe className="h-4 w-4 text-indigo-600" />
+              <span>Social Media</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      {/* Email section */}
+      {showEmail && (
         <FormField
           control={control}
           name="reporteeInformation.email"
@@ -136,7 +198,6 @@ const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({ contr
               <FormLabel className="text-base font-medium text-gray-900 flex items-center space-x-2">
                 <Mail className="h-4 w-4 text-purple-600" />
                 <span>Email Address</span>
-                <span className="text-gray-500">(optional)</span>
               </FormLabel>
               <FormControl>
                 <Input
@@ -150,170 +211,176 @@ const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({ contr
             </FormItem>
           )}
         />
+      )}
 
-        <FormField
-          control={control}
-          name="reporteeInformation.idType"
-          render={({ field }) => (
-            <FormItem className="space-y-3">
-              <FormLabel className="text-base font-medium text-gray-900 flex items-center space-x-2">
-                <IdCard className="h-4 w-4 text-orange-600" />
-                <span>ID Type</span>
-                <span className="text-gray-500">(optional)</span>
-              </FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger className="h-12 text-base border-2 border-gray-200 focus:border-blue-500">
-                    <SelectValue placeholder="Select ID type" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent className="bg-white border shadow-lg z-50">
-                  <SelectItem value="national-id">National ID / KTP</SelectItem>
-                  <SelectItem value="passport">Passport</SelectItem>
-                  <SelectItem value="driver-license">Driver's License</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage className="text-red-500" />
-            </FormItem>
-          )}
-        />
-      </div>
+      {/* ID Information section */}
+      {showIdInfo && (
+        <div className="space-y-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <FormLabel className="text-base font-medium text-gray-900 flex items-center space-x-2">
+            <IdCard className="h-4 w-4 text-orange-600" />
+            <span>ID Information</span>
+          </FormLabel>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={control}
+              name="reporteeInformation.idType"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel className="text-sm font-medium text-gray-700">
+                    ID Type
+                  </FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="h-10 border-2 border-gray-200 focus:border-blue-500">
+                        <SelectValue placeholder="Select ID type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="bg-white border shadow-lg z-50">
+                      <SelectItem value="national-id">National ID / KTP</SelectItem>
+                      <SelectItem value="passport">Passport</SelectItem>
+                      <SelectItem value="driver-license">Driver's License</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage className="text-red-500" />
+                </FormItem>
+              )}
+            />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <FormField
-          control={control}
-          name="reporteeInformation.nationalId"
-          render={({ field }) => (
-            <FormItem className="space-y-3">
-              <FormLabel className="text-base font-medium text-gray-900 flex items-center space-x-2">
-                <IdCard className="h-4 w-4 text-orange-600" />
-                <span>ID Number</span>
-                <span className="text-gray-500">(optional)</span>
-              </FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="e.g., 1234567890123456"
-                  className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 transition-colors"
-                  {...field}
-                />
-              </FormControl>
-              <FormDescription className="text-gray-500">
-                For verification purposes only
-              </FormDescription>
-              <FormMessage className="text-red-500" />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={control}
-          name="reporteeInformation.idPicture"
-          render={({ field }) => (
-            <FormItem className="space-y-3">
-              <FormLabel className="text-base font-medium text-gray-900 flex items-center space-x-2">
-                <Upload className="h-4 w-4 text-indigo-600" />
-                <span>ID Picture</span>
-                <span className="text-gray-500">(optional)</span>
-              </FormLabel>
-              <FormControl>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-blue-400 transition-colors">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleIdPictureUpload}
-                    className="hidden"
-                    id="id-picture-upload"
-                  />
-                  <label
-                    htmlFor="id-picture-upload"
-                    className="cursor-pointer flex flex-col items-center space-y-2"
-                  >
-                    <Upload className="h-8 w-8 text-gray-400" />
-                    <span className="text-sm text-gray-600">
-                      {field.value ? field.value.name : 'Click to upload ID picture'}
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      PNG, JPG up to 10MB
-                    </span>
-                  </label>
-                </div>
-              </FormControl>
-              <FormMessage className="text-red-500" />
-            </FormItem>
-          )}
-        />
-      </div>
-
-      {/* Bank Account Information Section */}
-      <div className="space-y-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
-        <FormLabel className="text-base font-medium text-gray-900 flex items-center space-x-2">
-          <Banknote className="h-4 w-4 text-green-600" />
-          <span>Bank Account Information</span>
-          <span className="text-gray-500">(optional)</span>
-        </FormLabel>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={control}
-            name="reporteeInformation.bankName"
-            render={({ field }) => (
-              <FormItem className="space-y-3">
-                <FormLabel className="text-sm font-medium text-gray-700">
-                  Bank Name
-                </FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+            <FormField
+              control={control}
+              name="reporteeInformation.nationalId"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel className="text-sm font-medium text-gray-700">
+                    ID Number
+                  </FormLabel>
                   <FormControl>
-                    <SelectTrigger className="h-10 border-2 border-gray-200 focus:border-blue-500">
-                      <SelectValue placeholder="Choose bank" />
-                    </SelectTrigger>
+                    <Input
+                      placeholder="e.g., 1234567890123456"
+                      className="h-10 border-2 border-gray-200 focus:border-blue-500 transition-colors"
+                      {...field}
+                    />
                   </FormControl>
-                  <SelectContent className="bg-white border shadow-lg z-50 max-h-48 overflow-y-auto">
-                    {banks.map((bank) => (
-                      <SelectItem key={bank} value={bank}>
-                        {bank}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage className="text-red-500" />
-              </FormItem>
-            )}
-          />
+                  <FormDescription className="text-gray-500 text-sm">
+                    For verification purposes only
+                  </FormDescription>
+                  <FormMessage className="text-red-500" />
+                </FormItem>
+              )}
+            />
+          </div>
 
           <FormField
             control={control}
-            name="reporteeInformation.bankAccountNumber"
+            name="reporteeInformation.idPicture"
             render={({ field }) => (
               <FormItem className="space-y-3">
-                <FormLabel className="text-sm font-medium text-gray-700">
-                  Account Number
+                <FormLabel className="text-sm font-medium text-gray-700 flex items-center space-x-2">
+                  <Upload className="h-4 w-4 text-indigo-600" />
+                  <span>ID Picture</span>
                 </FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="Enter account number"
-                    className="h-10 border-2 border-gray-200 focus:border-blue-500 transition-colors"
-                    {...field}
-                  />
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-blue-400 transition-colors">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleIdPictureUpload}
+                      className="hidden"
+                      id="id-picture-upload"
+                    />
+                    <label
+                      htmlFor="id-picture-upload"
+                      className="cursor-pointer flex flex-col items-center space-y-2"
+                    >
+                      <Upload className="h-8 w-8 text-gray-400" />
+                      <span className="text-sm text-gray-600">
+                        {field.value ? field.value.name : 'Click to upload ID picture'}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        PNG, JPG up to 10MB
+                      </span>
+                    </label>
+                  </div>
                 </FormControl>
                 <FormMessage className="text-red-500" />
               </FormItem>
             )}
           />
         </div>
-        
-        <FormDescription className="text-gray-500 text-sm">
-          💡 Bank account information helps with identity verification and payment processing
-        </FormDescription>
-      </div>
+      )}
 
-      <div className="space-y-4">
-        <FormLabel className="text-base font-medium text-gray-900 flex items-center space-x-2">
-          <Globe className="h-4 w-4 text-indigo-600" />
-          <span>Social Media Links</span>
-          <span className="text-gray-500">(optional)</span>
-        </FormLabel>
-        
-        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+      {/* Bank Account Information Section */}
+      {showBankInfo && (
+        <div className="space-y-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <FormLabel className="text-base font-medium text-gray-900 flex items-center space-x-2">
+            <Banknote className="h-4 w-4 text-green-600" />
+            <span>Bank Account Information</span>
+          </FormLabel>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={control}
+              name="reporteeInformation.bankName"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel className="text-sm font-medium text-gray-700">
+                    Bank Name
+                  </FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="h-10 border-2 border-gray-200 focus:border-blue-500">
+                        <SelectValue placeholder="Choose bank" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="bg-white border shadow-lg z-50 max-h-48 overflow-y-auto">
+                      {banks.map((bank) => (
+                        <SelectItem key={bank} value={bank}>
+                          {bank}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage className="text-red-500" />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={control}
+              name="reporteeInformation.bankAccountNumber"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel className="text-sm font-medium text-gray-700">
+                    Account Number
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter account number"
+                      className="h-10 border-2 border-gray-200 focus:border-blue-500 transition-colors"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage className="text-red-500" />
+                </FormItem>
+              )}
+            />
+          </div>
+          
+          <FormDescription className="text-gray-500 text-sm">
+            💡 Bank account information helps with identity verification and payment processing
+          </FormDescription>
+        </div>
+      )}
+
+      {/* Social Media section */}
+      {showSocialMedia && (
+        <div className="space-y-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <FormLabel className="text-base font-medium text-gray-900 flex items-center space-x-2">
+            <Globe className="h-4 w-4 text-indigo-600" />
+            <span>Social Media Links</span>
+          </FormLabel>
+          
           <p className="text-sm text-gray-600 mb-4">
             💡 Social media profiles can help verify identity and improve credit assessment
           </p>
@@ -351,7 +418,7 @@ const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({ contr
             <span>Add Another Social Link</span>
           </Button>
         </div>
-      </div>
+      )}
     </div>
   );
 };
