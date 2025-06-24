@@ -173,6 +173,10 @@ const RestructureDialog: React.FC<RestructureDialogProps> = ({
                       <RadioGroupItem value="installment" id="new-installment" />
                       <Label htmlFor="new-installment">Installment</Label>
                     </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="open-payment" id="new-open-payment" />
+                      <Label htmlFor="new-open-payment">Open Payment (Flexible)</Label>
+                    </div>
                   </RadioGroup>
                 </div>
 
@@ -190,6 +194,16 @@ const RestructureDialog: React.FC<RestructureDialogProps> = ({
                     />
                     <p className="text-sm text-gray-500 mt-1">
                       New monthly payment: {formatCurrency(calculateNewMonthlyPayment())}
+                    </p>
+                  </div>
+                )}
+
+                {newPaymentMethod === 'open-payment' && (
+                  <div className="bg-blue-50 p-4 rounded-lg">
+                    <h4 className="font-medium text-blue-900 mb-2">Open Payment Method</h4>
+                    <p className="text-sm text-blue-700">
+                      This allows for flexible payments where the borrower can make payments of varying amounts at their own pace. 
+                      The loan balance will be tracked with each payment made.
                     </p>
                   </div>
                 )}
@@ -230,6 +244,12 @@ const RestructureDialog: React.FC<RestructureDialogProps> = ({
                 <div className="text-blue-600">
                   <span className="font-medium">New Monthly Payment:</span>
                   <span className="ml-2">{formatCurrency(calculateNewMonthlyPayment())}</span>
+                </div>
+              )}
+              {restructureType === 'payment-method' && newPaymentMethod === 'open-payment' && (
+                <div className="text-green-600">
+                  <span className="font-medium">New Payment Method:</span>
+                  <span className="ml-2">Flexible open payments allowed</span>
                 </div>
               )}
             </CardContent>
