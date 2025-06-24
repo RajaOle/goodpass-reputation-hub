@@ -40,11 +40,21 @@ const ReportsSection = () => {
       id: '1',
       status: 'pending',
       loanInformation: {
+        loanName: 'Home Renovation Loan',
         loanType: 'personal',
         loanAmount: 50000000,
+        agreementDate: '2024-01-10',
+        disbursementDate: '2024-01-15',
+        dueDate: '2026-01-15',
+        loanPurpose: 'home-improvement',
+        repaymentPlan: 'monthly',
+        installmentCount: 24,
+        applicationInterest: 0,
+        applicationLateFee: 0,
+        collateral: 'none',
+        // Legacy fields for backward compatibility
         loanTerm: 24,
         monthlyPayment: 2500000,
-        loanPurpose: 'Home renovation and improvement',
         paymentMethod: 'installments'
       },
       reporteeInformation: {
@@ -64,11 +74,21 @@ const ReportsSection = () => {
       id: '2',
       status: 'verified',
       loanInformation: {
+        loanName: 'Business Expansion Loan',
         loanType: 'business',
         loanAmount: 100000000,
+        agreementDate: '2024-01-05',
+        disbursementDate: '2024-01-10',
+        dueDate: '2027-01-10',
+        loanPurpose: 'business-expansion',
+        repaymentPlan: 'monthly',
+        installmentCount: 36,
+        applicationInterest: 0,
+        applicationLateFee: 0,
+        collateral: 'none',
+        // Legacy fields for backward compatibility
         loanTerm: 36,
         monthlyPayment: 3500000,
-        loanPurpose: 'Business expansion',
         paymentMethod: 'installments'
       },
       reporteeInformation: {
@@ -268,10 +288,9 @@ const ReportsSection = () => {
                     </TableRow>
                   ))}
                 </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
         {(['draft', 'pending', 'verified', 'rejected'] as ReportStatus[]).map((status) => (
           <TabsContent key={status} value={status}>

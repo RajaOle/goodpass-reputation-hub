@@ -27,11 +27,21 @@ export const ReportsProvider: React.FC<ReportsProviderProps> = ({ children }) =>
       id: '1',
       status: 'pending',
       loanInformation: {
+        loanName: 'Home Renovation Loan',
         loanType: 'personal',
         loanAmount: 50000000,
+        agreementDate: '2024-01-15',
+        disbursementDate: '2024-01-20',
+        dueDate: '2026-01-20',
+        loanPurpose: 'home-improvement',
+        repaymentPlan: 'monthly',
+        installmentCount: 24,
+        applicationInterest: 0,
+        applicationLateFee: 0,
+        collateral: 'none',
+        // Legacy fields for backward compatibility
         loanTerm: 24,
         monthlyPayment: 2500000,
-        loanPurpose: 'Home renovation and improvement',
         paymentMethod: 'installments'
       },
       reporteeInformation: {
@@ -51,11 +61,21 @@ export const ReportsProvider: React.FC<ReportsProviderProps> = ({ children }) =>
       id: '2',
       status: 'verified',
       loanInformation: {
+        loanName: 'Business Expansion Loan',
         loanType: 'business',
         loanAmount: 100000000,
+        agreementDate: '2024-01-10',
+        disbursementDate: '2024-01-18',
+        dueDate: '2027-01-18',
+        loanPurpose: 'business-expansion',
+        repaymentPlan: 'monthly',
+        installmentCount: 36,
+        applicationInterest: 0,
+        applicationLateFee: 0,
+        collateral: 'none',
+        // Legacy fields for backward compatibility
         loanTerm: 36,
         monthlyPayment: 3500000,
-        loanPurpose: 'Business expansion',
         paymentMethod: 'open-payment'
       },
       reporteeInformation: {
