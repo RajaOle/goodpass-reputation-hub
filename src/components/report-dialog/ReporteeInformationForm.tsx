@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Control } from 'react-hook-form';
+import { Control, UseFormSetValue } from 'react-hook-form';
 import {
   FormControl,
   FormDescription,
@@ -11,15 +11,37 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Plus, X, User, Phone, Mail, IdCard, Globe } from 'lucide-react';
+import { Plus, X, User, Phone, Mail, IdCard, Globe, Upload, Banknote } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { ReportFormData } from '@/types/report';
 import CountryCodeSelector from '@/components/CountryCodeSelector';
 
 interface ReporteeInformationFormProps {
   control: Control<ReportFormData>;
+  setValue: UseFormSetValue<ReportFormData>;
 }
 
-const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({ control }) => {
+const banks = [
+  'Bank Central Asia (BCA)',
+  'Bank Rakyat Indonesia (BRI)',
+  'Bank Negara Indonesia (BNI)',
+  'Bank Mandiri',
+  'Bank Tabungan Negara (BTN)',
+  'Bank Danamon',
+  'Bank CIMB Niaga',
+  'Bank Permata',
+  'Bank Maybank Indonesia',
+  'Bank OCBC NISP',
+  'Other'
+];
+
+const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({ control, setValue }) => {
   const [socialLinks, setSocialLinks] = React.useState<string[]>(['']);
   const [countryCode, setCountryCode] = React.useState('+62');
 
@@ -37,6 +59,13 @@ const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({ contr
     setSocialLinks(newLinks);
   };
 
+  const handleIdPictureUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setValue('reporteeInformation.idPicture', file);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <FormField
@@ -51,7 +80,7 @@ const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({ contr
             </FormLabel>
             <FormControl>
               <Input
-                placeholder="Enter the borrower's full legal name"
+                placeholder="Enter the reportee's full legal name"
                 className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 transition-colors"
                 {...field}
               />
@@ -112,7 +141,7 @@ const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({ contr
               <FormControl>
                 <Input
                   type="email"
-                  placeholder="borrower@example.com"
+                  placeholder="reportee@example.com"
                   className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 transition-colors"
                   {...field}
                 />
@@ -124,12 +153,41 @@ const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({ contr
 
         <FormField
           control={control}
+          name="reporteeInformation.idType"
+          render={({ field }) => (
+            <FormItem className="space-y-3">
+              <FormLabel className="text-base font-medium text-gray-900 flex items-center space-x-2">
+                <IdCard className="h-4 w-4 text-orange-600" />
+                <span>ID Type</span>
+                <span className="text-gray-500">(optional)</span>
+              </FormLabel>
+              <Select onValueChange={field.onChange} value={field.value}>
+                <FormControl>
+                  <SelectTrigger className="h-12 text-base border-2 border-gray-200 focus:border-blue-500">
+                    <SelectValue placeholder="Select ID type" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent className="bg-white border shadow-lg z-50">
+                  <SelectItem value="national-id">National ID / KTP</SelectItem>
+                  <SelectItem value="passport">Passport</SelectItem>
+                  <SelectItem value="driver-license">Driver's License</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage className="text-red-500" />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <FormField
+          control={control}
           name="reporteeInformation.nationalId"
           render={({ field }) => (
             <FormItem className="space-y-3">
               <FormLabel className="text-base font-medium text-gray-900 flex items-center space-x-2">
                 <IdCard className="h-4 w-4 text-orange-600" />
-                <span>National ID / KTP</span>
+                <span>ID Number</span>
                 <span className="text-gray-500">(optional)</span>
               </FormLabel>
               <FormControl>
@@ -146,6 +204,106 @@ const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({ contr
             </FormItem>
           )}
         />
+
+        <FormField
+          control={control}
+          name="reporteeInformation.idPicture"
+          render={({ field }) => (
+            <FormItem className="space-y-3">
+              <FormLabel className="text-base font-medium text-gray-900 flex items-center space-x-2">
+                <Upload className="h-4 w-4 text-indigo-600" />
+                <span>ID Picture</span>
+                <span className="text-gray-500">(optional)</span>
+              </FormLabel>
+              <FormControl>
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-blue-400 transition-colors">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleIdPictureUpload}
+                    className="hidden"
+                    id="id-picture-upload"
+                  />
+                  <label
+                    htmlFor="id-picture-upload"
+                    className="cursor-pointer flex flex-col items-center space-y-2"
+                  >
+                    <Upload className="h-8 w-8 text-gray-400" />
+                    <span className="text-sm text-gray-600">
+                      {field.value ? field.value.name : 'Click to upload ID picture'}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      PNG, JPG up to 10MB
+                    </span>
+                  </label>
+                </div>
+              </FormControl>
+              <FormMessage className="text-red-500" />
+            </FormItem>
+          )}
+        />
+      </div>
+
+      {/* Bank Account Information Section */}
+      <div className="space-y-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
+        <FormLabel className="text-base font-medium text-gray-900 flex items-center space-x-2">
+          <Banknote className="h-4 w-4 text-green-600" />
+          <span>Bank Account Information</span>
+          <span className="text-gray-500">(optional)</span>
+        </FormLabel>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={control}
+            name="reporteeInformation.bankName"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <FormLabel className="text-sm font-medium text-gray-700">
+                  Bank Name
+                </FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger className="h-10 border-2 border-gray-200 focus:border-blue-500">
+                      <SelectValue placeholder="Choose bank" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent className="bg-white border shadow-lg z-50 max-h-48 overflow-y-auto">
+                    {banks.map((bank) => (
+                      <SelectItem key={bank} value={bank}>
+                        {bank}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage className="text-red-500" />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={control}
+            name="reporteeInformation.bankAccountNumber"
+            render={({ field }) => (
+              <FormItem className="space-y-3">
+                <FormLabel className="text-sm font-medium text-gray-700">
+                  Account Number
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Enter account number"
+                    className="h-10 border-2 border-gray-200 focus:border-blue-500 transition-colors"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage className="text-red-500" />
+              </FormItem>
+            )}
+          />
+        </div>
+        
+        <FormDescription className="text-gray-500 text-sm">
+          💡 Bank account information helps with identity verification and payment processing
+        </FormDescription>
       </div>
 
       <div className="space-y-4">

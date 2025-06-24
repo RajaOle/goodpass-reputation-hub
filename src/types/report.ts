@@ -1,4 +1,3 @@
-
 export interface LoanInformation {
   loanName: string;
   loanType: 'personal' | 'business' | 'mortgage' | 'auto' | 'student' | 'other';
@@ -26,7 +25,11 @@ export interface ReporteeInformation {
   phoneNumber: string;
   email?: string;
   nationalId?: string;
+  idType?: 'national-id' | 'passport' | 'driver-license';
+  idPicture?: File;
   socialMediaLinks?: string[];
+  bankName?: string;
+  bankAccountNumber?: string;
 }
 
 export interface SupportingDocuments {

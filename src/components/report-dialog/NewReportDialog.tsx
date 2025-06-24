@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -72,7 +73,11 @@ const reportSchema = z.object({
     phoneNumber: z.string().min(10, 'Please enter a valid phone number'),
     email: z.string().email('Please enter a valid email address').optional().or(z.literal('')),
     nationalId: z.string().optional(),
+    idType: z.enum(['national-id', 'passport', 'driver-license']).optional(),
+    idPicture: z.instanceof(File).optional(),
     socialMediaLinks: z.array(z.string()).optional(),
+    bankName: z.string().optional(),
+    bankAccountNumber: z.string().optional(),
   }),
   supportingDocuments: z.object({
     documents: z.array(z.instanceof(File)),
@@ -90,10 +95,10 @@ const steps = [
   },
   { 
     id: 2, 
-    name: 'Borrower Info', 
+    name: 'Reportee Info', 
     icon: User, 
-    title: 'Borrower Information',
-    description: 'Now, tell us who the borrower is.'
+    title: 'Reportee Information',
+    description: 'Now, tell us who the reportee is.'
   },
   { 
     id: 3, 
@@ -151,7 +156,11 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
         phoneNumber: '',
         email: '',
         nationalId: '',
+        idType: undefined,
+        idPicture: undefined,
         socialMediaLinks: [],
+        bankName: '',
+        bankAccountNumber: '',
       },
       supportingDocuments: {
         documents: [],
@@ -374,7 +383,10 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
                   )}
 
                   {currentStep === 2 && (
-                    <ReporteeInformationForm control={form.control} />
+                    <ReporteeInformationForm 
+                      control={form.control}
+                      setValue={form.setValue}
+                    />
                   )}
 
                   {currentStep === 3 && (
