@@ -19,6 +19,7 @@ import { useReports } from '@/contexts/ReportsContext';
 import LoanInformationForm from './LoanInformationForm';
 import ReporteeInformationForm from './ReporteeInformationForm';
 import SupportingDocumentsForm from './SupportingDocumentsForm';
+import { DollarSign, User, FileText } from 'lucide-react';
 
 const reportSchema = z.object({
   loanInformation: z.object({
