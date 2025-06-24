@@ -60,9 +60,27 @@ interface NewReportDialogProps {
 }
 
 const steps = [
-  { id: 1, name: 'Loan Details', icon: DollarSign, description: 'Basic loan information' },
-  { id: 2, name: 'Borrower Info', icon: User, description: 'Personal details' },
-  { id: 3, name: 'Documents', icon: FileText, description: 'Supporting files' },
+  { 
+    id: 1, 
+    name: 'Loan Details', 
+    icon: DollarSign, 
+    title: 'Loan Details',
+    description: "Let's start with the basic loan information."
+  },
+  { 
+    id: 2, 
+    name: 'Borrower Info', 
+    icon: User, 
+    title: 'Borrower Information',
+    description: 'Now, tell us who the borrower is.'
+  },
+  { 
+    id: 3, 
+    name: 'Attachments', 
+    icon: FileText, 
+    title: 'Attachments',
+    description: 'Add any supporting documents to strengthen the report.'
+  },
 ];
 
 const NewReportDialog: React.FC<NewReportDialogProps> = ({ 
@@ -108,19 +126,20 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
   };
 
   const onSubmit = async (data: ReportFormData) => {
-    if (isSubmitting) return; // Prevent duplicate submissions
+    if (isSubmitting) return;
     
     setIsSubmitting(true);
     try {
       console.log('Submitting report:', data);
       
+      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       // Log activity to Recent Activity Feed
       const activityLog = {
         id: Date.now().toString(),
         reportId: `R${Date.now()}`,
-        action: `✅ Report Submitted — Your review of ${data.reporteeInformation.fullName} has been published`,
+        action: `✅ Report Submitted – Your report is under review`,
         timestamp: new Date().toISOString(),
         details: `${data.loanInformation.loanType} loan report submitted successfully`
       };
@@ -128,8 +147,8 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
       console.log('Activity logged:', activityLog);
       
       toast({
-        title: "🎉 Report Submitted Successfully!",
-        description: `Your loan report for ${data.reporteeInformation.fullName} is now pending review. We'll notify you once it's processed.`,
+        title: "✅ Report submitted successfully",
+        description: `Your loan report for ${data.reporteeInformation.fullName} has been submitted and is now under review.`,
       });
       
       form.reset();
@@ -143,26 +162,6 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
       });
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const saveDraft = async () => {
-    try {
-      const data = form.getValues();
-      console.log('Saving draft:', data);
-      
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast({
-        title: "💾 Draft Saved",
-        description: "Your progress has been saved. You can continue later.",
-      });
-    } catch (error) {
-      toast({
-        title: "❌ Save Failed",
-        description: "Couldn't save your draft. Please try again.",
-        variant: "destructive",
-      });
     }
   };
 
@@ -180,7 +179,7 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
   };
 
   const handleNext = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault(); // Prevent form submission
+    if (e) e.preventDefault();
     
     const fieldsToValidate = getFieldsForStep(currentStep);
     const isValid = await form.trigger(fieldsToValidate);
@@ -191,7 +190,7 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
   };
 
   const handlePrevious = (e?: React.FormEvent) => {
-    if (e) e.preventDefault(); // Prevent form submission
+    if (e) e.preventDefault();
     
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
@@ -214,21 +213,24 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
     return isStepValid(currentStep);
   };
 
+  const currentStepData = steps[currentStep - 1];
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[95vh] overflow-hidden p-0">
+        {/* Header */}
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 border-b">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-gray-900">
-              💸 Create Loan Report
+              Create New Report
             </DialogTitle>
             <DialogDescription className="text-gray-600 mt-2">
-              Help us understand your loan details to create an accurate credit report
+              Follow the steps below to create a comprehensive loan report
             </DialogDescription>
           </DialogHeader>
         </div>
 
-        {/* Progress Steps */}
+        {/* Progress Indicator */}
         <div className="px-6 py-4 bg-white border-b">
           <div className="flex items-center justify-between mb-4">
             {steps.map((step, index) => {
@@ -243,9 +245,9 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
                       className={`
                         w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300
                         ${isCompleted 
-                          ? 'bg-green-500 text-white' 
+                          ? 'bg-green-500 text-white shadow-lg' 
                           : isCurrent 
-                          ? 'bg-blue-500 text-white' 
+                          ? 'bg-blue-500 text-white shadow-lg' 
                           : 'bg-gray-200 text-gray-500'
                         }
                       `}
@@ -260,7 +262,6 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
                       <p className={`text-sm font-medium ${isCurrent ? 'text-blue-600' : 'text-gray-500'}`}>
                         {step.name}
                       </p>
-                      <p className="text-xs text-gray-400">{step.description}</p>
                     </div>
                   </div>
                   
@@ -284,67 +285,39 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
         <div className="p-6 overflow-y-auto max-h-[60vh]">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <div className="bg-white rounded-xl shadow-sm border p-6">
-                {currentStep === 1 && (
-                  <div className="space-y-6">
-                    <div className="text-center mb-6">
-                      <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                        💸 Let's set up the loan details
-                      </h3>
-                      <p className="text-gray-600">
-                        Tell us about the loan you're reporting on
-                      </p>
-                    </div>
+              {/* Step Card */}
+              <div className="bg-white rounded-xl shadow-sm border p-8 transition-all duration-300">
+                <div className="text-center mb-8">
+                  <h3 className="text-2xl font-semibold text-gray-900 mb-2">
+                    {currentStepData.title}
+                  </h3>
+                  <p className="text-gray-600">
+                    {currentStepData.description}
+                  </p>
+                </div>
+
+                {/* Step Content */}
+                <div className="transition-all duration-300">
+                  {currentStep === 1 && (
                     <LoanInformationForm control={form.control} />
-                  </div>
-                )}
+                  )}
 
-                {currentStep === 2 && (
-                  <div className="space-y-6">
-                    <div className="text-center mb-6">
-                      <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                        👤 Borrower Information
-                      </h3>
-                      <p className="text-gray-600">
-                        Who is this loan report for?
-                      </p>
-                    </div>
+                  {currentStep === 2 && (
                     <ReporteeInformationForm control={form.control} />
-                  </div>
-                )}
+                  )}
 
-                {currentStep === 3 && (
-                  <div className="space-y-6">
-                    <div className="text-center mb-6">
-                      <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                        📄 Supporting Documents
-                      </h3>
-                      <p className="text-gray-600">
-                        Upload any relevant documents to support your report
-                      </p>
-                    </div>
+                  {currentStep === 3 && (
                     <SupportingDocumentsForm 
                       control={form.control} 
                       setValue={form.setValue}
                     />
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
 
               {/* Navigation */}
               <div className="flex items-center justify-between pt-6 border-t bg-gray-50 -mx-6 px-6 -mb-6 pb-6">
                 <div className="flex space-x-3">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={saveDraft}
-                    className="flex items-center space-x-2"
-                    disabled={isSubmitting}
-                  >
-                    <span>💾</span>
-                    <span>Save Draft</span>
-                  </Button>
-                  
                   {currentStep > 1 && (
                     <Button 
                       type="button" 
@@ -385,7 +358,6 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
                       disabled={!form.formState.isValid || isSubmitting}
                       className="bg-green-600 hover:bg-green-700 flex items-center space-x-2"
                     >
-                      <span>✨</span>
                       <span>{isSubmitting ? 'Submitting...' : 'Submit Report'}</span>
                     </Button>
                   )}

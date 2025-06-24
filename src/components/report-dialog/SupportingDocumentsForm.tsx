@@ -12,8 +12,9 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Upload, X, FileText, Image, File, Check } from 'lucide-react';
+import { Upload, X, FileText, Image, File, Check, AlertCircle } from 'lucide-react';
 import { ReportFormData } from '@/types/report';
+import { useToast } from '@/hooks/use-toast';
 
 interface SupportingDocumentsFormProps {
   control: Control<ReportFormData>;
@@ -24,6 +25,7 @@ const SupportingDocumentsForm: React.FC<SupportingDocumentsFormProps> = ({
   control, 
   setValue 
 }) => {
+  const { toast } = useToast();
   const documents = useWatch({
     control,
     name: 'supportingDocuments.documents',
@@ -32,7 +34,7 @@ const SupportingDocumentsForm: React.FC<SupportingDocumentsFormProps> = ({
 
   const getFileIcon = (fileName: string) => {
     const extension = fileName.split('.').pop()?.toLowerCase();
-    if (['jpg', 'jpeg', 'png', 'gif'].includes(extension || '')) {
+    if (['jpg', 'jpeg', 'png'].includes(extension || '')) {
       return <Image className="h-5 w-5 text-blue-600" />;
     }
     if (['pdf'].includes(extension || '')) {
@@ -49,14 +51,43 @@ const SupportingDocumentsForm: React.FC<SupportingDocumentsFormProps> = ({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  const validateFile = (file: File) => {
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+    
+    if (file.size > maxSize) {
+      toast({
+        title: "File too large",
+        description: `${file.name} is larger than 5MB. Please choose a smaller file.`,
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Invalid file type",
+        description: `${file.name} is not a supported file type. Please use PDF, JPG, or PNG files.`,
+        variant: "destructive",
+      });
+      return false;
+    }
+    
+    return true;
+  };
+
   const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files) {
-      const newFiles = Array.from(files);
-      const updatedDocuments = [...documents, ...newFiles];
-      setValue('supportingDocuments.documents', updatedDocuments);
+      const newFiles = Array.from(files).filter(validateFile);
+      if (newFiles.length > 0) {
+        const updatedDocuments = [...documents, ...newFiles];
+        setValue('supportingDocuments.documents', updatedDocuments);
+      }
     }
-  }, [documents, setValue]);
+    // Reset the input
+    event.target.value = '';
+  }, [documents, setValue, toast]);
 
   const removeDocument = useCallback((index: number) => {
     const updatedDocuments = documents.filter((_, i) => i !== index);
@@ -85,7 +116,7 @@ const SupportingDocumentsForm: React.FC<SupportingDocumentsFormProps> = ({
                     
                     <div>
                       <h4 className="text-lg font-medium text-gray-900 mb-2">
-                        📎 Upload Your Documents
+                        Upload Your Documents
                       </h4>
                       <p className="text-gray-600 mb-4">
                         Drag and drop files here, or click to browse
@@ -94,7 +125,7 @@ const SupportingDocumentsForm: React.FC<SupportingDocumentsFormProps> = ({
                       <Input
                         type="file"
                         multiple
-                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                        accept=".pdf,.jpg,.jpeg,.png"
                         onChange={handleFileUpload}
                         className="hidden"
                         id="document-upload"
@@ -108,6 +139,21 @@ const SupportingDocumentsForm: React.FC<SupportingDocumentsFormProps> = ({
                       >
                         Choose Files
                       </Button>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* File Type Hints */}
+                <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
+                  <div className="flex items-start space-x-2">
+                    <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
+                    <div className="text-sm text-amber-800">
+                      <p className="font-medium mb-1">File Requirements:</p>
+                      <ul className="list-disc list-inside space-y-1">
+                        <li>Accepted formats: PDF, JPG, PNG</li>
+                        <li>Maximum file size: 5MB per file</li>
+                        <li>Recommended: Loan agreements, ID cards, bank statements, payment receipts</li>
+                      </ul>
                     </div>
                   </div>
                 </div>
@@ -153,10 +199,8 @@ const SupportingDocumentsForm: React.FC<SupportingDocumentsFormProps> = ({
               </div>
             </FormControl>
             
-            <FormDescription className="bg-amber-50 p-3 rounded-lg border border-amber-200">
-              💡 <strong>Helpful documents:</strong> Loan agreements, ID cards, bank statements, payment receipts
-              <br />
-              📄 <strong>Accepted formats:</strong> PDF, DOC, DOCX, JPG, JPEG, PNG (Max 10MB per file)
+            <FormDescription className="text-gray-500">
+              Uploads are optional but encouraged to strengthen your report
             </FormDescription>
             
             <FormMessage className="text-red-500" />
