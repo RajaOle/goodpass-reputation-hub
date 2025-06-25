@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Edit, RefreshCw, CreditCard, Calendar, DollarSign } from 'lucide-react';
 import { Report } from '@/types/report';
+import PaymentProgressBar from './PaymentProgressBar';
 
 interface RecentReportsProps {
   reports: Report[];
@@ -77,23 +78,12 @@ const RecentReports: React.FC<RecentReportsProps> = ({
     return { text: 'No due date', color: 'text-gray-500' };
   };
 
-  const getPaymentProgress = (report: Report) => {
-    if (report.paymentInfo) {
-      const { totalPaid = 0, remainingBalance = 0 } = report.paymentInfo;
-      const totalAmount = totalPaid + remainingBalance;
-      const percentage = totalAmount > 0 ? Math.round((totalPaid / totalAmount) * 100) : 0;
-      return { totalPaid, remainingBalance, percentage };
-    }
-    return { totalPaid: 0, remainingBalance: report.loanInformation.loanAmount, percentage: 0 };
-  };
-
   return (
     <div>
       <h2 className="text-xl font-semibold text-gray-900 mb-4">Your Recent Reports</h2>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {reports.map((report) => {
           const dueDate = formatDueDate(report);
-          const paymentProgress = getPaymentProgress(report);
 
           return (
             <Card key={report.id} className="hover:shadow-lg transition-shadow duration-200">
@@ -112,7 +102,7 @@ const RecentReports: React.FC<RecentReportsProps> = ({
               </CardHeader>
               
               <CardContent className="pt-0">
-                {/* Loan Amount and Payment Info */}
+                {/* Loan Amount and Due Date */}
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div className="flex items-center space-x-2">
                     <DollarSign className="h-4 w-4 text-green-600" />
@@ -134,25 +124,8 @@ const RecentReports: React.FC<RecentReportsProps> = ({
                   </div>
                 </div>
 
-                {/* Payment Progress */}
-                {paymentProgress.percentage > 0 && (
-                  <div className="mb-4">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-sm text-gray-500">Payment Progress</span>
-                      <span className="text-sm font-medium text-gray-900">{paymentProgress.percentage}%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-green-600 h-2 rounded-full transition-all duration-300" 
-                        style={{ width: `${paymentProgress.percentage}%` }}
-                      ></div>
-                    </div>
-                    <div className="flex justify-between text-xs text-gray-500 mt-1">
-                      <span>Paid: {formatCurrency(paymentProgress.totalPaid)}</span>
-                      <span>Remaining: {formatCurrency(paymentProgress.remainingBalance)}</span>
-                    </div>
-                  </div>
-                )}
+                {/* Payment Progress Bar with comprehensive payment history */}
+                <PaymentProgressBar report={report} formatCurrency={formatCurrency} />
 
                 {/* Loan Details */}
                 <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
