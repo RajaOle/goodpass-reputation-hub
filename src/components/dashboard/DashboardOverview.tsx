@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -275,35 +274,37 @@ const DashboardOverview = () => {
                     <span className="capitalize">{report.loanInformation.loanType} Loan</span>
                   </div>
 
-                  {/* Action Buttons */}
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleProcessReport(report)}
-                      className="flex-1 bg-white hover:bg-blue-50 border-blue-200 text-blue-700 hover:text-blue-800 hover:border-blue-300 transition-colors"
-                    >
-                      <Edit className="h-4 w-4 mr-2" />
-                      Process
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleRestructure(report)}
-                      className="flex-1 bg-white hover:bg-orange-50 border-orange-200 text-orange-700 hover:text-orange-800 hover:border-orange-300 transition-colors"
-                    >
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      Restructure
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleProcessPayment(report)}
-                      className="flex-1 bg-white hover:bg-green-50 border-green-200 text-green-700 hover:text-green-800 hover:border-green-300 transition-colors"
-                    >
-                      <CreditCard className="h-4 w-4 mr-2" />
-                      Add Info
-                    </Button>
+                  {/* Action Buttons - Centered Layout */}
+                  <div className="flex justify-center">
+                    <div className="flex gap-2 w-full max-w-md">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleProcessReport(report)}
+                        className="flex-1 bg-white hover:bg-blue-50 border-blue-200 text-blue-700 hover:text-blue-800 hover:border-blue-300 transition-colors"
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Process
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleRestructure(report)}
+                        className="flex-1 bg-white hover:bg-orange-50 border-orange-200 text-orange-700 hover:text-orange-800 hover:border-orange-300 transition-colors"
+                      >
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Restructure
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleProcessPayment(report)}
+                        className="flex-1 bg-white hover:bg-green-50 border-green-200 text-green-700 hover:text-green-800 hover:border-green-300 transition-colors"
+                      >
+                        <CreditCard className="h-4 w-4 mr-2" />
+                        Add Info
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
