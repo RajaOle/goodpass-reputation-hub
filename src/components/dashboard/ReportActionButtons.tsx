@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Edit, RefreshCw, Plus } from 'lucide-react';
+import { Edit, RefreshCw, CreditCard } from 'lucide-react';
 import { Report } from '@/types/report';
 
 interface ReportActionButtonsProps {
@@ -26,7 +26,7 @@ const ReportActionButtons: React.FC<ReportActionButtonsProps> = ({
         className="flex-1 h-9 bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700 hover:text-blue-800 font-medium transition-all duration-200"
       >
         <Edit className="h-4 w-4 mr-1.5" />
-        Process
+        Process Payment
       </Button>
       <Button 
         variant="outline" 
@@ -43,8 +43,8 @@ const ReportActionButtons: React.FC<ReportActionButtonsProps> = ({
         onClick={() => onAddInfo(report)}
         className="flex-1 h-9 bg-green-50 hover:bg-green-100 border-green-200 text-green-700 hover:text-green-800 font-medium transition-all duration-200"
       >
-        <Plus className="h-4 w-4 mr-1.5" />
-        Add Info
+        <CreditCard className="h-4 w-4 mr-1.5" />
+        Payment Method
       </Button>
     </div>
   );

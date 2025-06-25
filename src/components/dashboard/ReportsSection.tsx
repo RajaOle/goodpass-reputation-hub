@@ -1,9 +1,11 @@
+
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Report, ReportStatus } from '@/types/report';
 import NewReportDialog from '../report-dialog/NewReportDialog';
 import ReportDetailsDialog from './ReportDetailsDialog';
 import PaymentDialog from './PaymentDialog';
+import ProcessPaymentDialog from './ProcessPaymentDialog';
 import RestructureDialog from './RestructureDialog';
 import ReportsHeader from './reports/ReportsHeader';
 import ReportsTabContent from './reports/ReportsTabContent';
@@ -13,6 +15,7 @@ const ReportsSection = () => {
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [isProcessPaymentOpen, setIsProcessPaymentOpen] = useState(false);
   const [isRestructureOpen, setIsRestructureOpen] = useState(false);
 
   // Mock data - in real app this would come from API
@@ -112,6 +115,11 @@ const ReportsSection = () => {
     setIsPaymentOpen(true);
   };
 
+  const handleProcessReport = (report: Report) => {
+    setSelectedReport(report);
+    setIsProcessPaymentOpen(true);
+  };
+
   const handleRestructure = (report: Report) => {
     setSelectedReport(report);
     setIsRestructureOpen(true);
@@ -142,7 +150,7 @@ const ReportsSection = () => {
             onViewDetails={handleViewDetails}
             onEditReport={handleEditReport}
             onRestructure={handleRestructure}
-            onProcessPayment={handleProcessPayment}
+            onProcessPayment={handleProcessReport}
           />
         </TabsContent>
 
@@ -155,7 +163,7 @@ const ReportsSection = () => {
               onViewDetails={handleViewDetails}
               onEditReport={handleEditReport}
               onRestructure={handleRestructure}
-              onProcessPayment={handleProcessPayment}
+              onProcessPayment={handleProcessReport}
             />
           </TabsContent>
         ))}
@@ -178,6 +186,11 @@ const ReportsSection = () => {
           <PaymentDialog
             open={isPaymentOpen}
             onOpenChange={setIsPaymentOpen}
+            report={selectedReport}
+          />
+          <ProcessPaymentDialog
+            open={isProcessPaymentOpen}
+            onOpenChange={setIsProcessPaymentOpen}
             report={selectedReport}
           />
           <RestructureDialog

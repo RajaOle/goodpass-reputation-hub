@@ -122,7 +122,7 @@ const RecentReports: React.FC<RecentReportsProps> = ({
                   <span className="capitalize">{report.loanInformation.loanType} Loan</span>
                 </div>
 
-                {/* Action Buttons - Centered Layout */}
+                {/* Action Buttons - Updated labels for clarity */}
                 <div className="flex justify-center">
                   <div className="flex gap-2 w-full max-w-md">
                     <Button 
@@ -150,7 +150,7 @@ const RecentReports: React.FC<RecentReportsProps> = ({
                       className="flex-1 bg-white hover:bg-green-50 border-green-200 text-green-700 hover:text-green-800 hover:border-green-300 transition-colors"
                     >
                       <CreditCard className="h-4 w-4 mr-2" />
-                      Add Info
+                      Payment Method
                     </Button>
                   </div>
                 </div>

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import NewReportDialog from '../report-dialog/NewReportDialog';
 import ReportDetailsDialog from './ReportDetailsDialog';
 import PaymentDialog from './PaymentDialog';
+import ProcessPaymentDialog from './ProcessPaymentDialog';
 import RestructureDialog from './RestructureDialog';
 import StatsCards from './StatsCards';
 import QuickActions from './QuickActions';
@@ -16,12 +17,13 @@ const DashboardOverview = () => {
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [isProcessPaymentOpen, setIsProcessPaymentOpen] = useState(false);
   const [isRestructureOpen, setIsRestructureOpen] = useState(false);
   const { reports } = useReports();
 
   const handleProcessReport = (report: Report) => {
     setSelectedReport(report);
-    setIsDetailsOpen(true);
+    setIsProcessPaymentOpen(true);
   };
 
   const handleRestructure = (report: Report) => {
@@ -86,6 +88,11 @@ const DashboardOverview = () => {
           <PaymentDialog
             open={isPaymentOpen}
             onOpenChange={setIsPaymentOpen}
+            report={selectedReport}
+          />
+          <ProcessPaymentDialog
+            open={isProcessPaymentOpen}
+            onOpenChange={setIsProcessPaymentOpen}
             report={selectedReport}
           />
           <RestructureDialog
