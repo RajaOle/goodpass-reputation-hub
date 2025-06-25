@@ -6,7 +6,6 @@ import { useReports } from '@/contexts/ReportsContext';
 import NewReportDialog from '../report-dialog/NewReportDialog';
 import ReportDetailsDialog from './ReportDetailsDialog';
 import PaymentDialog from './PaymentDialog';
-import ProcessPaymentDialog from './ProcessPaymentDialog';
 import RestructureDialog from './RestructureDialog';
 import ReportsHeader from './reports/ReportsHeader';
 import ReportsTabContent from './reports/ReportsTabContent';
@@ -17,7 +16,6 @@ const ReportsSection = () => {
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
-  const [isProcessPaymentOpen, setIsProcessPaymentOpen] = useState(false);
   const [isRestructureOpen, setIsRestructureOpen] = useState(false);
 
   const handleEditReport = (report: Report) => {
@@ -33,11 +31,6 @@ const ReportsSection = () => {
   const handleProcessPayment = (report: Report) => {
     setSelectedReport(report);
     setIsPaymentOpen(true);
-  };
-
-  const handleProcessReport = (report: Report) => {
-    setSelectedReport(report);
-    setIsProcessPaymentOpen(true);
   };
 
   const handleRestructure = (report: Report) => {
@@ -70,7 +63,7 @@ const ReportsSection = () => {
             onViewDetails={handleViewDetails}
             onEditReport={handleEditReport}
             onRestructure={handleRestructure}
-            onProcessPayment={handleProcessReport}
+            onProcessPayment={handleProcessPayment}
           />
         </TabsContent>
 
@@ -83,7 +76,7 @@ const ReportsSection = () => {
               onViewDetails={handleViewDetails}
               onEditReport={handleEditReport}
               onRestructure={handleRestructure}
-              onProcessPayment={handleProcessReport}
+              onProcessPayment={handleProcessPayment}
             />
           </TabsContent>
         ))}
@@ -106,11 +99,6 @@ const ReportsSection = () => {
           <PaymentDialog
             open={isPaymentOpen}
             onOpenChange={setIsPaymentOpen}
-            report={selectedReport}
-          />
-          <ProcessPaymentDialog
-            open={isProcessPaymentOpen}
-            onOpenChange={setIsProcessPaymentOpen}
             report={selectedReport}
           />
           <RestructureDialog
