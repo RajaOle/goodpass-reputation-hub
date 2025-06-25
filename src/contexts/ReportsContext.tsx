@@ -142,7 +142,7 @@ export const ReportsProvider: React.FC<ReportsProviderProps> = ({ children }) =>
         additionalNotes: 'Emergency loan documentation'
       },
       paymentInfo: {
-        method: 'single-payment',
+        method: 'full',
         status: 'unpaid'
       },
       createdAt: '2024-01-15T10:00:00Z',
