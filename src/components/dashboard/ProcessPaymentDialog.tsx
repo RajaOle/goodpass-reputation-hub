@@ -64,7 +64,7 @@ const ProcessPaymentDialog: React.FC<ProcessPaymentDialogProps> = ({
         number: index + 1,
         amount: installmentAmount,
         dueDate: dueDate.toISOString().split('T')[0],
-        status: 'unpaid' as const
+        status: 'unpaid'
       };
     });
   };
