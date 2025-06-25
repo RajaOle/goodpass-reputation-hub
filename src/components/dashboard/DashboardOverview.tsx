@@ -7,8 +7,6 @@ import ProcessPaymentDialog from './ProcessPaymentDialog';
 import RestructureDialog from './RestructureDialog';
 import StatsCards from './StatsCards';
 import QuickActions from './QuickActions';
-import RecentReports from './RecentReports';
-import RecentActivity from './RecentActivity';
 import { Report } from '@/types/report';
 import { useReports } from '@/contexts/ReportsContext';
 
@@ -58,20 +56,6 @@ const DashboardOverview = () => {
 
       {/* Quick Actions */}
       <QuickActions onNewReport={() => setIsReportDialogOpen(true)} />
-
-      {/* Recent Reports */}
-      <RecentReports 
-        reports={reports}
-        onProcessReport={handleProcessReport}
-        onRestructure={handleRestructure}
-        onProcessPayment={handleProcessPayment}
-      />
-
-      {/* Recent Activity */}
-      <RecentActivity 
-        reports={reports}
-        onActivityClick={handleActivityClick}
-      />
 
       <NewReportDialog 
         open={isReportDialogOpen} 
