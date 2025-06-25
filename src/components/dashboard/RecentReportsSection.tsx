@@ -8,13 +8,15 @@ interface RecentReportsSectionProps {
   onProcessReport: (report: Report) => void;
   onRestructure: (report: Report) => void;
   onProcessPayment: (report: Report) => void;
+  onAddInfo: (report: Report) => void;
 }
 
 const RecentReportsSection: React.FC<RecentReportsSectionProps> = ({
   reports,
   onProcessReport,
   onRestructure,
-  onProcessPayment
+  onProcessPayment,
+  onAddInfo
 }) => {
   return (
     <div>
@@ -27,6 +29,7 @@ const RecentReportsSection: React.FC<RecentReportsSectionProps> = ({
             onProcessReport={onProcessReport}
             onRestructure={onRestructure}
             onProcessPayment={onProcessPayment}
+            onAddInfo={onAddInfo}
           />
         ))}
       </div>

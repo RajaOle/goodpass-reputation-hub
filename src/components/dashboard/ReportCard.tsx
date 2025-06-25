@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Calendar, DollarSign, FileText, User, Hash } from 'lucide-react';
@@ -12,13 +11,15 @@ interface ReportCardProps {
   onProcessReport: (report: Report) => void;
   onRestructure: (report: Report) => void;
   onProcessPayment: (report: Report) => void;
+  onAddInfo: (report: Report) => void;
 }
 
 const ReportCard: React.FC<ReportCardProps> = ({
   report,
   onProcessReport,
   onRestructure,
-  onProcessPayment
+  onProcessPayment,
+  onAddInfo
 }) => {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -184,7 +185,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
           report={report}
           onProcessReport={onProcessReport}
           onRestructure={onRestructure}
-          onProcessPayment={onProcessPayment}
+          onAddInfo={onAddInfo}
         />
       </CardContent>
     </Card>
