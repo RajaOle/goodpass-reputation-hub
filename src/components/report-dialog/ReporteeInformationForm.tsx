@@ -50,6 +50,7 @@ const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({
 
   const isReadOnly = isRestructure;
   const isEditable = !isRestructure; // In Add Info mode, this section is editable
+  const isBasicInfoReadOnly = isRestructure || isAddInfo; // Basic info is read-only in both modes
 
   return (
     <div className="space-y-6">
@@ -58,7 +59,7 @@ const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({
           <div className="flex items-center gap-2">
             <Info className="h-5 w-5 text-green-600" />
             <p className="text-sm text-green-800 font-medium">
-              ✏️ You can edit all reportee information and add additional details in this mode.
+              ✏️ You can edit additional reportee information. Basic info (name, email, phone) remains unchanged.
             </p>
           </div>
         </div>
@@ -101,8 +102,8 @@ const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({
                     <Input
                       placeholder="Enter full name"
                       {...field}
-                      readOnly={isReadOnly}
-                      className={isReadOnly ? "bg-gray-100" : isAddInfo ? "border-green-200 bg-green-50" : ""}
+                      readOnly={isBasicInfoReadOnly}
+                      className={isBasicInfoReadOnly ? "bg-gray-100" : ""}
                     />
                   </FormControl>
                   <FormMessage />
@@ -121,8 +122,8 @@ const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({
                       placeholder="Enter phone number"
                       {...field}
                       value={isRestructure && !showSensitiveData ? '***-***-****' : field.value}
-                      readOnly={isReadOnly}
-                      className={isReadOnly ? "bg-gray-100" : isAddInfo ? "border-green-200 bg-green-50" : ""}
+                      readOnly={isBasicInfoReadOnly}
+                      className={isBasicInfoReadOnly ? "bg-gray-100" : ""}
                     />
                   </FormControl>
                   <FormMessage />
@@ -143,8 +144,8 @@ const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({
                     placeholder="Enter email address"
                     {...field}
                     value={isRestructure && !showSensitiveData && field.value ? '***@***.***' : field.value}
-                    readOnly={isReadOnly}
-                    className={isReadOnly ? "bg-gray-100" : isAddInfo ? "border-green-200 bg-green-50" : ""}
+                    readOnly={isBasicInfoReadOnly}
+                    className={isBasicInfoReadOnly ? "bg-gray-100" : ""}
                   />
                 </FormControl>
                 <FormMessage />
