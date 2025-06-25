@@ -44,6 +44,19 @@ const ProcessPaymentDialog: React.FC<ProcessPaymentDialogProps> = ({
   const [proofDocuments, setProofDocuments] = useState<File[]>([]);
   const { toast } = useToast();
 
+  // Determine payment method - prioritize paymentInfo.method, fallback to repaymentPlan
+  const getPaymentMethod = () => {
+    const method = report.paymentInfo?.method || report.loanInformation.repaymentPlan;
+    console.log('Payment method determination:', {
+      paymentInfoMethod: report.paymentInfo?.method,
+      repaymentPlan: report.loanInformation.repaymentPlan,
+      finalMethod: method
+    });
+    return method;
+  };
+
+  const paymentMethod = getPaymentMethod();
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
@@ -89,7 +102,7 @@ const ProcessPaymentDialog: React.FC<ProcessPaymentDialogProps> = ({
   };
 
   const calculateProgress = () => {
-    if (report.loanInformation.repaymentPlan === 'installment') {
+    if (paymentMethod === 'installment') {
       const installments = generateInstallments();
       const paidCount = installments.filter(i => i.status === 'paid').length;
       return (paidCount / installments.length) * 100;
@@ -126,7 +139,7 @@ const ProcessPaymentDialog: React.FC<ProcessPaymentDialogProps> = ({
       return;
     }
 
-    if (report.loanInformation.repaymentPlan === 'open-payment' && !paymentAmount) {
+    if (paymentMethod === 'open-payment' && !paymentAmount) {
       toast({
         title: "Missing Amount", 
         description: "Please enter the payment amount.",
@@ -135,7 +148,7 @@ const ProcessPaymentDialog: React.FC<ProcessPaymentDialogProps> = ({
       return;
     }
 
-    if (report.loanInformation.repaymentPlan === 'installment' && !selectedInstallment) {
+    if (paymentMethod === 'installment' && !selectedInstallment) {
       toast({
         title: "Missing Selection",
         description: "Please select which installment to pay.",
@@ -146,7 +159,7 @@ const ProcessPaymentDialog: React.FC<ProcessPaymentDialogProps> = ({
 
     console.log('Processing payment:', {
       reportId: report.id,
-      paymentType: report.loanInformation.repaymentPlan,
+      paymentType: paymentMethod,
       amount: paymentAmount ? parseFloat(paymentAmount) : null,
       installmentId: selectedInstallment,
       documents: proofDocuments,
@@ -233,6 +246,17 @@ const ProcessPaymentDialog: React.FC<ProcessPaymentDialogProps> = ({
               <span>{installments.filter(i => i.status === 'paid').length} of {installments.length} paid</span>
             </div>
             <Progress value={progress} className="h-3" />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div className="space-y-1">
+              <Label className="text-sm font-medium text-gray-600">Total Installments</Label>
+              <p className="text-lg font-bold text-gray-900">{installments.length}</p>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-sm font-medium text-gray-600">Amount per Installment</Label>
+              <p className="text-lg font-bold text-gray-900">{formatCurrency(calculateInstallmentAmount())}</p>
+            </div>
           </div>
         </div>
 
@@ -349,7 +373,7 @@ const ProcessPaymentDialog: React.FC<ProcessPaymentDialogProps> = ({
   };
 
   const getInterfaceTitle = () => {
-    switch (report.loanInformation.repaymentPlan) {
+    switch (paymentMethod) {
       case 'open-payment':
         return 'Flexible Payment Processing';
       case 'installment':
@@ -380,9 +404,9 @@ const ProcessPaymentDialog: React.FC<ProcessPaymentDialogProps> = ({
 
         <div className="space-y-8 py-6">
           {/* Payment Type Specific Interface */}
-          {report.loanInformation.repaymentPlan === 'open-payment' && renderOpenPaymentInterface()}
-          {report.loanInformation.repaymentPlan === 'installment' && renderInstallmentInterface()}
-          {report.loanInformation.repaymentPlan === 'single-payment' && renderSinglePaymentInterface()}
+          {paymentMethod === 'open-payment' && renderOpenPaymentInterface()}
+          {paymentMethod === 'installment' && renderInstallmentInterface()}
+          {paymentMethod === 'single-payment' && renderSinglePaymentInterface()}
 
           {/* Enhanced File Upload Section */}
           <div className="space-y-4">

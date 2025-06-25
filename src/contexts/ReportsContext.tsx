@@ -53,6 +53,16 @@ export const ReportsProvider: React.FC<ReportsProviderProps> = ({ children }) =>
         documents: [],
         additionalNotes: 'All documents provided'
       },
+      paymentInfo: {
+        method: 'installment',
+        status: 'unpaid',
+        installments: [
+          { number: 1, amount: 2083333, dueDate: '2024-02-20', status: 'paid' },
+          { number: 2, amount: 2083333, dueDate: '2024-03-20', status: 'paid' },
+          { number: 3, amount: 2083333, dueDate: '2024-04-20', status: 'unpaid' },
+          { number: 4, amount: 2083333, dueDate: '2024-05-20', status: 'unpaid' }
+        ]
+      },
       createdAt: '2024-01-20T10:00:00Z',
       updatedAt: '2024-01-20T10:00:00Z',
       submittedAt: '2024-01-20T10:00:00Z'
@@ -68,14 +78,14 @@ export const ReportsProvider: React.FC<ReportsProviderProps> = ({ children }) =>
         disbursementDate: '2024-01-18',
         dueDate: '2027-01-18',
         loanPurpose: 'business-expansion',
-        repaymentPlan: 'installment',
-        installmentCount: 36,
+        repaymentPlan: 'open-payment',
+        installmentCount: undefined,
         applicationInterest: 0,
         applicationLateFee: 0,
         collateral: 'none',
         // Legacy fields for backward compatibility
-        loanTerm: 36,
-        monthlyPayment: 3500000,
+        loanTerm: undefined,
+        monthlyPayment: undefined,
         paymentMethod: 'open-payment'
       },
       reporteeInformation: {
