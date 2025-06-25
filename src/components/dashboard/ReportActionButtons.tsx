@@ -44,7 +44,7 @@ const ReportActionButtons: React.FC<ReportActionButtonsProps> = ({
         className="flex-1 h-9 bg-green-50 hover:bg-green-100 border-green-200 text-green-700 hover:text-green-800 font-medium transition-all duration-200"
       >
         <CreditCard className="h-4 w-4 mr-1.5" />
-        Payment Method
+        Add Info
       </Button>
     </div>
   );
