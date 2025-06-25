@@ -1,248 +1,171 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Control, UseFormSetValue } from 'react-hook-form';
 import {
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, X, User, Phone, Mail, IdCard, Globe, Upload, Banknote } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Plus, X, Upload, Eye, EyeOff } from 'lucide-react';
 import { ReportFormData } from '@/types/report';
-import CountryCodeSelector from '@/components/CountryCodeSelector';
 
 interface ReporteeInformationFormProps {
   control: Control<ReportFormData>;
   setValue: UseFormSetValue<ReportFormData>;
+  isRestructure?: boolean;
 }
 
-const banks = [
-  'Bank Central Asia (BCA)',
-  'Bank Rakyat Indonesia (BRI)',
-  'Bank Negara Indonesia (BNI)',
-  'Bank Mandiri',
-  'Bank Tabungan Negara (BTN)',
-  'Bank Danamon',
-  'Bank CIMB Niaga',
-  'Bank Permata',
-  'Bank Maybank Indonesia',
-  'Bank OCBC NISP',
-  'Other'
-];
+const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({ 
+  control, 
+  setValue,
+  isRestructure = false 
+}) => {
+  const [socialMediaInput, setSocialMediaInput] = useState('');
+  const [showSensitiveData, setShowSensitiveData] = useState(false);
 
-const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({ control, setValue }) => {
-  const [socialLinks, setSocialLinks] = React.useState<string[]>(['']);
-  const [countryCode, setCountryCode] = React.useState('+62');
-  
-  // State for toggling optional sections
-  const [showEmail, setShowEmail] = React.useState(false);
-  const [showIdInfo, setShowIdInfo] = React.useState(false);
-  const [showBankInfo, setShowBankInfo] = React.useState(false);
-  const [showSocialMedia, setShowSocialMedia] = React.useState(false);
-
-  const addSocialLink = () => {
-    setSocialLinks([...socialLinks, '']);
-  };
-
-  const removeSocialLink = (index: number) => {
-    setSocialLinks(socialLinks.filter((_, i) => i !== index));
-  };
-
-  const updateSocialLink = (index: number, value: string) => {
-    const newLinks = [...socialLinks];
-    newLinks[index] = value;
-    setSocialLinks(newLinks);
-  };
-
-  const handleIdPictureUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setValue('reporteeInformation.idPicture', file);
+  const addSocialMediaLink = () => {
+    if (socialMediaInput.trim()) {
+      const currentLinks = control._formValues.reporteeInformation?.socialMediaLinks || [];
+      setValue('reporteeInformation.socialMediaLinks', [...currentLinks, socialMediaInput.trim()]);
+      setSocialMediaInput('');
     }
+  };
+
+  const removeSocialMediaLink = (index: number) => {
+    const currentLinks = control._formValues.reporteeInformation?.socialMediaLinks || [];
+    const updatedLinks = currentLinks.filter((_, i) => i !== index);
+    setValue('reporteeInformation.socialMediaLinks', updatedLinks);
   };
 
   return (
     <div className="space-y-6">
-      <FormField
-        control={control}
-        name="reporteeInformation.fullName"
-        render={({ field }) => (
-          <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium text-gray-900 flex items-center space-x-2">
-              <User className="h-4 w-4 text-blue-600" />
-              <span>Full Name</span>
-              <span className="text-red-500">*</span>
-            </FormLabel>
-            <FormControl>
-              <Input
-                placeholder="Enter the reportee's full legal name"
-                className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 transition-colors"
-                {...field}
-              />
-            </FormControl>
-            <FormMessage className="text-red-500" />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={control}
-        name="reporteeInformation.phoneNumber"
-        render={({ field }) => (
-          <FormItem className="space-y-3">
-            <FormLabel className="text-base font-medium text-gray-900 flex items-center space-x-2">
-              <Phone className="h-4 w-4 text-green-600" />
-              <span>Phone Number</span>
-              <span className="text-red-500">*</span>
-            </FormLabel>
-            <FormControl>
-              <div className="flex">
-                <CountryCodeSelector
-                  value={countryCode}
-                  onChange={setCountryCode}
-                />
-                <Input
-                  type="tel"
-                  placeholder="Enter phone number"
-                  className="h-12 text-base border-2 border-l-0 border-gray-200 focus:border-blue-500 transition-colors rounded-l-none"
-                  value={field.value?.replace(/^\+\d+\s?/, '') || ''}
-                  onChange={(e) => {
-                    const phoneWithoutCode = e.target.value;
-                    const fullPhone = `${countryCode} ${phoneWithoutCode}`;
-                    field.onChange(fullPhone);
-                  }}
-                />
-              </div>
-            </FormControl>
-            <FormDescription className="text-gray-500 bg-blue-50 p-3 rounded-lg border border-blue-200">
-              📱 <strong>Important:</strong> Phone numbers must be unique in our system for accurate credit tracking
-            </FormDescription>
-            <FormMessage className="text-red-500" />
-          </FormItem>
-        )}
-      />
-
-      {/* Optional sections toggles */}
-      <div className="space-y-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
-        <h3 className="text-sm font-medium text-gray-900 mb-3">Add Additional Information (Optional)</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="show-email"
-              checked={showEmail}
-              onCheckedChange={(checked) => setShowEmail(checked as boolean)}
-            />
-            <label htmlFor="show-email" className="text-sm font-medium text-gray-700 cursor-pointer flex items-center space-x-1">
-              <Mail className="h-4 w-4 text-purple-600" />
-              <span>Email Address</span>
-            </label>
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="show-id"
-              checked={showIdInfo}
-              onCheckedChange={(checked) => setShowIdInfo(checked as boolean)}
-            />
-            <label htmlFor="show-id" className="text-sm font-medium text-gray-700 cursor-pointer flex items-center space-x-1">
-              <IdCard className="h-4 w-4 text-orange-600" />
-              <span>ID Information</span>
-            </label>
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="show-bank"
-              checked={showBankInfo}
-              onCheckedChange={(checked) => setShowBankInfo(checked as boolean)}
-            />
-            <label htmlFor="show-bank" className="text-sm font-medium text-gray-700 cursor-pointer flex items-center space-x-1">
-              <Banknote className="h-4 w-4 text-green-600" />
-              <span>Bank Account</span>
-            </label>
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="show-social"
-              checked={showSocialMedia}
-              onCheckedChange={(checked) => setShowSocialMedia(checked as boolean)}
-            />
-            <label htmlFor="show-social" className="text-sm font-medium text-gray-700 cursor-pointer flex items-center space-x-1">
-              <Globe className="h-4 w-4 text-indigo-600" />
-              <span>Social Media</span>
-            </label>
+      {isRestructure && (
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-700 font-medium">
+              All reportee information is read-only during restructure
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowSensitiveData(!showSensitiveData)}
+              className="flex items-center gap-2"
+            >
+              {showSensitiveData ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {showSensitiveData ? 'Hide' : 'Show'} Details
+            </Button>
           </div>
         </div>
-      </div>
-
-      {/* Email section */}
-      {showEmail && (
-        <FormField
-          control={control}
-          name="reporteeInformation.email"
-          render={({ field }) => (
-            <FormItem className="space-y-3">
-              <FormLabel className="text-base font-medium text-gray-900 flex items-center space-x-2">
-                <Mail className="h-4 w-4 text-purple-600" />
-                <span>Email Address</span>
-              </FormLabel>
-              <FormControl>
-                <Input
-                  type="email"
-                  placeholder="reportee@example.com"
-                  className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 transition-colors"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage className="text-red-500" />
-            </FormItem>
-          )}
-        />
       )}
+      
+      {/* Basic Information */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Basic Information</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={control}
+              name="reporteeInformation.fullName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Full Name *</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter full name"
+                      {...field}
+                      readOnly={isRestructure}
+                      className={isRestructure ? "bg-gray-100" : ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-      {/* ID Information section */}
-      {showIdInfo && (
-        <div className="space-y-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
-          <FormLabel className="text-base font-medium text-gray-900 flex items-center space-x-2">
-            <IdCard className="h-4 w-4 text-orange-600" />
-            <span>ID Information</span>
-          </FormLabel>
-          
+            <FormField
+              control={control}
+              name="reporteeInformation.phoneNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone Number *</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter phone number"
+                      {...field}
+                      value={isRestructure && !showSensitiveData ? '***-***-****' : field.value}
+                      readOnly={isRestructure}
+                      className={isRestructure ? "bg-gray-100" : ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <FormField
+            control={control}
+            name="reporteeInformation.email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email Address</FormLabel>
+                <FormControl>
+                  <Input
+                    type="email"
+                    placeholder="Enter email address"
+                    {...field}
+                    value={isRestructure && !showSensitiveData && field.value ? '***@***.***' : field.value}
+                    readOnly={isRestructure}
+                    className={isRestructure ? "bg-gray-100" : ""}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Identification */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Identification</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={control}
               name="reporteeInformation.idType"
               render={({ field }) => (
-                <FormItem className="space-y-3">
-                  <FormLabel className="text-sm font-medium text-gray-700">
-                    ID Type
-                  </FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                <FormItem>
+                  <FormLabel>ID Type</FormLabel>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    defaultValue={field.value}
+                    disabled={isRestructure}
+                  >
                     <FormControl>
-                      <SelectTrigger className="h-10 border-2 border-gray-200 focus:border-blue-500">
+                      <SelectTrigger className={isRestructure ? "bg-gray-100" : ""}>
                         <SelectValue placeholder="Select ID type" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent className="bg-white border shadow-lg z-50">
-                      <SelectItem value="national-id">National ID / KTP</SelectItem>
+                    <SelectContent>
+                      <SelectItem value="national-id">National ID</SelectItem>
                       <SelectItem value="passport">Passport</SelectItem>
                       <SelectItem value="driver-license">Driver's License</SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormMessage className="text-red-500" />
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -251,97 +174,124 @@ const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({ contr
               control={control}
               name="reporteeInformation.nationalId"
               render={({ field }) => (
-                <FormItem className="space-y-3">
-                  <FormLabel className="text-sm font-medium text-gray-700">
-                    ID Number
-                  </FormLabel>
+                <FormItem>
+                  <FormLabel>ID Number</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="e.g., 1234567890123456"
-                      className="h-10 border-2 border-gray-200 focus:border-blue-500 transition-colors"
+                      placeholder="Enter ID number"
                       {...field}
+                      value={isRestructure && !showSensitiveData && field.value ? '***-***-***' : field.value}
+                      readOnly={isRestructure}
+                      className={isRestructure ? "bg-gray-100" : ""}
                     />
                   </FormControl>
-                  <FormDescription className="text-gray-500 text-sm">
-                    For verification purposes only
-                  </FormDescription>
-                  <FormMessage className="text-red-500" />
+                  <FormMessage />
                 </FormItem>
               )}
             />
           </div>
 
-          <FormField
-            control={control}
-            name="reporteeInformation.idPicture"
-            render={({ field }) => (
-              <FormItem className="space-y-3">
-                <FormLabel className="text-sm font-medium text-gray-700 flex items-center space-x-2">
-                  <Upload className="h-4 w-4 text-indigo-600" />
-                  <span>ID Picture</span>
-                </FormLabel>
-                <FormControl>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-blue-400 transition-colors">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleIdPictureUpload}
-                      className="hidden"
-                      id="id-picture-upload"
-                    />
-                    <label
-                      htmlFor="id-picture-upload"
-                      className="cursor-pointer flex flex-col items-center space-y-2"
-                    >
-                      <Upload className="h-8 w-8 text-gray-400" />
-                      <span className="text-sm text-gray-600">
-                        {field.value ? field.value.name : 'Click to upload ID picture'}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        PNG, JPG up to 10MB
-                      </span>
-                    </label>
-                  </div>
-                </FormControl>
-                <FormMessage className="text-red-500" />
-              </FormItem>
-            )}
-          />
-        </div>
-      )}
+          {!isRestructure && (
+            <FormField
+              control={control}
+              name="reporteeInformation.idPicture"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>ID Picture (Optional)</FormLabel>
+                  <FormControl>
+                    <div className="flex items-center gap-4">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          field.onChange(file);
+                        }}
+                        className="flex-1"
+                      />
+                      <Button type="button" variant="outline" size="sm">
+                        <Upload className="h-4 w-4 mr-2" />
+                        Upload
+                      </Button>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
 
-      {/* Bank Account Information Section */}
-      {showBankInfo && (
-        <div className="space-y-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
-          <FormLabel className="text-base font-medium text-gray-900 flex items-center space-x-2">
-            <Banknote className="h-4 w-4 text-green-600" />
-            <span>Bank Account Information</span>
-          </FormLabel>
-          
+          {isRestructure && (
+            <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
+              ID picture on file {showSensitiveData ? '(available for viewing in admin panel)' : '(hidden for privacy)'}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Social Media Links */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Social Media (Optional)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {!isRestructure && (
+            <div className="flex gap-2">
+              <Input
+                placeholder="Enter social media profile URL"
+                value={socialMediaInput}
+                onChange={(e) => setSocialMediaInput(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSocialMediaLink())}
+              />
+              <Button type="button" onClick={addSocialMediaLink} variant="outline" size="sm">
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+
+          <div className="flex flex-wrap gap-2">
+            {control._formValues.reporteeInformation?.socialMediaLinks?.map((link, index) => (
+              <Badge key={index} variant="secondary" className="flex items-center gap-2">
+                <span className={isRestructure && !showSensitiveData ? "blur-sm" : ""}>
+                  {link}
+                </span>
+                {!isRestructure && (
+                  <button
+                    type="button"
+                    onClick={() => removeSocialMediaLink(index)}
+                    className="ml-1 hover:text-red-500"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                )}
+              </Badge>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Banking Information */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Banking Information (Optional)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={control}
               name="reporteeInformation.bankName"
               render={({ field }) => (
-                <FormItem className="space-y-3">
-                  <FormLabel className="text-sm font-medium text-gray-700">
-                    Bank Name
-                  </FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="h-10 border-2 border-gray-200 focus:border-blue-500">
-                        <SelectValue placeholder="Choose bank" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent className="bg-white border shadow-lg z-50 max-h-48 overflow-y-auto">
-                      {banks.map((bank) => (
-                        <SelectItem key={bank} value={bank}>
-                          {bank}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage className="text-red-500" />
+                <FormItem>
+                  <FormLabel>Bank Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter bank name"
+                      {...field}
+                      readOnly={isRestructure}
+                      className={isRestructure ? "bg-gray-100" : ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -350,75 +300,24 @@ const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({ contr
               control={control}
               name="reporteeInformation.bankAccountNumber"
               render={({ field }) => (
-                <FormItem className="space-y-3">
-                  <FormLabel className="text-sm font-medium text-gray-700">
-                    Account Number
-                  </FormLabel>
+                <FormItem>
+                  <FormLabel>Account Number</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Enter account number"
-                      className="h-10 border-2 border-gray-200 focus:border-blue-500 transition-colors"
                       {...field}
+                      value={isRestructure && !showSensitiveData && field.value ? '***-***-***' : field.value}
+                      readOnly={isRestructure}
+                      className={isRestructure ? "bg-gray-100" : ""}
                     />
                   </FormControl>
-                  <FormMessage className="text-red-500" />
+                  <FormMessage />
                 </FormItem>
               )}
             />
           </div>
-          
-          <FormDescription className="text-gray-500 text-sm">
-            💡 Bank account information helps with identity verification and payment processing
-          </FormDescription>
-        </div>
-      )}
-
-      {/* Social Media section */}
-      {showSocialMedia && (
-        <div className="space-y-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
-          <FormLabel className="text-base font-medium text-gray-900 flex items-center space-x-2">
-            <Globe className="h-4 w-4 text-indigo-600" />
-            <span>Social Media Links</span>
-          </FormLabel>
-          
-          <p className="text-sm text-gray-600 mb-4">
-            💡 Social media profiles can help verify identity and improve credit assessment
-          </p>
-          
-          {socialLinks.map((link, index) => (
-            <div key={index} className="flex items-center space-x-3 mb-3">
-              <Input
-                placeholder="https://facebook.com/username or @twitter_handle"
-                value={link}
-                onChange={(e) => updateSocialLink(index, e.target.value)}
-                className="flex-1 h-10 border-2 border-gray-200 focus:border-blue-500 transition-colors"
-              />
-              {socialLinks.length > 1 && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => removeSocialLink(index)}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-          ))}
-          
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={addSocialLink}
-            className="flex items-center space-x-2 text-blue-600 border-blue-200 hover:bg-blue-50"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Add Another Social Link</span>
-          </Button>
-        </div>
-      )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

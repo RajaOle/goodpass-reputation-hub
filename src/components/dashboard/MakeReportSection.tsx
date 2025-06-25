@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import NewReportDialog from '../report-dialog/NewReportDialog';
 import ReportDetailsDialog from './ReportDetailsDialog';
 import PaymentDialog from './PaymentDialog';
-import RestructureDialog from './RestructureDialog';
 import QuickActionsSection from './QuickActionsSection';
 import RecentReportsSection from './RecentReportsSection';
 import RecentActivityMakeReportSection from './RecentActivityMakeReportSection';
@@ -75,10 +74,11 @@ const MakeReportSection = () => {
             onOpenChange={setIsPaymentOpen}
             report={selectedReport}
           />
-          <RestructureDialog
+          <NewReportDialog
             open={isRestructureOpen}
             onOpenChange={setIsRestructureOpen}
-            report={selectedReport}
+            isRestructure={true}
+            existingReport={selectedReport}
           />
         </>
       )}

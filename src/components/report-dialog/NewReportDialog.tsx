@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -41,7 +40,6 @@ const reportSchema = z.object({
     collateralDescription: z.string().optional(),
     collateralValue: z.number().optional(),
   }).refine((data) => {
-    // Require custom loan purpose when 'other' is selected
     if (data.loanPurpose === 'other') {
       return data.customLoanPurpose && data.customLoanPurpose.length >= 10;
     }
@@ -50,17 +48,14 @@ const reportSchema = z.object({
     message: "Please provide a detailed description when selecting 'Other' as loan purpose (at least 10 characters)",
     path: ["customLoanPurpose"],
   }).refine((data) => {
-    // Require installment count ONLY for installment repayment plan
     if (data.repaymentPlan === 'installment') {
       return data.installmentCount && data.installmentCount > 0;
     }
-    // For single-payment and open-payment, installmentCount is not required
     return true;
   }, {
     message: "Number of installments is required for installment repayment plan",
     path: ["installmentCount"],
   }).refine((data) => {
-    // Require collateral description when collateral is not 'none'
     if (data.collateral !== 'none') {
       return data.collateralDescription && data.collateralDescription.length >= 10;
     }
@@ -115,40 +110,53 @@ interface NewReportDialogProps {
   onOpenChange: (open: boolean) => void;
   isDraft?: boolean;
   reportId?: string;
+  isRestructure?: boolean;
+  existingReport?: Report;
 }
 
 const NewReportDialog: React.FC<NewReportDialogProps> = ({ 
   open, 
   onOpenChange, 
   isDraft = false,
-  reportId 
+  reportId,
+  isRestructure = false,
+  existingReport
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const { addReport } = useReports();
 
-  // Get today's date in ISO format
   const todayISOString = new Date().toISOString().split('T')[0];
 
-  const form = useForm<ReportFormData>({
-    resolver: zodResolver(reportSchema),
-    mode: 'onChange',
-    defaultValues: {
+  const getDefaultValues = () => {
+    if (isRestructure && existingReport) {
+      return {
+        loanInformation: {
+          ...existingReport.loanInformation,
+          agreementDate: existingReport.loanInformation.agreementDate || todayISOString,
+          disbursementDate: existingReport.loanInformation.disbursementDate || todayISOString,
+        },
+        reporteeInformation: existingReport.reporteeInformation,
+        supportingDocuments: existingReport.supportingDocuments,
+      };
+    }
+    
+    return {
       loanInformation: {
         loanName: '',
-        loanType: 'personal',
+        loanType: 'personal' as const,
         loanAmount: 0,
         agreementDate: todayISOString,
         disbursementDate: todayISOString,
         dueDate: '',
-        loanPurpose: 'business-expansion',
+        loanPurpose: 'business-expansion' as const,
         customLoanPurpose: '',
-        repaymentPlan: 'installment',
+        repaymentPlan: 'installment' as const,
         installmentCount: undefined,
         applicationInterest: 0,
         applicationLateFee: 0,
-        collateral: 'none',
+        collateral: 'none' as const,
         collateralDescription: '',
         collateralValue: undefined,
       },
@@ -167,8 +175,21 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
         documents: [],
         additionalNotes: '',
       },
-    },
+    };
+  };
+
+  const form = useForm<ReportFormData>({
+    resolver: zodResolver(reportSchema),
+    mode: 'onChange',
+    defaultValues: getDefaultValues(),
   });
+
+  // Reset form when dialog opens/closes or mode changes
+  useEffect(() => {
+    if (open) {
+      form.reset(getDefaultValues());
+    }
+  }, [open, isRestructure, existingReport]);
 
   const getProgress = () => {
     return (currentStep / steps.length) * 100;
@@ -181,39 +202,33 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
     try {
       console.log('Submitting report:', data);
       
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Create new report object
-      const newReport: Report = {
-        id: Date.now().toString(),
-        status: 'pending',
-        loanInformation: data.loanInformation,
-        reporteeInformation: data.reporteeInformation,
-        supportingDocuments: data.supportingDocuments,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        submittedAt: new Date().toISOString()
-      };
+      if (isRestructure && existingReport) {
+        console.log('Restructure request submitted for report:', existingReport.id);
+        toast({
+          title: "✅ Restructure Request Submitted",
+          description: `Your restructure request for ${data.reporteeInformation.fullName} has been submitted for admin approval.`,
+        });
+      } else {
+        const newReport: Report = {
+          id: Date.now().toString(),
+          status: 'pending',
+          loanInformation: data.loanInformation,
+          reporteeInformation: data.reporteeInformation,
+          supportingDocuments: data.supportingDocuments,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          submittedAt: new Date().toISOString()
+        };
 
-      // Add report to context
-      addReport(newReport);
-      
-      // Log activity to Recent Activity Feed
-      const activityLog = {
-        id: Date.now().toString(),
-        reportId: `R${Date.now()}`,
-        action: `✅ Report Submitted – Your report is under review`,
-        timestamp: new Date().toISOString(),
-        details: `${data.loanInformation.loanType} loan report submitted successfully`
-      };
-      
-      console.log('Activity logged:', activityLog);
-      
-      toast({
-        title: "✅ Report submitted successfully",
-        description: `Your loan report for ${data.reporteeInformation.fullName} has been submitted and is now under review.`,
-      });
+        addReport(newReport);
+        
+        toast({
+          title: "✅ Report submitted successfully",
+          description: `Your loan report for ${data.reporteeInformation.fullName} has been submitted and is now under review.`,
+        });
+      }
       
       form.reset();
       setCurrentStep(1);
@@ -292,10 +307,13 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
           <div className="flex justify-between items-start">
             <DialogHeader className="flex-1">
               <DialogTitle className="text-lg font-semibold text-gray-900">
-                Create New Report
+                {isRestructure ? 'Restructure Report' : 'Create New Report'}
               </DialogTitle>
               <DialogDescription className="text-gray-600 text-sm mt-1">
-                Follow the steps below to create a comprehensive loan report
+                {isRestructure 
+                  ? 'Review and modify the loan details below. Only certain fields can be edited.'
+                  : 'Follow the steps below to create a comprehensive loan report'
+                }
               </DialogDescription>
             </DialogHeader>
             
@@ -303,27 +321,44 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
             <div className="bg-white/80 rounded-lg p-3 ml-4 min-w-[200px]">
               <div className="flex items-center space-x-2 mb-2">
                 <Calendar className="h-4 w-4 text-blue-600" />
-                <span className="text-sm font-medium text-gray-700">Report Information</span>
+                <span className="text-sm font-medium text-gray-700">
+                  {isRestructure ? 'Original Report Info' : 'Report Information'}
+                </span>
               </div>
               <div className="space-y-1 text-xs text-gray-600">
                 <div className="flex justify-between">
                   <span>Report Date:</span>
-                  <span className="font-medium">{format(new Date(), 'MMM dd, yyyy')}</span>
+                  <span className="font-medium">
+                    {isRestructure && existingReport 
+                      ? format(new Date(existingReport.createdAt), 'MMM dd, yyyy')
+                      : format(new Date(), 'MMM dd, yyyy')
+                    }
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Agreement Date:</span>
-                  <span className="font-medium">{format(new Date(), 'MMM dd, yyyy')}</span>
+                  <span className="font-medium">
+                    {isRestructure && existingReport?.loanInformation.agreementDate
+                      ? format(new Date(existingReport.loanInformation.agreementDate), 'MMM dd, yyyy')
+                      : format(new Date(), 'MMM dd, yyyy')
+                    }
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Disbursement Date:</span>
-                  <span className="font-medium">{format(new Date(), 'MMM dd, yyyy')}</span>
+                  <span className="font-medium">
+                    {isRestructure && existingReport?.loanInformation.disbursementDate
+                      ? format(new Date(existingReport.loanInformation.disbursementDate), 'MMM dd, yyyy')
+                      : format(new Date(), 'MMM dd, yyyy')
+                    }
+                  </span>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Simplified Progress Indicator */}
+        {/* Progress indicator and form content remain the same */}
         <div className="px-6 py-2 bg-white border-b">
           <div className="flex items-center justify-between mb-1">
             {steps.map((step, index) => {
@@ -378,20 +413,27 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
                     {currentStepData.title}
                   </h3>
                   <p className="text-gray-600 text-sm">
-                    {currentStepData.description}
+                    {isRestructure && currentStep === 1 
+                      ? "Review loan details. You can edit Loan type, Due date, and Collateral information."
+                      : currentStepData.description
+                    }
                   </p>
                 </div>
 
                 {/* Step Content */}
                 <div className="transition-all duration-300">
                   {currentStep === 1 && (
-                    <LoanInformationForm control={form.control} />
+                    <LoanInformationForm 
+                      control={form.control}
+                      isRestructure={isRestructure}
+                    />
                   )}
 
                   {currentStep === 2 && (
                     <ReporteeInformationForm 
                       control={form.control}
                       setValue={form.setValue}
+                      isRestructure={isRestructure}
                     />
                   )}
 
@@ -399,6 +441,7 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
                     <SupportingDocumentsForm 
                       control={form.control} 
                       setValue={form.setValue}
+                      isRestructure={isRestructure}
                     />
                   )}
                 </div>
@@ -445,9 +488,16 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
                     <Button 
                       type="submit" 
                       disabled={!form.formState.isValid || isSubmitting}
-                      className="bg-green-600 hover:bg-green-700 flex items-center space-x-2"
+                      className={`${isRestructure ? 'bg-orange-600 hover:bg-orange-700' : 'bg-green-600 hover:bg-green-700'} flex items-center space-x-2`}
                     >
-                      <span>{isSubmitting ? 'Submitting...' : 'Submit Report'}</span>
+                      <span>
+                        {isSubmitting 
+                          ? 'Submitting...' 
+                          : isRestructure 
+                          ? 'Submit Restructure Request' 
+                          : 'Submit Report'
+                        }
+                      </span>
                     </Button>
                   )}
                 </div>
