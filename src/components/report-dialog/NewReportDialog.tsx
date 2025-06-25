@@ -50,10 +50,11 @@ const reportSchema = z.object({
     message: "Please provide a detailed description when selecting 'Other' as loan purpose (at least 10 characters)",
     path: ["customLoanPurpose"],
   }).refine((data) => {
-    // Require installment count for installment repayment plan
+    // Require installment count ONLY for installment repayment plan
     if (data.repaymentPlan === 'installment') {
       return data.installmentCount && data.installmentCount > 0;
     }
+    // For single-payment and open-payment, installmentCount is not required
     return true;
   }, {
     message: "Number of installments is required for installment repayment plan",
@@ -247,6 +248,10 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
     const fieldsToValidate = getFieldsForStep(currentStep);
     const isValid = await form.trigger(fieldsToValidate);
     
+    console.log('Form validation result:', isValid);
+    console.log('Form errors:', form.formState.errors);
+    console.log('Current form values:', form.getValues());
+    
     if (isValid && currentStep < steps.length) {
       setCurrentStep(currentStep + 1);
     }
@@ -266,6 +271,7 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
     
     for (const fieldPath of fieldsForStep) {
       if (errors[fieldPath]) {
+        console.log(`Validation error for step ${stepNumber}:`, errors[fieldPath]);
         return false;
       }
     }
