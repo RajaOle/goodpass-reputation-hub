@@ -80,15 +80,17 @@ const ProcessPaymentDialog: React.FC<ProcessPaymentDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Process Payment</DialogTitle>
-          <DialogDescription>
-            Submit payment proof for {report.reporteeInformation.fullName}'s loan
+      <DialogContent className="max-w-5xl max-h-[95vh] overflow-hidden flex flex-col">
+        <DialogHeader className="space-y-3 pb-6 border-b">
+          <DialogTitle className="text-2xl font-semibold text-gray-900">
+            Process Payment
+          </DialogTitle>
+          <DialogDescription className="text-base text-gray-600">
+            Submit payment proof for <span className="font-medium text-gray-900">{report.reporteeInformation.fullName}</span>'s loan
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="flex-1 overflow-y-auto py-6 space-y-8">
           <PaymentInterfaceSelector
             report={report}
             paymentAmount={paymentAmount}
@@ -103,13 +105,22 @@ const ProcessPaymentDialog: React.FC<ProcessPaymentDialogProps> = ({
           />
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} className="bg-blue-600 hover:bg-blue-700">
-            Process Payment
-          </Button>
+        <DialogFooter className="pt-6 border-t bg-gray-50/50">
+          <div className="flex gap-3 w-full sm:w-auto">
+            <Button 
+              variant="outline" 
+              onClick={() => onOpenChange(false)}
+              className="flex-1 sm:flex-none"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSubmit} 
+              className="flex-1 sm:flex-none bg-blue-600 hover:bg-blue-700 text-white font-medium px-8"
+            >
+              Process Payment
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
