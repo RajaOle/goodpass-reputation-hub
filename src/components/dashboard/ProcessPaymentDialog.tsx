@@ -6,16 +6,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Upload, Calendar, DollarSign, FileText, AlertCircle } from 'lucide-react';
-import { Report, OpenPayment } from '@/types/report';
+import { Report } from '@/types/report';
+import { useToast } from "@/hooks/use-toast";
 
 interface ProcessPaymentDialogProps {
   open: boolean;
@@ -28,12 +26,9 @@ const ProcessPaymentDialog: React.FC<ProcessPaymentDialogProps> = ({
   onOpenChange,
   report
 }) => {
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'bank-transfer'>('cash');
   const [paymentAmount, setPaymentAmount] = useState<string>('');
-  const [paymentDate, setPaymentDate] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [paymentNotes, setPaymentNotes] = useState<string>('');
   const [proofDocuments, setProofDocuments] = useState<File[]>([]);
-  const [selectedInstallment, setSelectedInstallment] = useState<number | null>(null);
+  const { toast } = useToast();
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -43,12 +38,6 @@ const ProcessPaymentDialog: React.FC<ProcessPaymentDialogProps> = ({
     }).format(amount);
   };
 
-  const getPaymentType = () => {
-    if (report.loanInformation.repaymentPlan === 'single-payment') return 'single';
-    if (report.loanInformation.repaymentPlan === 'installment') return 'installment';
-    return 'open';
-  };
-
   const getOutstandingAmount = () => {
     if (report.paymentInfo?.remainingBalance !== undefined) {
       return report.paymentInfo.remainingBalance;
@@ -56,15 +45,28 @@ const ProcessPaymentDialog: React.FC<ProcessPaymentDialogProps> = ({
     return report.loanInformation.loanAmount;
   };
 
-  const getNextInstallmentAmount = () => {
-    if (report.paymentInfo?.installments) {
-      const nextUnpaid = report.paymentInfo.installments.find(inst => inst.status === 'unpaid');
-      return nextUnpaid?.amount || 0;
-    }
-    if (report.loanInformation.monthlyPayment) {
-      return report.loanInformation.monthlyPayment;
-    }
-    return 0;
+  const calculateInstallmentAmount = () => {
+    const totalAmount = report.loanInformation.loanAmount;
+    const installmentCount = report.loanInformation.installmentCount || 1;
+    return totalAmount / installmentCount;
+  };
+
+  const generateInstallments = () => {
+    const installmentAmount = calculateInstallmentAmount();
+    const count = report.loanInformation.installmentCount || 1;
+    const startDate = new Date(report.loanInformation.disbursementDate);
+    
+    return Array.from({ length: count }, (_, index) => {
+      const dueDate = new Date(startDate);
+      dueDate.setMonth(dueDate.getMonth() + index + 1);
+      
+      return {
+        number: index + 1,
+        amount: installmentAmount,
+        dueDate: dueDate.toISOString().split('T')[0],
+        status: 'unpaid' as const
+      };
+    });
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -77,251 +79,200 @@ const ProcessPaymentDialog: React.FC<ProcessPaymentDialogProps> = ({
   };
 
   const handleSubmit = () => {
+    if (proofDocuments.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please upload payment proof before submitting.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (report.loanInformation.repaymentPlan === 'open-payment' && !paymentAmount) {
+      toast({
+        title: "Error", 
+        description: "Please enter the payment amount.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     console.log('Processing payment:', {
-      method: paymentMethod,
-      amount: parseFloat(paymentAmount),
-      date: paymentDate,
-      notes: paymentNotes,
+      reportId: report.id,
+      paymentType: report.loanInformation.repaymentPlan,
+      amount: paymentAmount ? parseFloat(paymentAmount) : null,
       documents: proofDocuments,
-      installment: selectedInstallment
+      timestamp: new Date().toISOString()
     });
     
-    // Here you would integrate with your payment processing logic
+    toast({
+      title: "Payment Processed",
+      description: "Payment has been successfully recorded.",
+    });
+    
     onOpenChange(false);
   };
 
-  const renderSinglePaymentContent = () => (
+  const renderOpenPaymentInterface = () => (
     <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <DollarSign className="h-5 w-5" />
-            Loan Summary
+            Payment Summary
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-6">
             <div>
-              <Label className="text-sm font-medium text-gray-500">Total Amount</Label>
-              <p className="text-lg font-semibold">{formatCurrency(report.loanInformation.loanAmount)}</p>
+              <Label className="text-sm font-medium text-gray-500">Initial Loan Amount</Label>
+              <p className="text-xl font-bold text-gray-900">
+                {formatCurrency(report.loanInformation.loanAmount)}
+              </p>
             </div>
             <div>
-              <Label className="text-sm font-medium text-gray-500">Outstanding</Label>
-              <p className="text-lg font-semibold text-red-600">{formatCurrency(getOutstandingAmount())}</p>
+              <Label className="text-sm font-medium text-gray-500">Current Outstanding</Label>
+              <p className="text-xl font-bold text-red-600">
+                {formatCurrency(getOutstandingAmount())}
+              </p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="amount">Payment Amount *</Label>
-          <Input
-            id="amount"
-            type="number"
-            value={paymentAmount}
-            onChange={(e) => setPaymentAmount(e.target.value)}
-            placeholder="Enter amount"
-            className="mt-1"
-          />
-        </div>
-        <div>
-          <Label htmlFor="date">Payment Date *</Label>
-          <Input
-            id="date"
-            type="date"
-            value={paymentDate}
-            onChange={(e) => setPaymentDate(e.target.value)}
-            className="mt-1"
-          />
-        </div>
+      <div>
+        <Label htmlFor="amount" className="text-base font-medium">Payment Amount Being Processed *</Label>
+        <Input
+          id="amount"
+          type="number"
+          value={paymentAmount}
+          onChange={(e) => setPaymentAmount(e.target.value)}
+          placeholder="Enter payment amount"
+          className="mt-2 text-lg"
+        />
       </div>
     </div>
   );
 
-  const renderInstallmentContent = () => (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            Installment Schedule
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {report.paymentInfo?.installments && (
-            <div className="space-y-2 max-h-40 overflow-y-auto">
-              {report.paymentInfo.installments.map((installment) => (
+  const renderInstallmentInterface = () => {
+    const installments = generateInstallments();
+    
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Installment Schedule
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3 max-h-60 overflow-y-auto">
+              {installments.map((installment) => (
                 <div 
                   key={installment.number}
-                  className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${
-                    selectedInstallment === installment.number 
-                      ? 'border-blue-500 bg-blue-50' 
-                      : installment.status === 'paid' 
-                        ? 'border-green-200 bg-green-50' 
-                        : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                  onClick={() => installment.status === 'unpaid' && setSelectedInstallment(installment.number)}
+                  className="flex items-center justify-between p-4 border rounded-lg bg-gray-50"
                 >
                   <div className="flex items-center gap-3">
-                    <Badge variant={installment.status === 'paid' ? 'default' : 'secondary'}>
+                    <Badge variant="outline" className="font-medium">
                       #{installment.number}
                     </Badge>
                     <div>
-                      <p className="font-medium">{formatCurrency(installment.amount)}</p>
-                      <p className="text-sm text-gray-500">Due: {new Date(installment.dueDate).toLocaleDateString()}</p>
+                      <p className="font-semibold text-lg">
+                        {formatCurrency(installment.amount)}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        Due: {new Date(installment.dueDate).toLocaleDateString('id-ID')}
+                      </p>
                     </div>
                   </div>
-                  <Badge variant={installment.status === 'paid' ? 'default' : 'outline'}>
+                  <Badge variant="secondary">
                     {installment.status === 'paid' ? 'Paid' : 'Unpaid'}
                   </Badge>
                 </div>
               ))}
             </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {selectedInstallment && (
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="amount">Payment Amount *</Label>
-            <Input
-              id="amount"
-              type="number"
-              value={paymentAmount}
-              onChange={(e) => setPaymentAmount(e.target.value)}
-              placeholder="Enter amount"
-              className="mt-1"
-            />
-          </div>
-          <div>
-            <Label htmlFor="date">Payment Date *</Label>
-            <Input
-              id="date"
-              type="date"
-              value={paymentDate}
-              onChange={(e) => setPaymentDate(e.target.value)}
-              className="mt-1"
-            />
-          </div>
-        </div>
-      )}
-    </div>
-  );
-
-  const renderOpenPaymentContent = () => (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Payment History
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {report.paymentInfo?.openPayments && report.paymentInfo.openPayments.length > 0 ? (
-            <div className="space-y-2 max-h-40 overflow-y-auto">
-              {report.paymentInfo.openPayments.map((payment) => (
-                <div key={payment.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div>
-                    <p className="font-medium">{formatCurrency(payment.amount)}</p>
-                    <p className="text-sm text-gray-500">{new Date(payment.date).toLocaleDateString()}</p>
-                    {payment.notes && <p className="text-sm text-gray-400">{payment.notes}</p>}
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium">Balance: {formatCurrency(payment.runningBalance)}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-gray-500">
-              <AlertCircle className="h-8 w-8 mx-auto mb-2" />
-              <p>No payment history available</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="amount">Payment Amount *</Label>
-          <Input
-            id="amount"
-            type="number"
-            value={paymentAmount}
-            onChange={(e) => setPaymentAmount(e.target.value)}
-            placeholder="Enter amount"
-            className="mt-1"
-          />
-        </div>
-        <div>
-          <Label htmlFor="date">Payment Date *</Label>
-          <Input
-            id="date"
-            type="date"
-            value={paymentDate}
-            onChange={(e) => setPaymentDate(e.target.value)}
-            className="mt-1"
-          />
-        </div>
+          </CardContent>
+        </Card>
       </div>
-    </div>
-  );
+    );
+  };
 
-  const paymentType = getPaymentType();
+  const renderSinglePaymentInterface = () => {
+    const amount = report.loanInformation.loanAmount;
+    
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5" />
+              Single Payment Summary
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-3 gap-6">
+              <div className="text-center">
+                <Label className="text-sm font-medium text-gray-500">Initial Amount</Label>
+                <p className="text-lg font-bold text-gray-900 mt-1">
+                  {formatCurrency(amount)}
+                </p>
+              </div>
+              <div className="text-center">
+                <Label className="text-sm font-medium text-gray-500">Outstanding Amount</Label>
+                <p className="text-lg font-bold text-gray-900 mt-1">
+                  {formatCurrency(amount)}
+                </p>
+              </div>
+              <div className="text-center">
+                <Label className="text-sm font-medium text-gray-500">Repayment Amount</Label>
+                <p className="text-lg font-bold text-green-600 mt-1">
+                  {formatCurrency(amount)}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  };
+
+  const getInterfaceTitle = () => {
+    switch (report.loanInformation.repaymentPlan) {
+      case 'open-payment':
+        return 'Open Payment Processing';
+      case 'installment':
+        return 'Installment Payment Processing';
+      case 'single-payment':
+        return 'Single Payment Processing';
+      default:
+        return 'Payment Processing';
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <DollarSign className="h-5 w-5" />
-            Process Payment - {report.reporteeInformation.fullName}
+            <FileText className="h-5 w-5" />
+            {getInterfaceTitle()} - {report.reporteeInformation.fullName}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Payment Method Selection */}
-          <div>
-            <Label className="text-base font-medium">Payment Method</Label>
-            <Tabs value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as 'cash' | 'bank-transfer')} className="mt-2">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="cash">Cash Payment</TabsTrigger>
-                <TabsTrigger value="bank-transfer">Bank Transfer</TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
+          {/* Payment Type Specific Interface */}
+          {report.loanInformation.repaymentPlan === 'open-payment' && renderOpenPaymentInterface()}
+          {report.loanInformation.repaymentPlan === 'installment' && renderInstallmentInterface()}
+          {report.loanInformation.repaymentPlan === 'single-payment' && renderSinglePaymentInterface()}
 
-          {/* Payment Type Specific Content */}
+          {/* File Upload Section */}
           <div>
-            <Label className="text-base font-medium mb-4 block">Payment Details</Label>
-            {paymentType === 'single' && renderSinglePaymentContent()}
-            {paymentType === 'installment' && renderInstallmentContent()}
-            {paymentType === 'open' && renderOpenPaymentContent()}
-          </div>
-
-          {/* Payment Notes */}
-          <div>
-            <Label htmlFor="notes">Payment Notes</Label>
-            <Textarea
-              id="notes"
-              value={paymentNotes}
-              onChange={(e) => setPaymentNotes(e.target.value)}
-              placeholder="Add any additional notes about this payment..."
-              className="mt-1"
-              rows={3}
-            />
-          </div>
-
-          {/* File Upload */}
-          <div>
-            <Label className="text-base font-medium">Proof of Payment</Label>
-            <div className="mt-2 border-2 border-dashed border-gray-300 rounded-lg p-6">
+            <Label className="text-base font-medium mb-3 block">Upload Payment Proof/Receipt *</Label>
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 bg-gray-50">
               <div className="text-center">
                 <Upload className="h-8 w-8 mx-auto text-gray-400 mb-2" />
-                <p className="text-sm text-gray-600 mb-2">Upload payment receipts or proof</p>
+                <p className="text-sm text-gray-600 mb-3">Upload payment receipts, bank transfer proof, or other payment evidence</p>
                 <Input
                   type="file"
                   multiple
@@ -331,7 +282,10 @@ const ProcessPaymentDialog: React.FC<ProcessPaymentDialogProps> = ({
                   id="file-upload"
                 />
                 <Label htmlFor="file-upload" className="cursor-pointer">
-                  <Button variant="outline" type="button">Choose Files</Button>
+                  <Button variant="outline" type="button" className="bg-white">
+                    <Upload className="h-4 w-4 mr-2" />
+                    Choose Files
+                  </Button>
                 </Label>
               </div>
             </div>
@@ -340,13 +294,19 @@ const ProcessPaymentDialog: React.FC<ProcessPaymentDialogProps> = ({
               <div className="mt-4 space-y-2">
                 <Label className="text-sm font-medium">Uploaded Files:</Label>
                 {proofDocuments.map((file, index) => (
-                  <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                    <span className="text-sm">{file.name}</span>
+                  <div key={index} className="flex items-center justify-between p-3 bg-white border rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-gray-500" />
+                      <span className="text-sm font-medium">{file.name}</span>
+                      <span className="text-xs text-gray-500">
+                        ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                      </span>
+                    </div>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => removeFile(index)}
-                      className="text-red-600 hover:text-red-800"
+                      className="text-red-600 hover:text-red-800 hover:bg-red-50"
                     >
                       Remove
                     </Button>
@@ -361,10 +321,7 @@ const ProcessPaymentDialog: React.FC<ProcessPaymentDialogProps> = ({
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button 
-              onClick={handleSubmit}
-              disabled={!paymentAmount || !paymentDate || (paymentType === 'installment' && !selectedInstallment)}
-            >
+            <Button onClick={handleSubmit}>
               Process Payment
             </Button>
           </div>
