@@ -1,21 +1,21 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Edit, RefreshCw, CreditCard } from 'lucide-react';
+import { Edit, RefreshCw, Plus } from 'lucide-react';
 import { Report } from '@/types/report';
 
 interface ReportActionButtonsProps {
   report: Report;
   onProcessReport: (report: Report) => void;
   onRestructure: (report: Report) => void;
-  onProcessPayment: (report: Report) => void;
+  onAddInfo: (report: Report) => void;
 }
 
 const ReportActionButtons: React.FC<ReportActionButtonsProps> = ({
   report,
   onProcessReport,
   onRestructure,
-  onProcessPayment
+  onAddInfo
 }) => {
   return (
     <div className="flex gap-2">
@@ -40,10 +40,10 @@ const ReportActionButtons: React.FC<ReportActionButtonsProps> = ({
       <Button 
         variant="outline" 
         size="sm"
-        onClick={() => onProcessPayment(report)}
+        onClick={() => onAddInfo(report)}
         className="flex-1 h-9 bg-green-50 hover:bg-green-100 border-green-200 text-green-700 hover:text-green-800 font-medium transition-all duration-200"
       >
-        <CreditCard className="h-4 w-4 mr-1.5" />
+        <Plus className="h-4 w-4 mr-1.5" />
         Add Info
       </Button>
     </div>

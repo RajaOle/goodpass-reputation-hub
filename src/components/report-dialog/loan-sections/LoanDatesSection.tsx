@@ -21,11 +21,13 @@ import { ReportFormData } from '@/types/report';
 interface LoanDatesSectionProps {
   control: Control<ReportFormData>;
   isRestructure?: boolean;
+  isAddInfo?: boolean;
 }
 
 const LoanDatesSection: React.FC<LoanDatesSectionProps> = ({ 
   control, 
-  isRestructure = false 
+  isRestructure = false,
+  isAddInfo = false
 }) => {
   return (
     <Card>
@@ -44,8 +46,8 @@ const LoanDatesSection: React.FC<LoanDatesSectionProps> = ({
                   <Input
                     type="date"
                     {...field}
-                    readOnly={isRestructure}
-                    className={isRestructure ? "bg-gray-100" : ""}
+                    readOnly={isRestructure || isAddInfo}
+                    className={(isRestructure || isAddInfo) ? "bg-gray-100" : ""}
                   />
                 </FormControl>
                 <FormMessage />
@@ -63,8 +65,8 @@ const LoanDatesSection: React.FC<LoanDatesSectionProps> = ({
                   <Input
                     type="date"
                     {...field}
-                    readOnly={isRestructure}
-                    className={isRestructure ? "bg-gray-100" : ""}
+                    readOnly={isRestructure || isAddInfo}
+                    className={(isRestructure || isAddInfo) ? "bg-gray-100" : ""}
                   />
                 </FormControl>
                 <FormMessage />
@@ -77,7 +79,11 @@ const LoanDatesSection: React.FC<LoanDatesSectionProps> = ({
             name="loanInformation.dueDate"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Due Date {isRestructure && <span className="text-orange-600">(Editable)</span>}</FormLabel>
+                <FormLabel>
+                  Due Date 
+                  {isRestructure && <span className="text-orange-600">(Editable)</span>}
+                  {isAddInfo && <span className="text-gray-500">(Read-only)</span>}
+                </FormLabel>
                 {isRestructure ? (
                   <div className="space-y-2">
                     <Popover>
@@ -134,6 +140,8 @@ const LoanDatesSection: React.FC<LoanDatesSectionProps> = ({
                     <Input
                       type="date"
                       {...field}
+                      readOnly={isAddInfo}
+                      className={isAddInfo ? "bg-gray-100" : ""}
                     />
                   </FormControl>
                 )}

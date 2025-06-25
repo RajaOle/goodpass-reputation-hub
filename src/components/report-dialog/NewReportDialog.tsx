@@ -111,6 +111,7 @@ interface NewReportDialogProps {
   isDraft?: boolean;
   reportId?: string;
   isRestructure?: boolean;
+  isAddInfo?: boolean;
   existingReport?: Report;
 }
 
@@ -120,6 +121,7 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
   isDraft = false,
   reportId,
   isRestructure = false,
+  isAddInfo = false,
   existingReport
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -130,7 +132,7 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
   const todayISOString = new Date().toISOString().split('T')[0];
 
   const getDefaultValues = () => {
-    if (isRestructure && existingReport) {
+    if ((isRestructure || isAddInfo) && existingReport) {
       return {
         loanInformation: {
           ...existingReport.loanInformation,
@@ -189,7 +191,7 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
     if (open) {
       form.reset(getDefaultValues());
     }
-  }, [open, isRestructure, existingReport]);
+  }, [open, isRestructure, isAddInfo, existingReport]);
 
   const getProgress = () => {
     return (currentStep / steps.length) * 100;
@@ -209,6 +211,12 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
         toast({
           title: "✅ Restructure Request Submitted",
           description: `Your restructure request for ${data.reporteeInformation.fullName} has been submitted for admin approval.`,
+        });
+      } else if (isAddInfo && existingReport) {
+        console.log('Additional information submitted for report:', existingReport.id);
+        toast({
+          title: "✅ Information Updated",
+          description: `Additional information for ${data.reporteeInformation.fullName} has been updated successfully.`,
         });
       } else {
         const newReport: Report = {
@@ -299,6 +307,35 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
 
   const currentStepData = steps[currentStep - 1];
 
+  const getDialogTitle = () => {
+    if (isRestructure) return 'Restructure Report';
+    if (isAddInfo) return 'Add Additional Information';
+    return 'Create New Report';
+  };
+
+  const getDialogDescription = () => {
+    if (isRestructure) {
+      return 'Review and modify the loan details below. Only certain fields can be edited.';
+    }
+    if (isAddInfo) {
+      return 'Add or update reportee information and supporting documents. Loan details are read-only.';
+    }
+    return 'Follow the steps below to create a comprehensive loan report';
+  };
+
+  const getSubmitButtonText = () => {
+    if (isSubmitting) return 'Submitting...';
+    if (isRestructure) return 'Submit Restructure Request';
+    if (isAddInfo) return 'Update Information';
+    return 'Submit Report';
+  };
+
+  const getSubmitButtonColor = () => {
+    if (isRestructure) return 'bg-orange-600 hover:bg-orange-700';
+    if (isAddInfo) return 'bg-green-600 hover:bg-green-700';
+    return 'bg-green-600 hover:bg-green-700';
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[95vh] overflow-hidden p-0">
@@ -307,13 +344,10 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
           <div className="flex justify-between items-start">
             <DialogHeader className="flex-1">
               <DialogTitle className="text-lg font-semibold text-gray-900">
-                {isRestructure ? 'Restructure Report' : 'Create New Report'}
+                {getDialogTitle()}
               </DialogTitle>
               <DialogDescription className="text-gray-600 text-sm mt-1">
-                {isRestructure 
-                  ? 'Review and modify the loan details below. Only certain fields can be edited.'
-                  : 'Follow the steps below to create a comprehensive loan report'
-                }
+                {getDialogDescription()}
               </DialogDescription>
             </DialogHeader>
             
@@ -322,14 +356,14 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
               <div className="flex items-center space-x-2 mb-2">
                 <Calendar className="h-4 w-4 text-blue-600" />
                 <span className="text-sm font-medium text-gray-700">
-                  {isRestructure ? 'Original Report Info' : 'Report Information'}
+                  {isRestructure ? 'Original Report Info' : isAddInfo ? 'Report Information' : 'Report Information'}
                 </span>
               </div>
               <div className="space-y-1 text-xs text-gray-600">
                 <div className="flex justify-between">
                   <span>Report Date:</span>
                   <span className="font-medium">
-                    {isRestructure && existingReport 
+                    {(isRestructure || isAddInfo) && existingReport 
                       ? format(new Date(existingReport.createdAt), 'MMM dd, yyyy')
                       : format(new Date(), 'MMM dd, yyyy')
                     }
@@ -338,7 +372,7 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
                 <div className="flex justify-between">
                   <span>Agreement Date:</span>
                   <span className="font-medium">
-                    {isRestructure && existingReport?.loanInformation.agreementDate
+                    {(isRestructure || isAddInfo) && existingReport?.loanInformation.agreementDate
                       ? format(new Date(existingReport.loanInformation.agreementDate), 'MMM dd, yyyy')
                       : format(new Date(), 'MMM dd, yyyy')
                     }
@@ -347,7 +381,7 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
                 <div className="flex justify-between">
                   <span>Disbursement Date:</span>
                   <span className="font-medium">
-                    {isRestructure && existingReport?.loanInformation.disbursementDate
+                    {(isRestructure || isAddInfo) && existingReport?.loanInformation.disbursementDate
                       ? format(new Date(existingReport.loanInformation.disbursementDate), 'MMM dd, yyyy')
                       : format(new Date(), 'MMM dd, yyyy')
                     }
@@ -415,6 +449,8 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
                   <p className="text-gray-600 text-sm">
                     {isRestructure && currentStep === 1 
                       ? "Review loan details. You can edit Loan type, Due date, and Collateral information."
+                      : isAddInfo && currentStep === 1
+                      ? "Loan details are read-only. Use Restructure to modify loan information."
                       : currentStepData.description
                     }
                   </p>
@@ -426,6 +462,7 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
                     <LoanInformationForm 
                       control={form.control}
                       isRestructure={isRestructure}
+                      isAddInfo={isAddInfo}
                     />
                   )}
 
@@ -434,6 +471,7 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
                       control={form.control}
                       setValue={form.setValue}
                       isRestructure={isRestructure}
+                      isAddInfo={isAddInfo}
                     />
                   )}
 
@@ -442,6 +480,7 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
                       control={form.control} 
                       setValue={form.setValue}
                       isRestructure={isRestructure}
+                      isAddInfo={isAddInfo}
                     />
                   )}
                 </div>
@@ -488,16 +527,9 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
                     <Button 
                       type="submit" 
                       disabled={!form.formState.isValid || isSubmitting}
-                      className={`${isRestructure ? 'bg-orange-600 hover:bg-orange-700' : 'bg-green-600 hover:bg-green-700'} flex items-center space-x-2`}
+                      className={`${getSubmitButtonColor()} flex items-center space-x-2`}
                     >
-                      <span>
-                        {isSubmitting 
-                          ? 'Submitting...' 
-                          : isRestructure 
-                          ? 'Submit Restructure Request' 
-                          : 'Submit Report'
-                        }
-                      </span>
+                      <span>{getSubmitButtonText()}</span>
                     </Button>
                   )}
                 </div>

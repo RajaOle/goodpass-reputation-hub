@@ -16,11 +16,13 @@ import { ReportFormData } from '@/types/report';
 interface LoanPurposeSectionProps {
   control: Control<ReportFormData>;
   isRestructure?: boolean;
+  isAddInfo?: boolean;
 }
 
 const LoanPurposeSection: React.FC<LoanPurposeSectionProps> = ({ 
   control, 
-  isRestructure = false 
+  isRestructure = false,
+  isAddInfo = false
 }) => {
   return (
     <Card>
@@ -37,10 +39,10 @@ const LoanPurposeSection: React.FC<LoanPurposeSectionProps> = ({
               <Select 
                 onValueChange={field.onChange} 
                 defaultValue={field.value}
-                disabled={isRestructure}
+                disabled={isRestructure || isAddInfo}
               >
                 <FormControl>
-                  <SelectTrigger className={isRestructure ? "bg-gray-100" : ""}>
+                  <SelectTrigger className={(isRestructure || isAddInfo) ? "bg-gray-100" : ""}>
                     <SelectValue placeholder="Select loan purpose" />
                   </SelectTrigger>
                 </FormControl>
@@ -76,8 +78,8 @@ const LoanPurposeSection: React.FC<LoanPurposeSectionProps> = ({
                   <Textarea
                     placeholder="Please describe the loan purpose in detail..."
                     {...field}
-                    readOnly={isRestructure}
-                    className={isRestructure ? "bg-gray-100" : ""}
+                    readOnly={isRestructure || isAddInfo}
+                    className={(isRestructure || isAddInfo) ? "bg-gray-100" : ""}
                   />
                 </FormControl>
                 <FormMessage />

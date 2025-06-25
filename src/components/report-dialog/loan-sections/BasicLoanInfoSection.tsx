@@ -16,11 +16,13 @@ import { ReportFormData } from '@/types/report';
 interface BasicLoanInfoSectionProps {
   control: Control<ReportFormData>;
   isRestructure?: boolean;
+  isAddInfo?: boolean;
 }
 
 const BasicLoanInfoSection: React.FC<BasicLoanInfoSectionProps> = ({ 
   control, 
-  isRestructure = false 
+  isRestructure = false,
+  isAddInfo = false
 }) => {
   return (
     <Card>
@@ -39,8 +41,8 @@ const BasicLoanInfoSection: React.FC<BasicLoanInfoSectionProps> = ({
                   <Input 
                     placeholder="Enter loan name"
                     {...field}
-                    readOnly={isRestructure}
-                    className={isRestructure ? "bg-gray-100" : ""}
+                    readOnly={isRestructure || isAddInfo}
+                    className={(isRestructure || isAddInfo) ? "bg-gray-100" : ""}
                   />
                 </FormControl>
                 <FormMessage />
@@ -53,14 +55,18 @@ const BasicLoanInfoSection: React.FC<BasicLoanInfoSectionProps> = ({
             name="loanInformation.loanType"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Loan Type * {isRestructure && <span className="text-orange-600">(Editable)</span>}</FormLabel>
+                <FormLabel>
+                  Loan Type * 
+                  {isRestructure && <span className="text-orange-600">(Editable)</span>}
+                  {isAddInfo && <span className="text-gray-500">(Read-only)</span>}
+                </FormLabel>
                 <Select 
                   onValueChange={field.onChange} 
                   defaultValue={field.value}
-                  disabled={isRestructure ? false : false}
+                  disabled={isAddInfo}
                 >
                   <FormControl>
-                    <SelectTrigger className={isRestructure ? "border-orange-200 bg-orange-50" : ""}>
+                    <SelectTrigger className={isRestructure ? "border-orange-200 bg-orange-50" : isAddInfo ? "bg-gray-100" : ""}>
                       <SelectValue placeholder="Select loan type" />
                     </SelectTrigger>
                   </FormControl>
@@ -91,8 +97,8 @@ const BasicLoanInfoSection: React.FC<BasicLoanInfoSectionProps> = ({
                   placeholder="Enter loan amount"
                   {...field}
                   onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                  readOnly={isRestructure}
-                  className={isRestructure ? "bg-gray-100" : ""}
+                  readOnly={isRestructure || isAddInfo}
+                  className={(isRestructure || isAddInfo) ? "bg-gray-100" : ""}
                 />
               </FormControl>
               <FormMessage />

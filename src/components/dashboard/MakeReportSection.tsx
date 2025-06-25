@@ -15,6 +15,7 @@ const MakeReportSection = () => {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [isRestructureOpen, setIsRestructureOpen] = useState(false);
+  const [isAddInfoOpen, setIsAddInfoOpen] = useState(false);
   const { reports } = useReports();
 
   const handleProcessReport = (report: Report) => {
@@ -30,6 +31,11 @@ const MakeReportSection = () => {
   const handleProcessPayment = (report: Report) => {
     setSelectedReport(report);
     setIsPaymentOpen(true);
+  };
+
+  const handleAddInfo = (report: Report) => {
+    setSelectedReport(report);
+    setIsAddInfoOpen(true);
   };
 
   const handleActivityClick = (activity: any) => {
@@ -50,6 +56,7 @@ const MakeReportSection = () => {
         onProcessReport={handleProcessReport}
         onRestructure={handleRestructure}
         onProcessPayment={handleProcessPayment}
+        onAddInfo={handleAddInfo}
       />
 
       <RecentActivityMakeReportSection 
@@ -78,6 +85,12 @@ const MakeReportSection = () => {
             open={isRestructureOpen}
             onOpenChange={setIsRestructureOpen}
             isRestructure={true}
+            existingReport={selectedReport}
+          />
+          <NewReportDialog
+            open={isAddInfoOpen}
+            onOpenChange={setIsAddInfoOpen}
+            isAddInfo={true}
             existingReport={selectedReport}
           />
         </>

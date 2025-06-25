@@ -13,25 +13,27 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, X, Upload, Eye, EyeOff } from 'lucide-react';
+import { Plus, X, Upload, Eye, EyeOff, Info } from 'lucide-react';
 import { ReportFormData } from '@/types/report';
 
 interface ReporteeInformationFormProps {
   control: Control<ReportFormData>;
   setValue: UseFormSetValue<ReportFormData>;
   isRestructure?: boolean;
+  isAddInfo?: boolean;
 }
 
 const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({ 
   control, 
   setValue,
-  isRestructure = false 
+  isRestructure = false,
+  isAddInfo = false
 }) => {
   const [socialMediaInput, setSocialMediaInput] = useState('');
   const [showSensitiveData, setShowSensitiveData] = useState(false);
 
   const addSocialMediaLink = () => {
-    if (socialMediaInput.trim()) {
+    if (socialMediaInput.trim() && !isRestructure) {
       const currentLinks = control._formValues.reporteeInformation?.socialMediaLinks || [];
       setValue('reporteeInformation.socialMediaLinks', [...currentLinks, socialMediaInput.trim()]);
       setSocialMediaInput('');
@@ -39,13 +41,29 @@ const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({
   };
 
   const removeSocialMediaLink = (index: number) => {
-    const currentLinks = control._formValues.reporteeInformation?.socialMediaLinks || [];
-    const updatedLinks = currentLinks.filter((_, i) => i !== index);
-    setValue('reporteeInformation.socialMediaLinks', updatedLinks);
+    if (!isRestructure) {
+      const currentLinks = control._formValues.reporteeInformation?.socialMediaLinks || [];
+      const updatedLinks = currentLinks.filter((_, i) => i !== index);
+      setValue('reporteeInformation.socialMediaLinks', updatedLinks);
+    }
   };
+
+  const isReadOnly = isRestructure;
+  const isEditable = !isRestructure; // In Add Info mode, this section is editable
 
   return (
     <div className="space-y-6">
+      {isAddInfo && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="flex items-center gap-2">
+            <Info className="h-5 w-5 text-green-600" />
+            <p className="text-sm text-green-800 font-medium">
+              ✏️ You can edit all reportee information and add additional details in this mode.
+            </p>
+          </div>
+        </div>
+      )}
+
       {isRestructure && (
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
           <div className="flex items-center justify-between">
@@ -83,8 +101,8 @@ const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({
                     <Input
                       placeholder="Enter full name"
                       {...field}
-                      readOnly={isRestructure}
-                      className={isRestructure ? "bg-gray-100" : ""}
+                      readOnly={isReadOnly}
+                      className={isReadOnly ? "bg-gray-100" : isAddInfo ? "border-green-200 bg-green-50" : ""}
                     />
                   </FormControl>
                   <FormMessage />
@@ -103,8 +121,8 @@ const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({
                       placeholder="Enter phone number"
                       {...field}
                       value={isRestructure && !showSensitiveData ? '***-***-****' : field.value}
-                      readOnly={isRestructure}
-                      className={isRestructure ? "bg-gray-100" : ""}
+                      readOnly={isReadOnly}
+                      className={isReadOnly ? "bg-gray-100" : isAddInfo ? "border-green-200 bg-green-50" : ""}
                     />
                   </FormControl>
                   <FormMessage />
@@ -125,8 +143,8 @@ const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({
                     placeholder="Enter email address"
                     {...field}
                     value={isRestructure && !showSensitiveData && field.value ? '***@***.***' : field.value}
-                    readOnly={isRestructure}
-                    className={isRestructure ? "bg-gray-100" : ""}
+                    readOnly={isReadOnly}
+                    className={isReadOnly ? "bg-gray-100" : isAddInfo ? "border-green-200 bg-green-50" : ""}
                   />
                 </FormControl>
                 <FormMessage />
@@ -152,10 +170,10 @@ const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({
                   <Select 
                     onValueChange={field.onChange} 
                     defaultValue={field.value}
-                    disabled={isRestructure}
+                    disabled={isReadOnly}
                   >
                     <FormControl>
-                      <SelectTrigger className={isRestructure ? "bg-gray-100" : ""}>
+                      <SelectTrigger className={isReadOnly ? "bg-gray-100" : isAddInfo ? "border-green-200 bg-green-50" : ""}>
                         <SelectValue placeholder="Select ID type" />
                       </SelectTrigger>
                     </FormControl>
@@ -181,8 +199,8 @@ const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({
                       placeholder="Enter ID number"
                       {...field}
                       value={isRestructure && !showSensitiveData && field.value ? '***-***-***' : field.value}
-                      readOnly={isRestructure}
-                      className={isRestructure ? "bg-gray-100" : ""}
+                      readOnly={isReadOnly}
+                      className={isReadOnly ? "bg-gray-100" : isAddInfo ? "border-green-200 bg-green-50" : ""}
                     />
                   </FormControl>
                   <FormMessage />
@@ -191,7 +209,7 @@ const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({
             />
           </div>
 
-          {!isRestructure && (
+          {isEditable && (
             <FormField
               control={control}
               name="reporteeInformation.idPicture"
@@ -207,7 +225,7 @@ const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({
                           const file = e.target.files?.[0];
                           field.onChange(file);
                         }}
-                        className="flex-1"
+                        className={isAddInfo ? "border-green-200 bg-green-50 flex-1" : "flex-1"}
                       />
                       <Button type="button" variant="outline" size="sm">
                         <Upload className="h-4 w-4 mr-2" />
@@ -235,13 +253,14 @@ const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({
           <CardTitle className="text-base">Social Media (Optional)</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {!isRestructure && (
+          {isEditable && (
             <div className="flex gap-2">
               <Input
                 placeholder="Enter social media profile URL"
                 value={socialMediaInput}
                 onChange={(e) => setSocialMediaInput(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSocialMediaLink())}
+                className={isAddInfo ? "border-green-200 bg-green-50" : ""}
               />
               <Button type="button" onClick={addSocialMediaLink} variant="outline" size="sm">
                 <Plus className="h-4 w-4" />
@@ -255,7 +274,7 @@ const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({
                 <span className={isRestructure && !showSensitiveData ? "blur-sm" : ""}>
                   {link}
                 </span>
-                {!isRestructure && (
+                {isEditable && (
                   <button
                     type="button"
                     onClick={() => removeSocialMediaLink(index)}
@@ -287,8 +306,8 @@ const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({
                     <Input
                       placeholder="Enter bank name"
                       {...field}
-                      readOnly={isRestructure}
-                      className={isRestructure ? "bg-gray-100" : ""}
+                      readOnly={isReadOnly}
+                      className={isReadOnly ? "bg-gray-100" : isAddInfo ? "border-green-200 bg-green-50" : ""}
                     />
                   </FormControl>
                   <FormMessage />
@@ -307,8 +326,8 @@ const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({
                       placeholder="Enter account number"
                       {...field}
                       value={isRestructure && !showSensitiveData && field.value ? '***-***-***' : field.value}
-                      readOnly={isRestructure}
-                      className={isRestructure ? "bg-gray-100" : ""}
+                      readOnly={isReadOnly}
+                      className={isReadOnly ? "bg-gray-100" : isAddInfo ? "border-green-200 bg-green-50" : ""}
                     />
                   </FormControl>
                   <FormMessage />

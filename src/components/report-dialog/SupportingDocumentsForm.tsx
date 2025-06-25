@@ -12,19 +12,21 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Upload, File, X, FileText } from 'lucide-react';
+import { Upload, File, X, FileText, Info } from 'lucide-react';
 import { ReportFormData } from '@/types/report';
 
 interface SupportingDocumentsFormProps {
   control: Control<ReportFormData>;
   setValue: UseFormSetValue<ReportFormData>;
   isRestructure?: boolean;
+  isAddInfo?: boolean;
 }
 
 const SupportingDocumentsForm: React.FC<SupportingDocumentsFormProps> = ({ 
   control, 
   setValue,
-  isRestructure = false 
+  isRestructure = false,
+  isAddInfo = false
 }) => {
   const handleFileUpload = useCallback((files: FileList | null) => {
     if (files && !isRestructure) {
@@ -50,8 +52,21 @@ const SupportingDocumentsForm: React.FC<SupportingDocumentsFormProps> = ({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  const isEditable = !isRestructure;
+
   return (
     <div className="space-y-6">
+      {isAddInfo && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="flex items-center gap-2">
+            <Info className="h-5 w-5 text-green-600" />
+            <p className="text-sm text-green-800 font-medium">
+              📎 You can add new documents or update notes to provide additional information for this report.
+            </p>
+          </div>
+        </div>
+      )}
+
       {isRestructure && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <div className="flex items-center gap-2">
@@ -70,13 +85,17 @@ const SupportingDocumentsForm: React.FC<SupportingDocumentsFormProps> = ({
           <p className="text-sm text-gray-600">
             {isRestructure 
               ? "These documents were originally submitted with the report:"
+              : isAddInfo
+              ? "Add new documents or view existing ones to support your report:"
               : "Upload documents that support your loan report (contracts, agreements, receipts, etc.)"
             }
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
-          {!isRestructure && (
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+          {isEditable && (
+            <div className={`border-2 border-dashed rounded-lg p-6 text-center hover:border-gray-400 transition-colors ${
+              isAddInfo ? "border-green-300 bg-green-50 hover:border-green-400" : "border-gray-300"
+            }`}>
               <input
                 type="file"
                 multiple
@@ -86,8 +105,8 @@ const SupportingDocumentsForm: React.FC<SupportingDocumentsFormProps> = ({
                 id="document-upload"
               />
               <label htmlFor="document-upload" className="cursor-pointer">
-                <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                <p className="text-sm text-gray-600 mb-1">
+                <Upload className={`h-8 w-8 mx-auto mb-2 ${isAddInfo ? "text-green-500" : "text-gray-400"}`} />
+                <p className={`text-sm mb-1 ${isAddInfo ? "text-green-700" : "text-gray-600"}`}>
                   Click to upload or drag and drop files here
                 </p>
                 <p className="text-xs text-gray-400">
@@ -103,11 +122,12 @@ const SupportingDocumentsForm: React.FC<SupportingDocumentsFormProps> = ({
               <div 
                 key={index} 
                 className={`flex items-center justify-between p-3 border rounded-lg ${
-                  isRestructure ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-200'
+                  isRestructure ? 'bg-gray-50 border-gray-200' : 
+                  isAddInfo ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200'
                 }`}
               >
                 <div className="flex items-center space-x-3">
-                  <File className="h-5 w-5 text-blue-500" />
+                  <File className={`h-5 w-5 ${isAddInfo ? "text-green-500" : "text-blue-500"}`} />
                   <div>
                     <p className="text-sm font-medium text-gray-900">
                       {file.name}
@@ -122,7 +142,7 @@ const SupportingDocumentsForm: React.FC<SupportingDocumentsFormProps> = ({
                   <Badge variant="secondary" className="text-xs">
                     {file.type.split('/')[1]?.toUpperCase() || 'FILE'}
                   </Badge>
-                  {!isRestructure && (
+                  {isEditable && (
                     <Button
                       type="button"
                       variant="ghost"
@@ -146,16 +166,37 @@ const SupportingDocumentsForm: React.FC<SupportingDocumentsFormProps> = ({
             </div>
           )}
 
-          {!isRestructure && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="text-sm font-medium text-blue-900 mb-2">Recommended Documents:</h4>
-              <ul className="text-xs text-blue-800 space-y-1">
-                <li>• Loan agreement or contract</li>
-                <li>• Identity verification documents</li>
-                <li>• Bank statements or financial records</li>
-                <li>• Communication records (emails, messages)</li>
-                <li>• Payment receipts or transaction history</li>
-                <li>• Any other relevant supporting evidence</li>
+          {isEditable && (
+            <div className={`border rounded-lg p-4 ${
+              isAddInfo ? "bg-green-50 border-green-200" : "bg-blue-50 border-blue-200"
+            }`}>
+              <h4 className={`text-sm font-medium mb-2 ${
+                isAddInfo ? "text-green-900" : "text-blue-900"
+              }`}>
+                {isAddInfo ? "Suggested Additional Documents:" : "Recommended Documents:"}
+              </h4>
+              <ul className={`text-xs space-y-1 ${
+                isAddInfo ? "text-green-800" : "text-blue-800"
+              }`}>
+                {isAddInfo ? (
+                  <>
+                    <li>• Updated financial statements or bank records</li>
+                    <li>• Recent communication with the reportee</li>
+                    <li>• Payment receipts or transaction evidence</li>
+                    <li>• Any new agreements or modifications</li>
+                    <li>• Additional contact information or references</li>
+                    <li>• Updated identification or verification documents</li>
+                  </>
+                ) : (
+                  <>
+                    <li>• Loan agreement or contract</li>
+                    <li>• Identity verification documents</li>
+                    <li>• Bank statements or financial records</li>
+                    <li>• Communication records (emails, messages)</li>
+                    <li>• Payment receipts or transaction history</li>
+                    <li>• Any other relevant supporting evidence</li>
+                  </>
+                )}
               </ul>
             </div>
           )}
@@ -174,25 +215,30 @@ const SupportingDocumentsForm: React.FC<SupportingDocumentsFormProps> = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  {isRestructure ? "Original Notes" : "Additional Information (Optional)"}
+                  {isRestructure ? "Original Notes" : isAddInfo ? "Additional Information & Updates" : "Additional Information (Optional)"}
                 </FormLabel>
                 <FormControl>
                   <Textarea
                     placeholder={
                       isRestructure 
                         ? "These are the original notes from the report..."
+                        : isAddInfo
+                        ? "Add new information, updates, or changes since the original report was submitted..."
                         : "Provide any additional context, details, or explanations that might be helpful..."
                     }
                     rows={4}
                     {...field}
                     readOnly={isRestructure}
-                    className={isRestructure ? "bg-gray-100" : ""}
+                    className={isRestructure ? "bg-gray-100" : isAddInfo ? "border-green-200 bg-green-50" : ""}
                   />
                 </FormControl>
                 <FormMessage />
-                {!isRestructure && (
+                {isEditable && (
                   <p className="text-xs text-gray-500 mt-1">
-                    Include timeline of events, communication attempts, or any special circumstances
+                    {isAddInfo 
+                      ? "Describe any new developments, changed circumstances, or additional details that weren't in the original report"
+                      : "Include timeline of events, communication attempts, or any special circumstances"
+                    }
                   </p>
                 )}
               </FormItem>

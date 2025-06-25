@@ -16,11 +16,13 @@ import { ReportFormData } from '@/types/report';
 interface RepaymentInfoSectionProps {
   control: Control<ReportFormData>;
   isRestructure?: boolean;
+  isAddInfo?: boolean;
 }
 
 const RepaymentInfoSection: React.FC<RepaymentInfoSectionProps> = ({ 
   control, 
-  isRestructure = false 
+  isRestructure = false,
+  isAddInfo = false
 }) => {
   return (
     <Card>
@@ -37,10 +39,10 @@ const RepaymentInfoSection: React.FC<RepaymentInfoSectionProps> = ({
               <Select 
                 onValueChange={field.onChange} 
                 defaultValue={field.value}
-                disabled={isRestructure}
+                disabled={isRestructure || isAddInfo}
               >
                 <FormControl>
-                  <SelectTrigger className={isRestructure ? "bg-gray-100" : ""}>
+                  <SelectTrigger className={(isRestructure || isAddInfo) ? "bg-gray-100" : ""}>
                     <SelectValue placeholder="Select repayment plan" />
                   </SelectTrigger>
                 </FormControl>
@@ -73,8 +75,8 @@ const RepaymentInfoSection: React.FC<RepaymentInfoSectionProps> = ({
                     max={60}
                     {...field}
                     onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)}
-                    readOnly={isRestructure}
-                    className={isRestructure ? "bg-gray-100" : ""}
+                    readOnly={isRestructure || isAddInfo}
+                    className={(isRestructure || isAddInfo) ? "bg-gray-100" : ""}
                   />
                 </FormControl>
                 <FormMessage />
@@ -99,8 +101,8 @@ const RepaymentInfoSection: React.FC<RepaymentInfoSectionProps> = ({
                     max={100}
                     {...field}
                     onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                    readOnly={isRestructure}
-                    className={isRestructure ? "bg-gray-100" : ""}
+                    readOnly={isRestructure || isAddInfo}
+                    className={(isRestructure || isAddInfo) ? "bg-gray-100" : ""}
                   />
                 </FormControl>
                 <FormMessage />
@@ -121,8 +123,8 @@ const RepaymentInfoSection: React.FC<RepaymentInfoSectionProps> = ({
                     min={0}
                     {...field}
                     onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                    readOnly={isRestructure}
-                    className={isRestructure ? "bg-gray-100" : ""}
+                    readOnly={isRestructure || isAddInfo}
+                    className={(isRestructure || isAddInfo) ? "bg-gray-100" : ""}
                   />
                 </FormControl>
                 <FormMessage />

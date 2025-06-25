@@ -17,11 +17,13 @@ import { ReportFormData } from '@/types/report';
 interface CollateralInfoSectionProps {
   control: Control<ReportFormData>;
   isRestructure?: boolean;
+  isAddInfo?: boolean;
 }
 
 const CollateralInfoSection: React.FC<CollateralInfoSectionProps> = ({ 
   control, 
-  isRestructure = false 
+  isRestructure = false,
+  isAddInfo = false
 }) => {
   return (
     <Card>
@@ -34,14 +36,18 @@ const CollateralInfoSection: React.FC<CollateralInfoSectionProps> = ({
           name="loanInformation.collateral"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Collateral Type {isRestructure && <span className="text-orange-600">(Editable)</span>}</FormLabel>
+              <FormLabel>
+                Collateral Type 
+                {isRestructure && <span className="text-orange-600">(Editable)</span>}
+                {isAddInfo && <span className="text-gray-500">(Read-only)</span>}
+              </FormLabel>
               <Select 
                 onValueChange={field.onChange} 
                 defaultValue={field.value}
-                disabled={isRestructure ? false : false}
+                disabled={isAddInfo}
               >
                 <FormControl>
-                  <SelectTrigger className={isRestructure ? "border-orange-200 bg-orange-50" : ""}>
+                  <SelectTrigger className={isRestructure ? "border-orange-200 bg-orange-50" : isAddInfo ? "bg-gray-100" : ""}>
                     <SelectValue placeholder="Select collateral type" />
                   </SelectTrigger>
                 </FormControl>
@@ -73,13 +79,14 @@ const CollateralInfoSection: React.FC<CollateralInfoSectionProps> = ({
                 <FormLabel>
                   Collateral Description (min 10 characters) * 
                   {isRestructure && <span className="text-orange-600">(Editable)</span>}
+                  {isAddInfo && <span className="text-gray-500">(Read-only)</span>}
                 </FormLabel>
                 <FormControl>
                   <Textarea
                     placeholder="Please provide detailed description of the collateral..."
                     {...field}
-                    readOnly={isRestructure ? false : false}
-                    className={isRestructure ? "border-orange-200 bg-orange-50" : ""}
+                    readOnly={isAddInfo}
+                    className={isRestructure ? "border-orange-200 bg-orange-50" : isAddInfo ? "bg-gray-100" : ""}
                   />
                 </FormControl>
                 <FormMessage />
@@ -100,6 +107,7 @@ const CollateralInfoSection: React.FC<CollateralInfoSectionProps> = ({
                 <FormLabel>
                   Estimated Collateral Value (IDR) 
                   {isRestructure && <span className="text-orange-600">(Editable)</span>}
+                  {isAddInfo && <span className="text-gray-500">(Read-only)</span>}
                 </FormLabel>
                 <FormControl>
                   <Input
@@ -108,8 +116,8 @@ const CollateralInfoSection: React.FC<CollateralInfoSectionProps> = ({
                     min={0}
                     {...field}
                     onChange={(e) => field.onChange(parseFloat(e.target.value) || undefined)}
-                    readOnly={isRestructure ? false : false}
-                    className={isRestructure ? "border-orange-200 bg-orange-50" : ""}
+                    readOnly={isAddInfo}
+                    className={isRestructure ? "border-orange-200 bg-orange-50" : isAddInfo ? "bg-gray-100" : ""}
                   />
                 </FormControl>
                 <FormMessage />
