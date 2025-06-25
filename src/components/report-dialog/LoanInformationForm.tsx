@@ -15,7 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { ReportFormData } from '@/types/report';
@@ -162,13 +162,65 @@ const LoanInformationForm: React.FC<LoanInformationFormProps> = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Due Date {isRestructure && <span className="text-orange-600">(Editable)</span>}</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="date"
-                      {...field}
-                      className={isRestructure ? "border-orange-200 bg-orange-50" : ""}
-                    />
-                  </FormControl>
+                  {isRestructure ? (
+                    <div className="space-y-2">
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-left font-normal border-orange-200 bg-orange-50",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {field.value ? (
+                                format(new Date(field.value), "PPP")
+                              ) : (
+                                <span>No Due Date Set</span>
+                              )}
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value ? new Date(field.value) : undefined}
+                            onSelect={(date) => {
+                              field.onChange(date ? date.toISOString().split('T')[0] : '');
+                            }}
+                            initialFocus
+                            className={cn("p-3 pointer-events-auto")}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      
+                      {field.value && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => field.onChange('')}
+                          className="w-full text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                        >
+                          <X className="mr-2 h-4 w-4" />
+                          Clear Due Date
+                        </Button>
+                      )}
+                      
+                      <p className="text-xs text-gray-500">
+                        You can set a due date or leave it empty for no due date
+                      </p>
+                    </div>
+                  ) : (
+                    <FormControl>
+                      <Input
+                        type="date"
+                        {...field}
+                      />
+                    </FormControl>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
