@@ -1,3 +1,4 @@
+
 export interface LoanInformation {
   loanName: string;
   loanType: 'personal' | 'business' | 'mortgage' | 'auto' | 'student' | 'other';
@@ -39,6 +40,9 @@ export interface SupportingDocuments {
 
 export type ReportStatus = 'draft' | 'pending' | 'verified' | 'rejected' | 'partially-verified';
 
+// New type for report lifecycle status
+export type ReportLifecycleStatus = 'under-review' | 'active' | 'live';
+
 export type PaymentMethod = 'full' | 'installment' | 'open-payment';
 
 export interface OpenPayment {
@@ -66,6 +70,7 @@ export interface PaymentInfo {
 export interface Report {
   id: string;
   status: ReportStatus;
+  reportStatus?: ReportLifecycleStatus; // New field for report lifecycle status
   loanInformation: LoanInformation;
   reporteeInformation: ReporteeInformation;
   supportingDocuments: SupportingDocuments;

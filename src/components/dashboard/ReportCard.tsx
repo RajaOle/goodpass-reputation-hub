@@ -1,8 +1,9 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Calendar, DollarSign, FileText, User, Hash } from 'lucide-react';
 import { Report } from '@/types/report';
-import ReportStatusBadge from './ReportStatusBadge';
+import DualStatusBadge from './DualStatusBadge';
 import PaymentProgressBar from './PaymentProgressBar';
 import ReportActionButtons from './ReportActionButtons';
 
@@ -76,7 +77,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
   return (
     <Card className="border border-gray-200 hover:shadow-md transition-all duration-200 bg-white">
       <CardHeader className="pb-4 border-b border-gray-100">
-        {/* Reportee Name and Status */}
+        {/* Reportee Name and Dual Status */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2">
@@ -91,7 +92,10 @@ const ReportCard: React.FC<ReportCardProps> = ({
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <ReportStatusBadge status={report.status} />
+              <DualStatusBadge 
+                verificationStatus={report.status} 
+                reportStatus={report.reportStatus}
+              />
               <span className="text-sm text-gray-500 font-medium">{getTimeAgo(report.createdAt)}</span>
             </div>
           </div>

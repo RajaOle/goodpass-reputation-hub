@@ -1,10 +1,10 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Edit, RefreshCw, CreditCard, Calendar, DollarSign } from 'lucide-react';
 import { Report } from '@/types/report';
 import PaymentProgressBar from './PaymentProgressBar';
+import DualStatusBadge from './DualStatusBadge';
 
 interface RecentReportsProps {
   reports: Report[];
@@ -25,23 +25,6 @@ const RecentReports: React.FC<RecentReportsProps> = ({
       currency: 'IDR',
       minimumFractionDigits: 0
     }).format(amount);
-  };
-
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      pending: { label: '🟡 Under Review', variant: 'secondary' as const, color: 'bg-yellow-100 text-yellow-800' },
-      verified: { label: '✅ Verified', variant: 'default' as const, color: 'bg-green-100 text-green-800' },
-      rejected: { label: '❌ Rejected', variant: 'destructive' as const, color: 'bg-red-100 text-red-800' },
-      'partially-verified': { label: '⚠️ Partially Verified', variant: 'secondary' as const, color: 'bg-orange-100 text-orange-800' }
-    };
-
-    const config = statusConfig[status as keyof typeof statusConfig] || { label: status, variant: 'secondary' as const, color: 'bg-gray-100 text-gray-800' };
-
-    return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.color}`}>
-        {config.label}
-      </span>
-    );
   };
 
   const getTimeAgo = (timestamp: string) => {
@@ -94,7 +77,10 @@ const RecentReports: React.FC<RecentReportsProps> = ({
                       {report.reporteeInformation.fullName}
                     </h3>
                     <div className="flex items-center space-x-2 mb-2">
-                      {getStatusBadge(report.status)}
+                      <DualStatusBadge 
+                        verificationStatus={report.status} 
+                        reportStatus={report.reportStatus}
+                      />
                       <span className="text-sm text-gray-500">{getTimeAgo(report.createdAt)}</span>
                     </div>
                   </div>
