@@ -38,11 +38,7 @@ export const ReportsProvider: React.FC<ReportsProviderProps> = ({ children }) =>
         installmentCount: 24,
         applicationInterest: 0,
         applicationLateFee: 0,
-        collateral: 'none',
-        // Legacy fields for backward compatibility
-        loanTerm: 24,
-        monthlyPayment: 2500000,
-        paymentMethod: 'installments'
+        collateral: 'none'
       },
       reporteeInformation: {
         fullName: 'John Doe',
@@ -60,7 +56,9 @@ export const ReportsProvider: React.FC<ReportsProviderProps> = ({ children }) =>
           { number: 1, amount: 2083333, dueDate: '2024-02-20', status: 'paid' },
           { number: 2, amount: 2083333, dueDate: '2024-03-20', status: 'paid' },
           { number: 3, amount: 2083333, dueDate: '2024-04-20', status: 'unpaid' },
-          { number: 4, amount: 2083333, dueDate: '2024-05-20', status: 'unpaid' }
+          { number: 4, amount: 2083333, dueDate: '2024-05-20', status: 'unpaid' },
+          { number: 5, amount: 2083333, dueDate: '2024-06-20', status: 'unpaid' },
+          { number: 6, amount: 2083333, dueDate: '2024-07-20', status: 'unpaid' }
         ]
       },
       createdAt: '2024-01-20T10:00:00Z',
@@ -79,14 +77,9 @@ export const ReportsProvider: React.FC<ReportsProviderProps> = ({ children }) =>
         dueDate: '2027-01-18',
         loanPurpose: 'business-expansion',
         repaymentPlan: 'open-payment',
-        installmentCount: undefined,
         applicationInterest: 0,
         applicationLateFee: 0,
-        collateral: 'none',
-        // Legacy fields for backward compatibility
-        loanTerm: undefined,
-        monthlyPayment: undefined,
-        paymentMethod: 'open-payment'
+        collateral: 'none'
       },
       reporteeInformation: {
         fullName: 'Jane Smith',
@@ -122,6 +115,39 @@ export const ReportsProvider: React.FC<ReportsProviderProps> = ({ children }) =>
       createdAt: '2024-01-18T10:00:00Z',
       updatedAt: '2024-01-18T10:00:00Z',
       submittedAt: '2024-01-18T10:00:00Z'
+    },
+    {
+      id: '3',
+      status: 'verified',
+      loanInformation: {
+        loanName: 'Personal Emergency Loan',
+        loanType: 'personal',
+        loanAmount: 25000000,
+        agreementDate: '2024-01-12',
+        disbursementDate: '2024-01-15',
+        dueDate: '2024-07-15',
+        loanPurpose: 'emergency',
+        repaymentPlan: 'single-payment',
+        applicationInterest: 0,
+        applicationLateFee: 0,
+        collateral: 'none'
+      },
+      reporteeInformation: {
+        fullName: 'Mike Johnson',
+        phoneNumber: '+6281234567892',
+        email: 'mike@example.com'
+      },
+      supportingDocuments: {
+        documents: [],
+        additionalNotes: 'Emergency loan documentation'
+      },
+      paymentInfo: {
+        method: 'single-payment',
+        status: 'unpaid'
+      },
+      createdAt: '2024-01-15T10:00:00Z',
+      updatedAt: '2024-01-15T10:00:00Z',
+      submittedAt: '2024-01-15T10:00:00Z'
     }
   ]);
 
