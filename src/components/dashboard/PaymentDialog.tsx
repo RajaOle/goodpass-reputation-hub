@@ -1,22 +1,18 @@
-
 import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogDescription
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Report, PaymentMethod } from '@/types/report';
-import { CheckCircle, Circle, Plus, Trash2 } from 'lucide-react';
+import { Report } from '@/types/report';
+import { CheckCircle, UploadCloud, FileCheck, DollarSign } from 'lucide-react';
 
 interface PaymentDialogProps {
   open: boolean;
@@ -24,345 +20,260 @@ interface PaymentDialogProps {
   report: Report;
 }
 
-const PaymentDialog: React.FC<PaymentDialogProps> = ({
-  open,
-  onOpenChange,
-  report
-}) => {
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
-    report.paymentInfo?.method || 'full'
-  );
-  const [fullPaymentStatus, setFullPaymentStatus] = useState(
-    report.paymentInfo?.status || 'unpaid'
-  );
-  const [installmentStatuses, setInstallmentStatuses] = useState(
-    report.paymentInfo?.installments?.map(i => i.status) || []
-  );
-  
-  // Open payment states
-  const [openPayments, setOpenPayments] = useState(
-    report.paymentInfo?.openPayments || []
-  );
-  const [newPaymentAmount, setNewPaymentAmount] = useState('');
-  const [newPaymentDate, setNewPaymentDate] = useState(new Date().toISOString().split('T')[0]);
-  const [newPaymentNotes, setNewPaymentNotes] = useState('');
-  
+type RepaymentType = 'open-payment' | 'installment' | 'single';
+
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0
+  }).format(amount);
+};
+
+const PaymentDialog: React.FC<PaymentDialogProps> = ({ open, onOpenChange, report }) => {
+  const repaymentType: RepaymentType = report.loanInformation.repaymentPlan as RepaymentType;
+  const initialAmount = report.loanInformation.loanAmount;
+  const frequency = report.loanInformation.installmentCount || 1;
+  const [paymentProof, setPaymentProof] = useState<File | null>(null);
+  const [openPaymentAmount, setOpenPaymentAmount] = useState('');
+  const [installmentProofs, setInstallmentProofs] = useState<(File | null)[]>(Array(frequency).fill(null));
+  const [installmentPaid, setInstallmentPaid] = useState<boolean[]>(Array(frequency).fill(false));
   const { toast } = useToast();
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0
-    }).format(amount);
+  // For Open Payment, calculate outstanding (simulate, as no payment history is given)
+  const outstandingAmount = initialAmount; // Replace with real calculation if available
+  const installmentAmount = Math.round(initialAmount / frequency);
+  const singleAmount = initialAmount;
+
+  // UI logic for enabling buttons
+  const canSaveOpenPayment = openPaymentAmount && paymentProof;
+  const canSaveSingle = paymentProof;
+  const canMarkInstallmentPaid = (idx: number) => !!installmentProofs[idx];
+
+  // Handlers
+  const handleProofChange = (e: React.ChangeEvent<HTMLInputElement>, idx?: number) => {
+    if (e.target.files && e.target.files[0]) {
+      if (repaymentType === 'installment' && typeof idx === 'number') {
+        const newProofs = [...installmentProofs];
+        newProofs[idx] = e.target.files[0];
+        setInstallmentProofs(newProofs);
+      } else {
+        setPaymentProof(e.target.files[0]);
+      }
+    }
   };
 
-  const parseCurrency = (value: string) => {
-    return parseFloat(value.replace(/[^0-9]/g, '')) || 0;
-  };
-
-  const calculateTotalPaid = () => {
-    return openPayments.reduce((sum, payment) => sum + payment.amount, 0);
-  };
-
-  const calculateRemainingBalance = () => {
-    return report.loanInformation.loanAmount - calculateTotalPaid();
-  };
-
-  const toggleInstallmentStatus = (index: number) => {
-    const newStatuses = [...installmentStatuses];
-    newStatuses[index] = newStatuses[index] === 'paid' ? 'unpaid' : 'paid';
-    setInstallmentStatuses(newStatuses);
-  };
-
-  const addOpenPayment = () => {
-    const amount = parseCurrency(newPaymentAmount);
-    if (amount <= 0) return;
-
-    const totalPaid = calculateTotalPaid() + amount;
-    const newPayment = {
-      id: Date.now().toString(),
-      amount,
-      date: newPaymentDate,
-      notes: newPaymentNotes,
-      runningBalance: report.loanInformation.loanAmount - totalPaid
-    };
-
-    setOpenPayments([...openPayments, newPayment]);
-    setNewPaymentAmount('');
-    setNewPaymentNotes('');
-    setNewPaymentDate(new Date().toISOString().split('T')[0]);
-  };
-
-  const removeOpenPayment = (paymentId: string) => {
-    const updatedPayments = openPayments.filter(p => p.id !== paymentId);
-    // Recalculate running balances
-    let runningTotal = 0;
-    const recalculatedPayments = updatedPayments.map(payment => {
-      runningTotal += payment.amount;
-      return {
-        ...payment,
-        runningBalance: report.loanInformation.loanAmount - runningTotal
-      };
-    });
-    setOpenPayments(recalculatedPayments);
-  };
-
-  const handleSave = () => {
-    console.log('Updating payment info:', {
-      reportId: report.id,
-      method: paymentMethod,
-      fullPaymentStatus,
-      installmentStatuses,
-      openPayments,
-      totalPaid: calculateTotalPaid(),
-      remainingBalance: calculateRemainingBalance()
-    });
-
+  const handleSubmitOpenPayment = () => {
     toast({
-      title: "Payment Updated",
-      description: "Payment information has been successfully updated.",
+      title: 'Payment Updated',
+      description: `Open payment of ${formatCurrency(Number(openPaymentAmount))} submitted!`
     });
-
     onOpenChange(false);
+  };
+
+  const handleSubmitSingle = () => {
+    toast({
+      title: 'Payment Completed',
+      description: 'Single payment proof submitted!'
+    });
+    onOpenChange(false);
+  };
+
+  const handleMarkInstallmentPaid = (idx: number) => {
+    const newPaid = [...installmentPaid];
+    newPaid[idx] = true;
+    setInstallmentPaid(newPaid);
+    toast({
+      title: `Installment ${idx + 1} marked as paid!`,
+      description: installmentProofs[idx]?.name
+    });
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Process Payment</DialogTitle>
-          <DialogDescription>
-            Update payment status for {report.reporteeInformation.fullName}'s loan
+      <DialogContent className="max-w-lg w-full rounded-2xl shadow-2xl p-0 overflow-hidden border-0">
+        <DialogHeader className="bg-gradient-to-r from-blue-600 to-indigo-500 p-6 text-white">
+          <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+            <UploadCloud className="w-7 h-7" /> Process Payment
+          </DialogTitle>
+          <DialogDescription className="text-white/80">
+            {report.reporteeInformation.fullName}'s Loan Payment
           </DialogDescription>
         </DialogHeader>
-
-        <div className="space-y-6">
-          {/* Payment Method Selection */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Payment Method</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <RadioGroup value={paymentMethod} onValueChange={(value: PaymentMethod) => setPaymentMethod(value)}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="full" id="full" />
-                  <Label htmlFor="full">Full Payment</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="installment" id="installment" />
-                  <Label htmlFor="installment">Installment</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="open-payment" id="open-payment" />
-                  <Label htmlFor="open-payment">Open Payment (Flexible)</Label>
-                </div>
-              </RadioGroup>
-            </CardContent>
-          </Card>
-
-          {/* Full Payment */}
-          {paymentMethod === 'full' && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Full Payment Status</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 border rounded-lg">
-                    <div>
-                      <div className="font-medium">Total Amount</div>
-                      <div className="text-sm text-gray-500">
-                        {formatCurrency(report.loanInformation.loanAmount)}
-                      </div>
-                    </div>
-                    <Button
-                      variant={fullPaymentStatus === 'paid' ? 'default' : 'outline'}
-                      onClick={() => setFullPaymentStatus(
-                        fullPaymentStatus === 'paid' ? 'unpaid' : 'paid'
-                      )}
-                      className="flex items-center space-x-2"
-                    >
-                      {fullPaymentStatus === 'paid' ? 
-                        <CheckCircle className="h-4 w-4" /> : 
-                        <Circle className="h-4 w-4" />
-                      }
-                      <span>{fullPaymentStatus === 'paid' ? 'Paid' : 'Unpaid'}</span>
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Installment Payment */}
-          {paymentMethod === 'installment' && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Installment Status</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {Array.from({ length: report.loanInformation.loanTerm }, (_, index) => {
-                    const installmentNumber = index + 1;
-                    const status = installmentStatuses[index] || 'unpaid';
-                    const dueDate = new Date();
-                    dueDate.setMonth(dueDate.getMonth() + installmentNumber);
-                    
-                    return (
-                      <div key={installmentNumber} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div>
-                          <div className="font-medium">Installment {installmentNumber}</div>
-                          <div className="text-sm text-gray-500">
-                            {formatCurrency(report.loanInformation.monthlyPayment)} - Due: {dueDate.toLocaleDateString()}
-                          </div>
-                        </div>
-                        <Button
-                          variant={status === 'paid' ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => toggleInstallmentStatus(index)}
-                          className="flex items-center space-x-2"
-                        >
-                          {status === 'paid' ? 
-                            <CheckCircle className="h-4 w-4" /> : 
-                            <Circle className="h-4 w-4" />
-                          }
-                          <span>{status === 'paid' ? 'Paid' : 'Unpaid'}</span>
-                        </Button>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+        <div className="p-6 space-y-6 bg-white">
+          <div className="mb-4 p-3 rounded-lg text-white font-bold flex items-center gap-2"
+               style={{
+                 background: repaymentType === 'open-payment'
+                   ? 'linear-gradient(90deg, #6366f1 0%, #2563eb 100%)'
+                   : repaymentType === 'installment'
+                   ? 'linear-gradient(90deg, #059669 0%, #10b981 100%)'
+                   : 'linear-gradient(90deg, #f59e42 0%, #fbbf24 100%)'
+               }}>
+            <CheckCircle className="w-5 h-5" />
+            Repayment Type: <span className="capitalize">{repaymentType.replace('-', ' ')}</span>
+          </div>
 
           {/* Open Payment */}
-          {paymentMethod === 'open-payment' && (
-            <div className="space-y-4">
-              {/* Payment Summary */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Payment Summary</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-3 gap-4 text-center">
-                    <div className="p-3 bg-blue-50 rounded-lg">
-                      <div className="text-sm text-gray-600">Loan Amount</div>
-                      <div className="font-semibold">{formatCurrency(report.loanInformation.loanAmount)}</div>
-                    </div>
-                    <div className="p-3 bg-green-50 rounded-lg">
-                      <div className="text-sm text-gray-600">Total Paid</div>
-                      <div className="font-semibold">{formatCurrency(calculateTotalPaid())}</div>
-                    </div>
-                    <div className="p-3 bg-orange-50 rounded-lg">
-                      <div className="text-sm text-gray-600">Remaining</div>
-                      <div className="font-semibold">{formatCurrency(calculateRemainingBalance())}</div>
-                    </div>
+          {repaymentType === 'open-payment' && (
+            <Card className="border-0 shadow-none bg-gradient-to-br from-blue-50 to-white">
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                  <DollarSign className="w-5 h-5 text-blue-500" /> Open Payment
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Initial Amount</span>
+                  <span className="font-semibold">{formatCurrency(initialAmount)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Outstanding Amount</span>
+                  <span className="font-semibold">{formatCurrency(outstandingAmount)}</span>
+                </div>
+                <div>
+                  <Label htmlFor="open-amount" className="text-gray-700">Amount to Update <span className="text-red-500">*</span></Label>
+                  <Input
+                    id="open-amount"
+                    type="number"
+                    min={1}
+                    max={outstandingAmount}
+                    value={openPaymentAmount}
+                    onChange={e => setOpenPaymentAmount(e.target.value)}
+                    className="mt-1"
+                    placeholder="Enter amount paid"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="open-proof" className="text-gray-700">Upload Payment Proof <span className="text-red-500">*</span></Label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Input
+                      id="open-proof"
+                      type="file"
+                      accept="image/*,application/pdf"
+                      onChange={handleProofChange}
+                    />
+                    {paymentProof && (
+                      <span className="text-xs text-green-600 flex items-center gap-1">
+                        <FileCheck className="w-4 h-4" /> {paymentProof.name}
+                      </span>
+                    )}
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+                <Button
+                  onClick={handleSubmitOpenPayment}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg shadow mt-4"
+                  disabled={!canSaveOpenPayment}
+                >
+                  Save Payment
+                </Button>
+              </CardContent>
+            </Card>
+          )}
 
-              {/* Add New Payment */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Add New Payment</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div>
-                      <Label htmlFor="amount">Amount</Label>
-                      <Input
-                        id="amount"
-                        type="text"
-                        placeholder="Enter amount"
-                        value={newPaymentAmount}
-                        onChange={(e) => setNewPaymentAmount(e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="date">Date</Label>
-                      <Input
-                        id="date"
-                        type="date"
-                        value={newPaymentDate}
-                        onChange={(e) => setNewPaymentDate(e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="notes">Notes (Optional)</Label>
-                      <Input
-                        id="notes"
-                        placeholder="Payment notes"
-                        value={newPaymentNotes}
-                        onChange={(e) => setNewPaymentNotes(e.target.value)}
-                      />
-                    </div>
-                    <div className="flex items-end">
-                      <Button onClick={addOpenPayment} className="w-full">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Payment
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Payment History */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Payment History</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {openPayments.length === 0 ? (
-                    <div className="text-center text-gray-500 py-8">
-                      No payments recorded yet
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {openPayments.map((payment) => (
-                        <div key={payment.id} className="flex items-center justify-between p-3 border rounded-lg">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-4">
-                              <div>
-                                <div className="font-medium">{formatCurrency(payment.amount)}</div>
-                                <div className="text-sm text-gray-500">{new Date(payment.date).toLocaleDateString()}</div>
-                              </div>
-                              {payment.notes && (
-                                <div className="text-sm text-gray-600 italic">"{payment.notes}"</div>
-                              )}
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-sm text-gray-500">Balance After</div>
-                            <div className="font-medium">{formatCurrency(payment.runningBalance)}</div>
-                          </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => removeOpenPayment(payment.id)}
-                            className="ml-2"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+          {/* Installment */}
+          {repaymentType === 'installment' && (
+            <Card className="border-0 shadow-none bg-gradient-to-br from-green-50 to-white">
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                  <DollarSign className="w-5 h-5 text-green-500" /> Installment Payment
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Initial Amount</span>
+                  <span className="font-semibold">{formatCurrency(initialAmount)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Installment Frequency</span>
+                  <span className="font-semibold">{frequency}x</span>
+                </div>
+                <div className="divide-y divide-gray-200 mt-4">
+                  {Array.from({ length: frequency }).map((_, idx) => (
+                    <div key={idx} className="py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+                      <div>
+                        <div className="font-medium flex items-center gap-2">
+                          Installment {idx + 1}
+                          {installmentPaid[idx] && (
+                            <span className="text-green-600 flex items-center gap-1">
+                              <CheckCircle className="w-4 h-4" /> Paid
+                            </span>
+                          )}
                         </div>
-                      ))}
+                        <div className="text-gray-500 text-sm">Amount: {formatCurrency(installmentAmount)}</div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="file"
+                          accept="image/*,application/pdf"
+                          onChange={e => handleProofChange(e, idx)}
+                          disabled={installmentPaid[idx]}
+                        />
+                        {installmentProofs[idx] && (
+                          <span className="text-xs text-green-600 flex items-center gap-1">
+                            <FileCheck className="w-4 h-4" /> {installmentProofs[idx]?.name}
+                          </span>
+                        )}
+                        <Button
+                          size="sm"
+                          className="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-1 rounded-lg shadow"
+                          disabled={!canMarkInstallmentPaid(idx) || installmentPaid[idx]}
+                          onClick={() => handleMarkInstallmentPaid(idx)}
+                        >
+                          Mark as Paid
+                        </Button>
+                      </div>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+                  ))}
+                </div>
+                <div className="text-xs text-gray-400 mt-2">* Payment amount is fixed per installment. Only payment proof can be updated.</div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Single Payment */}
+          {repaymentType === 'single' && (
+            <Card className="border-0 shadow-none bg-gradient-to-br from-yellow-50 to-white">
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                  <DollarSign className="w-5 h-5 text-yellow-500" /> Single Payment
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Initial Amount</span>
+                  <span className="font-semibold">{formatCurrency(singleAmount)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Outstanding Amount</span>
+                  <span className="font-semibold">{formatCurrency(singleAmount)}</span>
+                </div>
+                <div>
+                  <Label htmlFor="single-proof" className="text-gray-700">Upload Payment Proof <span className="text-red-500">*</span></Label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Input
+                      id="single-proof"
+                      type="file"
+                      accept="image/*,application/pdf"
+                      onChange={handleProofChange}
+                    />
+                    {paymentProof && (
+                      <span className="text-xs text-green-600 flex items-center gap-1">
+                        <FileCheck className="w-4 h-4" /> {paymentProof.name}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <Button
+                  onClick={handleSubmitSingle}
+                  className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold px-6 py-2 rounded-lg shadow mt-4"
+                  disabled={!canSaveSingle}
+                >
+                  Complete Payment
+                </Button>
+              </CardContent>
+            </Card>
           )}
         </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700">
-            Save Changes
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

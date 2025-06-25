@@ -1,27 +1,49 @@
-
 import React, { useState } from 'react';
 import NewReportDialog from '../report-dialog/NewReportDialog';
 import ReportDetailsDialog from './ReportDetailsDialog';
 import PaymentDialog from './PaymentDialog';
-import ProcessPaymentDialog from './ProcessPaymentDialog';
 import RestructureDialog from './RestructureDialog';
 import StatsCards from './StatsCards';
 import QuickActions from './QuickActions';
-import { Report } from '@/types/report';
+import { Report, ReportStatus } from '@/types/report';
 import { useReports } from '@/contexts/ReportsContext';
+
+// Mock report data for testing
+const mockReport = {
+  id: '1',
+  status: 'pending' as ReportStatus,
+  loanInformation: {
+    loanName: 'Test Loan',
+    loanType: 'personal',
+    loanAmount: 10000000,
+    agreementDate: '2024-01-01',
+    disbursementDate: '2024-01-02',
+    repaymentPlan: 'open-payment',
+    installmentCount: 4,
+    applicationInterest: 0,
+    applicationLateFee: 0,
+    collateral: 'none',
+    loanPurpose: 'other',
+  },
+  reporteeInformation: {
+    fullName: 'John Doe',
+    phoneNumber: '08123456789',
+  },
+  supportingDocuments: { documents: [] },
+  createdAt: '',
+  updatedAt: '',
+};
 
 const DashboardOverview = () => {
   const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
-  const [isProcessPaymentOpen, setIsProcessPaymentOpen] = useState(false);
   const [isRestructureOpen, setIsRestructureOpen] = useState(false);
   const { reports } = useReports();
 
   const handleProcessReport = (report: Report) => {
     setSelectedReport(report);
-    setIsProcessPaymentOpen(true);
   };
 
   const handleRestructure = (report: Report) => {
@@ -35,12 +57,7 @@ const DashboardOverview = () => {
   };
 
   const handleActivityClick = (activity: any) => {
-    if (activity.type === 'report-submitted' && activity.reportId) {
-      const report = reports.find(r => r.id === activity.reportId.replace('R00', ''));
-      if (report) {
-        handleProcessReport(report);
-      }
-    }
+    // If you need to handle activity clicks, update this logic as needed
   };
 
   return (
@@ -72,11 +89,6 @@ const DashboardOverview = () => {
           <PaymentDialog
             open={isPaymentOpen}
             onOpenChange={setIsPaymentOpen}
-            report={selectedReport}
-          />
-          <ProcessPaymentDialog
-            open={isProcessPaymentOpen}
-            onOpenChange={setIsProcessPaymentOpen}
             report={selectedReport}
           />
           <RestructureDialog

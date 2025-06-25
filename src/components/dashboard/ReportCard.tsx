@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Calendar, DollarSign, FileText, User, Hash } from 'lucide-react';
@@ -190,6 +189,7 @@ const ReportCard: React.FC<ReportCardProps> = ({
           onProcessReport={onProcessReport}
           onRestructure={onRestructure}
           onAddInfo={onAddInfo}
+          onProcessPayment={onProcessPayment}
         />
       </CardContent>
     </Card>

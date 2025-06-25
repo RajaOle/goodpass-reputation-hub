@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import NewReportDialog from '../report-dialog/NewReportDialog';
 import ReportDetailsDialog from './ReportDetailsDialog';
@@ -31,6 +30,7 @@ const MakeReportSection = () => {
   const handleProcessPayment = (report: Report) => {
     setSelectedReport(report);
     setIsPaymentOpen(true);
+    console.log('handleProcessPayment called:', { report });
   };
 
   const handleAddInfo = (report: Report) => {
@@ -46,6 +46,8 @@ const MakeReportSection = () => {
       }
     }
   };
+
+  console.log('MakeReportSection render:', { isPaymentOpen, selectedReport });
 
   return (
     <div className="space-y-6 lg:space-y-8">
