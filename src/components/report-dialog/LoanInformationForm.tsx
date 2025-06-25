@@ -29,11 +29,13 @@ interface LoanInformationFormProps {
 const LoanInformationForm: React.FC<LoanInformationFormProps> = ({ control }) => {
   const [isCollateralOpen, setIsCollateralOpen] = useState(false);
   const [noDueDate, setNoDueDate] = useState(false);
+  const [showInterest, setShowInterest] = useState(false);
+  const [showLateFee, setShowLateFee] = useState(false);
   
   const repaymentPlan = useWatch({
     control,
     name: 'loanInformation.repaymentPlan',
-    defaultValue: 'installment'
+    defaultValue: 'open-payment'
   });
 
   const loanPurpose = useWatch({
@@ -291,7 +293,7 @@ const LoanInformationForm: React.FC<LoanInformationFormProps> = ({ control }) =>
               <FormLabel className="text-base font-medium text-gray-900">
                 Repayment Plan <span className="text-red-500">*</span>
               </FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} defaultValue="open-payment">
                 <FormControl>
                   <SelectTrigger className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 transition-colors">
                     <SelectValue placeholder="Select repayment plan" />
@@ -340,72 +342,115 @@ const LoanInformationForm: React.FC<LoanInformationFormProps> = ({ control }) =>
           />
         )}
 
-        {/* Application Fees (Disabled) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField
-            control={control}
-            name="loanInformation.applicationInterest"
-            render={({ field }) => (
-              <FormItem className="space-y-3">
-                <FormLabel className="text-base font-medium text-gray-500 flex items-center space-x-2">
-                  <span>Application Interest (%)</span>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Info className="h-4 w-4 text-gray-400" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Interest rate applied to this loan (calculated automatically)</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="0.00"
-                    className="h-12 text-base border-2 border-gray-200 bg-gray-50 cursor-not-allowed"
-                    disabled
-                    value={field.value || 0}
-                  />
-                </FormControl>
-                <FormDescription className="text-gray-500">
-                  Auto-calculated based on loan terms
-                </FormDescription>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={control}
-            name="loanInformation.applicationLateFee"
-            render={({ field }) => (
-              <FormItem className="space-y-3">
-                <FormLabel className="text-base font-medium text-gray-500 flex items-center space-x-2">
-                  <span>Application Late Fee</span>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Info className="h-4 w-4 text-gray-400" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Late fee amount for overdue payments (calculated automatically)</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    type="text"
-                    placeholder="Rp 0"
-                    className="h-12 text-base border-2 border-gray-200 bg-gray-50 cursor-not-allowed"
-                    disabled
-                    value={field.value ? formatCurrency(field.value) : 'Rp 0'}
-                  />
-                </FormControl>
-                <FormDescription className="text-gray-500">
-                  Auto-calculated based on loan terms
-                </FormDescription>
-              </FormItem>
-            )}
-          />
+        {/* Application Fees Section - Now with conditional visibility */}
+        <div className="space-y-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <h3 className="text-sm font-medium text-gray-900 mb-3">Add Fee Information (Optional)</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="show-interest"
+                checked={showInterest}
+                onCheckedChange={(checked) => setShowInterest(checked as boolean)}
+              />
+              <label htmlFor="show-interest" className="text-sm font-medium text-gray-700 cursor-pointer flex items-center space-x-1">
+                <Info className="h-4 w-4 text-blue-600" />
+                <span>Application Interest</span>
+              </label>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="show-late-fee"
+                checked={showLateFee}
+                onCheckedChange={(checked) => setShowLateFee(checked as boolean)}
+              />
+              <label htmlFor="show-late-fee" className="text-sm font-medium text-gray-700 cursor-pointer flex items-center space-x-1">
+                <Info className="h-4 w-4 text-red-600" />
+                <span>Application Late Fee</span>
+              </label>
+            </div>
+          </div>
         </div>
+
+        {/* Conditional Interest and Late Fee Fields */}
+        {(showInterest || showLateFee) && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {showInterest && (
+              <FormField
+                control={control}
+                name="loanInformation.applicationInterest"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel className="text-base font-medium text-gray-900 flex items-center space-x-2">
+                      <span>Application Interest (%)</span>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Info className="h-4 w-4 text-gray-400" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Interest rate applied to this loan</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="0.00"
+                        className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 transition-colors"
+                        step="0.01"
+                        min="0"
+                        value={field.value || ''}
+                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      />
+                    </FormControl>
+                    <FormDescription className="text-gray-500">
+                      Enter the interest rate percentage
+                    </FormDescription>
+                    <FormMessage className="text-red-500" />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {showLateFee && (
+              <FormField
+                control={control}
+                name="loanInformation.applicationLateFee"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel className="text-base font-medium text-gray-900 flex items-center space-x-2">
+                      <span>Application Late Fee</span>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <Info className="h-4 w-4 text-gray-400" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Late fee amount for overdue payments</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="text"
+                        placeholder="Enter late fee amount"
+                        className="h-12 text-base border-2 border-gray-200 focus:border-blue-500 transition-colors"
+                        value={field.value ? formatCurrency(field.value) : ''}
+                        onChange={(e) => {
+                          const numericValue = parseCurrency(e.target.value);
+                          field.onChange(numericValue);
+                        }}
+                      />
+                    </FormControl>
+                    <FormDescription className="text-gray-500">
+                      Enter the late fee amount in IDR
+                    </FormDescription>
+                    <FormMessage className="text-red-500" />
+                  </FormItem>
+                )}
+              />
+            )}
+          </div>
+        )}
 
         {/* Collateral Information (Expandable) */}
         <Collapsible open={isCollateralOpen} onOpenChange={setIsCollateralOpen}>
