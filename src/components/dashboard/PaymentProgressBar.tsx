@@ -1,7 +1,7 @@
-
 import React from 'react';
 import { Report } from '@/types/report';
 import { Calendar, CheckCircle, Clock, DollarSign } from 'lucide-react';
+import { generateInstallments } from './payment/paymentUtils';
 
 interface PaymentProgressBarProps {
   report: Report;
@@ -9,22 +9,23 @@ interface PaymentProgressBarProps {
 }
 
 const PaymentProgressBar: React.FC<PaymentProgressBarProps> = ({ report, formatCurrency }) => {
-  const getPaymentProgress = (report: Report) => {
-    if (report.paymentInfo) {
-      const { totalPaid = 0, remainingBalance = 0 } = report.paymentInfo;
-      const totalAmount = totalPaid + remainingBalance;
-      const percentage = totalAmount > 0 ? Math.round((totalPaid / totalAmount) * 100) : 0;
-      return { totalPaid, remainingBalance, percentage, totalAmount };
-    }
-    return { totalPaid: 0, remainingBalance: report.loanInformation.loanAmount, percentage: 0, totalAmount: report.loanInformation.loanAmount };
-  };
+  // Use generateInstallments to get the full list
+  const installments = generateInstallments(report);
 
-  const paymentProgress = getPaymentProgress(report);
+  // Calculate paid/unpaid totals from installments
+  const totalPaid = installments
+    .filter(inst => inst.status === 'paid')
+    .reduce((sum, inst) => sum + inst.amount, 0);
+  const remainingBalance = installments
+    .filter(inst => inst.status !== 'paid')
+    .reduce((sum, inst) => sum + inst.amount, 0);
+  const totalAmount = totalPaid + remainingBalance;
+  const percentage = totalAmount > 0 ? Math.round((totalPaid / totalAmount) * 100) : 0;
+
   const paymentMethod = report.paymentInfo?.method || report.loanInformation.paymentMethod;
 
   const renderInstallmentHistory = () => {
-    if (!report.paymentInfo?.installments) return null;
-
+    if (!installments || installments.length === 0) return null;
     return (
       <div className="mt-4">
         <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
@@ -32,7 +33,7 @@ const PaymentProgressBar: React.FC<PaymentProgressBarProps> = ({ report, formatC
           Installment History
         </h4>
         <div className="space-y-2 max-h-40 overflow-y-auto">
-          {report.paymentInfo.installments.map((installment) => (
+          {installments.map((installment) => (
             <div key={installment.number} className="flex items-center justify-between p-2 bg-white rounded border border-gray-100">
               <div className="flex items-center gap-2">
                 {installment.status === 'paid' ? (
@@ -140,7 +141,7 @@ const PaymentProgressBar: React.FC<PaymentProgressBarProps> = ({ report, formatC
   };
 
   // Don't show if no payment progress
-  if (paymentProgress.percentage === 0 && !report.paymentInfo) {
+  if (percentage === 0 && (!installments || installments.length === 0)) {
     return null;
   }
 
@@ -149,17 +150,17 @@ const PaymentProgressBar: React.FC<PaymentProgressBarProps> = ({ report, formatC
       {/* Payment Progress Bar */}
       <div className="flex justify-between items-center mb-2">
         <span className="text-sm font-medium text-gray-700">Payment Progress</span>
-        <span className="text-sm font-semibold text-gray-900">{paymentProgress.percentage}%</span>
+        <span className="text-sm font-semibold text-gray-900">{percentage}%</span>
       </div>
       <div className="w-full bg-gray-200 rounded-full h-2.5 mb-2">
         <div 
           className="bg-gradient-to-r from-green-500 to-green-600 h-2.5 rounded-full transition-all duration-500 ease-out" 
-          style={{ width: `${paymentProgress.percentage}%` }}
+          style={{ width: `${percentage}%` }}
         ></div>
       </div>
       <div className="flex justify-between text-xs text-gray-600 mb-3">
-        <span className="font-medium">Paid: {formatCurrency(paymentProgress.totalPaid)}</span>
-        <span className="font-medium">Remaining: {formatCurrency(paymentProgress.remainingBalance)}</span>
+        <span className="font-medium">Paid: {formatCurrency(totalPaid)}</span>
+        <span className="font-medium">Remaining: {formatCurrency(remainingBalance)}</span>
       </div>
 
       {/* Payment Method Badge */}

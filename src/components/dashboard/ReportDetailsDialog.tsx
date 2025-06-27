@@ -18,6 +18,7 @@ import {
   Edit,
   FileText
 } from 'lucide-react';
+import { generateInstallments } from './payment/paymentUtils';
 
 interface ReportDetailsDialogProps {
   open: boolean;
@@ -153,12 +154,11 @@ const ReportDetailsDialog: React.FC<ReportDetailsDialogProps> = ({
                     {report.paymentInfo.status === 'paid' ? 'Paid' : 'Unpaid'}
                   </Badge>
                 </div>
-                
-                {report.paymentInfo.installments && (
+                {['installment', 'installments'].includes(report.paymentInfo.method) && (
                   <div>
                     <span className="font-medium">Installments:</span>
-                    <div className="mt-2 space-y-2">
-                      {report.paymentInfo.installments.map((installment) => (
+                    <div className="mt-2 space-y-2 max-h-60 overflow-y-auto">
+                      {generateInstallments(report).map((installment) => (
                         <div key={installment.number} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                           <span>Installment {installment.number}</span>
                           <span>{formatCurrency(installment.amount)}</span>

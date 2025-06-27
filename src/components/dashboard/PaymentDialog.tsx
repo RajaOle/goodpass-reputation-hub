@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Report } from '@/types/report';
 import { CheckCircle, UploadCloud, FileCheck, DollarSign } from 'lucide-react';
+import PaymentProgressBar from './PaymentProgressBar';
 
 interface PaymentDialogProps {
   open: boolean;
@@ -20,7 +21,7 @@ interface PaymentDialogProps {
   report: Report;
 }
 
-type RepaymentType = 'open-payment' | 'installment' | 'single';
+type RepaymentType = 'open-payment' | 'installment' | 'single-payment';
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('id-ID', {
@@ -31,17 +32,30 @@ const formatCurrency = (amount: number) => {
 };
 
 const PaymentDialog: React.FC<PaymentDialogProps> = ({ open, onOpenChange, report }) => {
-  const repaymentType: RepaymentType = report.loanInformation.repaymentPlan as RepaymentType;
+  // Fix: Map single-payment to single for internal logic
+  const getRepaymentType = (): RepaymentType => {
+    const plan = report.loanInformation.repaymentPlan;
+    if (plan === 'single-payment') return 'single-payment';
+    if (plan === 'installment') return 'installment';
+    if (plan === 'open-payment') return 'open-payment';
+    return 'single-payment'; // default fallback
+  };
+
+  const repaymentType = getRepaymentType();
   const initialAmount = report.loanInformation.loanAmount;
   const frequency = report.loanInformation.installmentCount || 1;
   const [paymentProof, setPaymentProof] = useState<File | null>(null);
   const [openPaymentAmount, setOpenPaymentAmount] = useState('');
   const [installmentProofs, setInstallmentProofs] = useState<(File | null)[]>(Array(frequency).fill(null));
   const [installmentPaid, setInstallmentPaid] = useState<boolean[]>(Array(frequency).fill(false));
+  const [openPayments, setOpenPayments] = useState(report.paymentInfo?.openPayments || []);
   const { toast } = useToast();
 
+  // Calculate outstanding for open payment
+  const totalPaid = openPayments.reduce((sum, p) => sum + p.amount, 0);
+  const outstandingAmount = Math.max(initialAmount - totalPaid, 0);
+
   // For Open Payment, calculate outstanding (simulate, as no payment history is given)
-  const outstandingAmount = initialAmount; // Replace with real calculation if available
   const installmentAmount = Math.round(initialAmount / frequency);
   const singleAmount = initialAmount;
 
@@ -64,17 +78,32 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({ open, onOpenChange, repor
   };
 
   const handleSubmitOpenPayment = () => {
+    const newPayment = {
+      id: (openPayments.length + 1).toString(),
+      amount: Number(openPaymentAmount),
+      date: new Date().toISOString(),
+      notes: paymentProof ? paymentProof.name : '',
+      runningBalance: Math.max(outstandingAmount - Number(openPaymentAmount), 0)
+    };
+    setOpenPayments([...openPayments, newPayment]);
+    setOpenPaymentAmount('');
+    setPaymentProof(null);
     toast({
       title: 'Payment Updated',
-      description: `Open payment of ${formatCurrency(Number(openPaymentAmount))} submitted!`
+      description: `Open payment of ${formatCurrency(Number(newPayment.amount))} submitted!`
     });
-    onOpenChange(false);
+    // Don't close dialog immediately
   };
 
   const handleSubmitSingle = () => {
+    // Update the report's payment status
+    if (report.paymentInfo) {
+      report.paymentInfo.status = 'paid';
+    }
+    
     toast({
       title: 'Payment Completed',
-      description: 'Single payment proof submitted!'
+      description: `Single payment of ${formatCurrency(singleAmount)} has been processed successfully!`
     });
     onOpenChange(false);
   };
@@ -87,6 +116,17 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({ open, onOpenChange, repor
       title: `Installment ${idx + 1} marked as paid!`,
       description: installmentProofs[idx]?.name
     });
+  };
+
+  // Virtual report for progress bar
+  const virtualReport = {
+    ...report,
+    paymentInfo: {
+      ...report.paymentInfo,
+      openPayments,
+      totalPaid,
+      remainingBalance: outstandingAmount
+    }
   };
 
   return (
@@ -115,59 +155,96 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({ open, onOpenChange, repor
 
           {/* Open Payment */}
           {repaymentType === 'open-payment' && (
-            <Card className="border-0 shadow-none bg-gradient-to-br from-blue-50 to-white">
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                  <DollarSign className="w-5 h-5 text-blue-500" /> Open Payment
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Initial Amount</span>
-                  <span className="font-semibold">{formatCurrency(initialAmount)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Outstanding Amount</span>
-                  <span className="font-semibold">{formatCurrency(outstandingAmount)}</span>
-                </div>
-                <div>
-                  <Label htmlFor="open-amount" className="text-gray-700">Amount to Update <span className="text-red-500">*</span></Label>
-                  <Input
-                    id="open-amount"
-                    type="number"
-                    min={1}
-                    max={outstandingAmount}
-                    value={openPaymentAmount}
-                    onChange={e => setOpenPaymentAmount(e.target.value)}
-                    className="mt-1"
-                    placeholder="Enter amount paid"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="open-proof" className="text-gray-700">Upload Payment Proof <span className="text-red-500">*</span></Label>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Input
-                      id="open-proof"
-                      type="file"
-                      accept="image/*,application/pdf"
-                      onChange={handleProofChange}
-                    />
-                    {paymentProof && (
-                      <span className="text-xs text-green-600 flex items-center gap-1">
-                        <FileCheck className="w-4 h-4" /> {paymentProof.name}
-                      </span>
-                    )}
+            <>
+              <PaymentProgressBar report={virtualReport} formatCurrency={formatCurrency} />
+              <Card className="border-0 shadow-none bg-gradient-to-br from-blue-50 to-white">
+                <CardHeader>
+                  <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                    <DollarSign className="w-5 h-5 text-blue-500" /> Open Payment
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Initial Amount</span>
+                    <span className="font-semibold">{formatCurrency(initialAmount)}</span>
                   </div>
-                </div>
-                <Button
-                  onClick={handleSubmitOpenPayment}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg shadow mt-4"
-                  disabled={!canSaveOpenPayment}
-                >
-                  Save Payment
-                </Button>
-              </CardContent>
-            </Card>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Outstanding Amount</span>
+                    <span className="font-semibold">{formatCurrency(outstandingAmount)}</span>
+                  </div>
+                  <div>
+                    <Label htmlFor="open-amount" className="text-gray-700">Amount to Update <span className="text-red-500">*</span></Label>
+                    <Input
+                      id="open-amount"
+                      type="number"
+                      min={1}
+                      max={outstandingAmount}
+                      value={openPaymentAmount}
+                      onChange={e => setOpenPaymentAmount(e.target.value)}
+                      className="mt-1"
+                      placeholder="Enter amount paid"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="open-proof" className="text-gray-700">Upload Payment Proof <span className="text-red-500">*</span></Label>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Input
+                        id="open-proof"
+                        type="file"
+                        accept="image/*,application/pdf"
+                        onChange={handleProofChange}
+                      />
+                      {paymentProof && (
+                        <span className="text-xs text-green-600 flex items-center gap-1">
+                          <FileCheck className="w-4 h-4" /> {paymentProof.name}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <Button
+                    onClick={handleSubmitOpenPayment}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg shadow mt-4"
+                    disabled={!canSaveOpenPayment}
+                  >
+                    Save Payment
+                  </Button>
+                  {/* Show payment history only if there are open payments */}
+                  {openPayments.length > 0 && (
+                    <div className="mt-6">
+                      <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+                        <DollarSign className="h-4 w-4" />
+                        Payment History
+                      </h4>
+                      <div className="space-y-2 max-h-40 overflow-y-auto">
+                        {openPayments.map((payment) => (
+                          <div key={payment.id} className="flex items-center justify-between p-2 bg-white rounded border border-gray-100">
+                            <div className="flex items-center gap-2">
+                              <CheckCircle className="h-4 w-4 text-green-600" />
+                              <div>
+                                <span className="text-sm font-medium text-green-600">
+                                  {formatCurrency(payment.amount)}
+                                </span>
+                                {payment.notes && (
+                                  <p className="text-xs text-gray-500">{payment.notes}</p>
+                                )}
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <span className="text-sm text-gray-600">
+                                {new Date(payment.date).toLocaleDateString()}
+                              </span>
+                              <p className="text-xs text-gray-500">
+                                Balance: {formatCurrency(payment.runningBalance)}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </>
           )}
 
           {/* Installment */}
@@ -187,7 +264,15 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({ open, onOpenChange, repor
                   <span className="text-gray-500">Installment Frequency</span>
                   <span className="font-semibold">{frequency}x</span>
                 </div>
-                <div className="divide-y divide-gray-200 mt-4">
+                <div
+                  className="divide-y divide-gray-200 mt-4 overflow-y-auto"
+                  style={{
+                    maxHeight: '40vh',
+                    minHeight: '120px',
+                    borderRadius: '0.5rem',
+                    background: '#fff'
+                  }}
+                >
                   {Array.from({ length: frequency }).map((_, idx) => (
                     <div key={idx} className="py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                       <div>
@@ -201,7 +286,7 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({ open, onOpenChange, repor
                         </div>
                         <div className="text-gray-500 text-sm">Amount: {formatCurrency(installmentAmount)}</div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-col md:flex-row md:items-center gap-2">
                         <Input
                           type="file"
                           accept="image/*,application/pdf"
@@ -231,7 +316,7 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({ open, onOpenChange, repor
           )}
 
           {/* Single Payment */}
-          {repaymentType === 'single' && (
+          {repaymentType === 'single-payment' && (
             <Card className="border-0 shadow-none bg-gradient-to-br from-yellow-50 to-white">
               <CardHeader>
                 <CardTitle className="text-lg font-semibold flex items-center gap-2">
@@ -241,11 +326,15 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({ open, onOpenChange, repor
               <CardContent className="space-y-4">
                 <div className="flex justify-between">
                   <span className="text-gray-500">Initial Amount</span>
-                  <span className="font-semibold">{formatCurrency(singleAmount)}</span>
+                  <span className="font-semibold">{formatCurrency(initialAmount)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">Outstanding Amount</span>
-                  <span className="font-semibold">{formatCurrency(singleAmount)}</span>
+                  <span className="font-semibold">{formatCurrency(initialAmount)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Repayment Amount</span>
+                  <span className="font-semibold text-green-600">{formatCurrency(initialAmount)}</span>
                 </div>
                 <div>
                   <Label htmlFor="single-proof" className="text-gray-700">Upload Payment Proof <span className="text-red-500">*</span></Label>
@@ -268,7 +357,7 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({ open, onOpenChange, repor
                   className="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-semibold px-6 py-2 rounded-lg shadow mt-4"
                   disabled={!canSaveSingle}
                 >
-                  Complete Payment
+                  Confirm Payment of {formatCurrency(initialAmount)}
                 </Button>
               </CardContent>
             </Card>

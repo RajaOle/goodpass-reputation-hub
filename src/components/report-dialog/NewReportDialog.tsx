@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { format } from 'date-fns';
+import { format, startOfDay, isBefore } from 'date-fns';
 import {
   Dialog,
   DialogContent,
@@ -29,7 +29,16 @@ const reportSchema = z.object({
     loanAmount: z.number().min(1, 'Loan amount must be greater than 0'),
     agreementDate: z.string().optional(),
     disbursementDate: z.string().optional(),
-    dueDate: z.string().optional(),
+    dueDate: z.string().optional().refine(
+      (val) => {
+        if (!val) return true;
+        // Only allow today or future dates
+        const today = startOfDay(new Date());
+        const selected = startOfDay(new Date(val));
+        return !isBefore(selected, today);
+      },
+      { message: "Due date cannot be before today", path: ["dueDate"] }
+    ),
     loanPurpose: z.enum(['business-expansion', 'debt-consolidation', 'home-improvement', 'education', 'medical-expenses', 'wedding', 'travel', 'investment', 'emergency', 'other']),
     customLoanPurpose: z.string().optional(),
     repaymentPlan: z.enum(['single-payment', 'installment', 'open-payment']),

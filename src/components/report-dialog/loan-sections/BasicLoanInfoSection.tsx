@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Control } from 'react-hook-form';
 import {
@@ -88,22 +87,39 @@ const BasicLoanInfoSection: React.FC<BasicLoanInfoSectionProps> = ({
         <FormField
           control={control}
           name="loanInformation.loanAmount"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Loan Amount (IDR) *</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  placeholder="Enter loan amount"
-                  {...field}
-                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                  readOnly={isRestructure || isAddInfo}
-                  className={(isRestructure || isAddInfo) ? "bg-gray-100" : ""}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+          render={({ field }) => {
+            // Format with thousand separators
+            const formatNumber = (value: number | string) =>
+              value
+                ? Number(value)
+                    .toLocaleString('id-ID', { maximumFractionDigits: 0 })
+                : '';
+
+            return (
+              <FormItem>
+                <FormLabel>Loan Amount (IDR) *</FormLabel>
+                <FormControl>
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="Enter loan amount"
+                    value={field.value ? formatNumber(field.value) : ''}
+                    onChange={e => {
+                      // Remove all non-digit characters
+                      const raw = e.target.value.replace(/[^0-9]/g, '');
+                      // Prevent leading zero
+                      const normalized = raw.replace(/^0+/, '');
+                      // Update form state as number, or '' if empty
+                      field.onChange(normalized ? parseInt(normalized, 10) : '');
+                    }}
+                    readOnly={isRestructure || isAddInfo}
+                    className={(isRestructure || isAddInfo) ? "bg-gray-100" : ""}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
         />
       </CardContent>
     </Card>

@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { Report } from '@/types/report';
 
@@ -93,24 +92,9 @@ export const ReportsProvider: React.FC<ReportsProviderProps> = ({ children }) =>
       paymentInfo: {
         method: 'open-payment',
         status: 'unpaid',
-        openPayments: [
-          {
-            id: '1',
-            amount: 25000000,
-            date: '2024-01-15',
-            notes: 'First payment',
-            runningBalance: 75000000
-          },
-          {
-            id: '2',
-            amount: 15000000,
-            date: '2024-01-25',
-            notes: 'Second payment',
-            runningBalance: 60000000
-          }
-        ],
-        totalPaid: 40000000,
-        remainingBalance: 60000000
+        openPayments: [],
+        totalPaid: 0,
+        remainingBalance: 100000000
       },
       createdAt: '2024-01-18T10:00:00Z',
       updatedAt: '2024-01-18T10:00:00Z',

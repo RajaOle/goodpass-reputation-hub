@@ -1,4 +1,3 @@
-
 export const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
@@ -58,41 +57,37 @@ export const calculateInstallmentAmount = (report: any) => {
 };
 
 export const generateInstallments = (report: any) => {
-  // If we already have installment data in paymentInfo, use it
-  if (report.paymentInfo?.installments) {
-    return report.paymentInfo.installments.map((inst: any, index: number) => {
-      const dueDate = new Date(inst.dueDate);
-      const isOverdue = inst.status === 'unpaid' && new Date() > dueDate;
-      
-      return {
-        id: `installment-${inst.number}`,
-        number: inst.number,
-        amount: inst.amount,
-        dueDate: inst.dueDate,
-        status: inst.status,
-        isOverdue
-      };
-    });
-  }
-  
-  // Generate installments from loan information
-  const installmentAmount = calculateInstallmentAmount(report);
   const count = report.loanInformation.installmentCount || 1;
+  const installmentAmount = calculateInstallmentAmount(report);
   const startDate = new Date(report.loanInformation.disbursementDate);
-  
+
+  // Build a map of existing installments by number (if any)
+  const existing = (report.paymentInfo?.installments || []).reduce((acc: any, inst: any) => {
+    acc[inst.number] = inst;
+    return acc;
+  }, {});
+
+  // Always generate the full list, merging in status from paymentInfo.installments if available
   return Array.from({ length: count }, (_, index) => {
+    const number = index + 1;
     const dueDate = new Date(startDate);
     dueDate.setMonth(dueDate.getMonth() + index + 1);
-    
-    const isOverdue = new Date() > dueDate;
-    
-    return {
-      id: `installment-${index + 1}`,
-      number: index + 1,
+    const base = {
+      id: `installment-${number}`,
+      number,
       amount: installmentAmount,
       dueDate: dueDate.toISOString().split('T')[0],
       status: 'unpaid',
-      isOverdue
+      isOverdue: new Date() > dueDate
     };
+    if (existing[number]) {
+      return {
+        ...base,
+        amount: existing[number].amount,
+        status: existing[number].status,
+        dueDate: existing[number].dueDate,
+      };
+    }
+    return base;
   });
 };

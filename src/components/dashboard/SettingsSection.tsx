@@ -1,17 +1,52 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { Bell, Shield, User, Mail, Phone } from 'lucide-react';
+import { Bell, Shield, User, Mail, Phone, BadgeCheck, FileUp, Copy } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useKyc } from '@/contexts/KycContext';
 
 const SettingsSection = () => {
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [smsNotifications, setSmsNotifications] = useState(false);
   const [marketingEmails, setMarketingEmails] = useState(true);
+  const { kycStatus, setKycStatus } = useKyc();
+  const [kycType, setKycType] = useState<string>('');
+  const [kycFile, setKycFile] = useState<File | null>(null);
+  const [clientId] = useState('goodpass_demo_client_id_123456');
+  const [clientSecret, setClientSecret] = useState('sk_test_abcdef1234567890');
+
+  // Handle radio selection
+  const handleKycTypeChange = (value: string) => {
+    setKycType(value);
+    setKycFile(null);
+    setKycStatus('not_done');
+  };
+
+  // Handle file upload
+  const handleKycUpload = (e) => {
+    const file = e.target.files?.[0] || null;
+    if (file) {
+      setKycFile(file);
+      setKycStatus('pending');
+    }
+  };
+
+  // Mock backend confirmation after upload
+  useEffect(() => {
+    if (kycStatus === 'pending' && kycFile) {
+      const timer = setTimeout(() => setKycStatus('done'), 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [kycStatus, kycFile]);
+
+  // Copy to clipboard
+  const handleCopy = (value: string) => {
+    navigator.clipboard.writeText(value);
+  };
 
   return (
     <div className="space-y-8">
@@ -39,20 +74,151 @@ const SettingsSection = () => {
               <Input id="lastName" defaultValue="Doe" className="mt-1" />
             </div>
           </div>
-          
-          <div>
-            <Label htmlFor="email">Email Address</Label>
-            <Input id="email" type="email" defaultValue="john@example.com" className="mt-1" />
+          <div className="flex items-center gap-2">
+            <div className="flex-1">
+              <Label htmlFor="email">Email Address</Label>
+              <Input id="email" type="email" defaultValue="john@example.com" className="mt-1" disabled />
+            </div>
+            <span className="flex items-center gap-1 text-green-600 text-xs font-semibold">
+              <BadgeCheck className="h-4 w-4" /> Verified
+            </span>
           </div>
-          
-          <div>
-            <Label htmlFor="phone">Phone Number</Label>
-            <Input id="phone" type="tel" defaultValue="+1 (555) 123-4567" className="mt-1" />
+          <div className="flex items-center gap-2">
+            <div className="flex-1">
+              <Label htmlFor="phone">Phone Number</Label>
+              <Input id="phone" type="tel" defaultValue="+1 (555) 123-4567" className="mt-1" disabled />
+            </div>
+            <span className="flex items-center gap-1 text-green-600 text-xs font-semibold">
+              <BadgeCheck className="h-4 w-4" /> Verified
+            </span>
           </div>
-          
           <Button className="bg-blue-600 hover:bg-blue-700">
             Save Changes
           </Button>
+        </CardContent>
+      </Card>
+
+      {/* KYC Verification */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Shield className="h-5 w-5" />
+            <span>KYC Verification</span>
+            <span className={`ml-2 px-2 py-1 rounded-full text-xs font-semibold ${
+              kycStatus === 'done'
+                ? 'bg-green-100 text-green-700'
+                : kycStatus === 'pending'
+                ? 'bg-yellow-100 text-yellow-700'
+                : 'bg-gray-100 text-gray-700'
+            }`}>
+              {kycStatus === 'done' ? 'Done' : kycStatus === 'pending' ? 'Pending' : 'Not Done'}
+            </span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label>KYC Document Type</Label>
+            <RadioGroup
+              className="flex flex-row gap-6 mt-2"
+              value={kycType}
+              onValueChange={handleKycTypeChange}
+              disabled={!!kycFile}
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="idCard" id="idCard" disabled={!!kycFile} />
+                <Label htmlFor="idCard" className="cursor-pointer">ID Card</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="driverLicense" id="driverLicense" disabled={!!kycFile} />
+                <Label htmlFor="driverLicense" className="cursor-pointer">Driver License</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="passport" id="passport" disabled={!!kycFile} />
+                <Label htmlFor="passport" className="cursor-pointer">Passport</Label>
+              </div>
+            </RadioGroup>
+          </div>
+          {kycType && (
+            <div>
+              <Label>Upload {kycType === 'idCard' ? 'ID Card' : kycType === 'driverLicense' ? 'Driver License' : 'Passport'}</Label>
+              <div className="flex items-center gap-2 mt-1">
+                <Input
+                  type="file"
+                  accept="image/*,application/pdf"
+                  disabled={!!kycFile}
+                  onChange={handleKycUpload}
+                />
+                {kycFile && (
+                  <span className="text-green-600 flex items-center gap-1 text-xs">
+                    <FileUp className="h-4 w-4" /> {kycFile.name}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+          {kycStatus === 'done' && (
+            <div className="mt-2 text-green-700 font-semibold flex items-center gap-2">
+              <BadgeCheck className="h-5 w-5" /> KYC Completed!
+            </div>
+          )}
+          {kycStatus === 'pending' && (
+            <div className="mt-2 text-yellow-700 font-semibold flex items-center gap-2">
+              <Shield className="h-5 w-5 animate-pulse" /> KYC Pending Verification...
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* API Credentials */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Shield className="h-5 w-5" />
+            <span>API Credentials</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label>Client ID</Label>
+            <div className="flex items-center gap-2 mt-1">
+              <Input value={clientId} readOnly className="font-mono" />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={() => handleCopy(clientId)}
+                title="Copy Client ID"
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+          <div>
+            <Label>Client Secret</Label>
+            <div className="flex items-center gap-2 mt-1">
+              <Input value={clientSecret} readOnly className="font-mono" type="password" />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={() => handleCopy(clientSecret)}
+                title="Copy Client Secret"
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+              {/* Placeholder for regenerate button */}
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                className="ml-2"
+                disabled
+              >
+                Regenerate
+              </Button>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">Keep your client secret safe. Do not share it publicly.</p>
+          </div>
         </CardContent>
       </Card>
 
@@ -78,9 +244,7 @@ const SettingsSection = () => {
               onCheckedChange={setEmailNotifications}
             />
           </div>
-          
           <Separator />
-          
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <Phone className="h-4 w-4 text-gray-600" />
@@ -94,9 +258,7 @@ const SettingsSection = () => {
               onCheckedChange={setSmsNotifications}
             />
           </div>
-          
           <Separator />
-          
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <Mail className="h-4 w-4 text-gray-600" />
@@ -126,17 +288,14 @@ const SettingsSection = () => {
             <Label htmlFor="currentPassword">Current Password</Label>
             <Input id="currentPassword" type="password" className="mt-1" />
           </div>
-          
           <div>
             <Label htmlFor="newPassword">New Password</Label>
             <Input id="newPassword" type="password" className="mt-1" />
           </div>
-          
           <div>
             <Label htmlFor="confirmPassword">Confirm New Password</Label>
             <Input id="confirmPassword" type="password" className="mt-1" />
           </div>
-          
           <div className="flex space-x-4">
             <Button className="bg-blue-600 hover:bg-blue-700">
               Update Password

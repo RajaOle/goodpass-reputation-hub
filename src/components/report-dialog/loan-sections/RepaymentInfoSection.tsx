@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Control, Controller } from 'react-hook-form';
 import {
@@ -85,53 +84,7 @@ const RepaymentInfoSection: React.FC<RepaymentInfoSectionProps> = ({
           }}
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={control}
-            name="loanInformation.applicationInterest"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Interest Rate (%)</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="Enter interest rate"
-                    step="0.01"
-                    min={0}
-                    max={100}
-                    {...field}
-                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                    readOnly={isRestructure || isAddInfo}
-                    className={(isRestructure || isAddInfo) ? "bg-gray-100" : ""}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={control}
-            name="loanInformation.applicationLateFee"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Late Fee (IDR)</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="Enter late fee amount"
-                    min={0}
-                    {...field}
-                    onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                    readOnly={isRestructure || isAddInfo}
-                    className={(isRestructure || isAddInfo) ? "bg-gray-100" : ""}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        {/* Interest Rate and Late Fee fields removed for friend-to-friend loans */}
       </CardContent>
     </Card>
   );
