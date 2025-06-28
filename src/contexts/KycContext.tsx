@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState } from 'react';
 
-export type KycStatus = 'not_done' | 'pending' | 'done';
+export type KycStatus = 'pending' | 'verified' | 'rejected';
 
 interface KycContextType {
   kycStatus: KycStatus;
@@ -10,7 +10,7 @@ interface KycContextType {
 const KycContext = createContext<KycContextType | undefined>(undefined);
 
 export const KycProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [kycStatus, setKycStatus] = useState<KycStatus>('not_done');
+  const [kycStatus, setKycStatus] = useState<KycStatus>('pending');
   return (
     <KycContext.Provider value={{ kycStatus, setKycStatus }}>
       {children}

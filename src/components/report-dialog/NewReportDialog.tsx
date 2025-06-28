@@ -231,6 +231,7 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
         const newReport: Report = {
           id: Date.now().toString(),
           status: 'pending',
+          reportStatus: 'under-review',
           loanInformation: data.loanInformation,
           reporteeInformation: data.reporteeInformation,
           supportingDocuments: data.supportingDocuments,

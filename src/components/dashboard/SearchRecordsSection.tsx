@@ -157,7 +157,8 @@ const SearchRecordsSection = () => {
   const [showResults, setShowResults] = useState(false);
   const [error, setError] = useState('');
 
-  if (kycStatus !== 'done') {
+  // Check KYC status
+  if (kycStatus !== 'verified') {
     return (
       <div className="max-w-xl mx-auto mt-12 p-8 bg-yellow-50 border border-yellow-200 rounded-lg text-center">
         <h2 className="text-2xl font-bold text-yellow-700 mb-2">KYC Required</h2>

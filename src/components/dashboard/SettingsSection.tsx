@@ -18,12 +18,13 @@ const SettingsSection = () => {
   const [kycFile, setKycFile] = useState<File | null>(null);
   const [clientId] = useState('goodpass_demo_client_id_123456');
   const [clientSecret, setClientSecret] = useState('sk_test_abcdef1234567890');
+  const [idNumber, setIdNumber] = useState('');
 
   // Handle radio selection
   const handleKycTypeChange = (value: string) => {
     setKycType(value);
     setKycFile(null);
-    setKycStatus('not_done');
+    setKycStatus('pending');
   };
 
   // Handle file upload
@@ -38,7 +39,7 @@ const SettingsSection = () => {
   // Mock backend confirmation after upload
   useEffect(() => {
     if (kycStatus === 'pending' && kycFile) {
-      const timer = setTimeout(() => setKycStatus('done'), 1500);
+      const timer = setTimeout(() => setKycStatus('verified'), 1500);
       return () => clearTimeout(timer);
     }
   }, [kycStatus, kycFile]);
@@ -105,13 +106,13 @@ const SettingsSection = () => {
             <Shield className="h-5 w-5" />
             <span>KYC Verification</span>
             <span className={`ml-2 px-2 py-1 rounded-full text-xs font-semibold ${
-              kycStatus === 'done'
+              kycStatus === 'verified'
                 ? 'bg-green-100 text-green-700'
                 : kycStatus === 'pending'
                 ? 'bg-yellow-100 text-yellow-700'
-                : 'bg-gray-100 text-gray-700'
+                : 'bg-red-100 text-red-700'
             }`}>
-              {kycStatus === 'done' ? 'Done' : kycStatus === 'pending' ? 'Pending' : 'Not Done'}
+              {kycStatus === 'verified' ? 'Verified' : kycStatus === 'pending' ? 'Pending' : 'Rejected'}
             </span>
           </CardTitle>
         </CardHeader>
@@ -154,16 +155,36 @@ const SettingsSection = () => {
                   </span>
                 )}
               </div>
+              {/* ID Number Field */}
+              <div className="mt-4">
+                <Label htmlFor="idNumber">
+                  {kycType === 'idCard' ? 'ID Number' : kycType === 'driverLicense' ? 'Driver License Number' : 'Passport Number'}
+                </Label>
+                <Input
+                  id="idNumber"
+                  type="text"
+                  placeholder={kycType === 'idCard' ? 'Enter your ID number' : kycType === 'driverLicense' ? 'Enter your driver license number' : 'Enter your passport number'}
+                  value={idNumber}
+                  onChange={e => setIdNumber(e.target.value)}
+                  className="mt-1"
+                  disabled={!!kycFile}
+                />
+              </div>
             </div>
           )}
-          {kycStatus === 'done' && (
+          {kycStatus === 'verified' && (
             <div className="mt-2 text-green-700 font-semibold flex items-center gap-2">
-              <BadgeCheck className="h-5 w-5" /> KYC Completed!
+              <BadgeCheck className="h-5 w-5" /> KYC Verified!
             </div>
           )}
           {kycStatus === 'pending' && (
             <div className="mt-2 text-yellow-700 font-semibold flex items-center gap-2">
               <Shield className="h-5 w-5 animate-pulse" /> KYC Pending Verification...
+            </div>
+          )}
+          {kycStatus === 'rejected' && (
+            <div className="mt-2 text-red-700 font-semibold flex items-center gap-2">
+              <Shield className="h-5 w-5" /> KYC Rejected
             </div>
           )}
         </CardContent>
