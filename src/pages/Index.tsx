@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FileText, Search, TrendingUp, Shield, Users, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
-import SignUpForm from "@/components/SignUpForm";
 
 const Index = () => {
   return <div className="min-h-screen bg-white">
@@ -25,8 +24,12 @@ const Index = () => {
             
             {/* Auth Buttons */}
             <div className="flex items-center space-x-4">
-              <Link to="/login" className="text-gray-600 hover:text-blue-600 font-medium">Login</Link>
-              <SignUpForm />
+              <Link to="/auth" className="text-gray-600 hover:text-blue-600 font-medium">Sign In</Link>
+              <Link to="/auth">
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">
+                  Get Started
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
@@ -46,9 +49,11 @@ const Index = () => {
             credit.
           </p>
           <div className="flex justify-center space-x-4">
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg">
-              Get Started Now
-            </Button>
+            <Link to="/auth">
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg">
+                Get Started Now
+              </Button>
+            </Link>
             <button className="text-blue-600 hover:text-blue-700 font-medium text-lg">
               Learn More
             </button>
@@ -150,9 +155,11 @@ const Index = () => {
             Join thousands of users who are already building trust through our 
             community-based platform.
           </p>
-          <Button className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 text-lg font-semibold">
-            Get Started Today
-          </Button>
+          <Link to="/auth">
+            <Button className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 text-lg font-semibold">
+              Get Started Today
+            </Button>
+          </Link>
         </div>
       </section>
 
