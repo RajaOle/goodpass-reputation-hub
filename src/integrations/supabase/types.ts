@@ -63,42 +63,6 @@ export type Database = {
         }
         Relationships: []
       }
-      auth_sessions: {
-        Row: {
-          created_at: string | null
-          device_info: Json | null
-          expires_at: string
-          id: string
-          ip_address: unknown | null
-          last_accessed_at: string | null
-          session_token: string
-          user_agent: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          device_info?: Json | null
-          expires_at: string
-          id?: string
-          ip_address?: unknown | null
-          last_accessed_at?: string | null
-          session_token: string
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          device_info?: Json | null
-          expires_at?: string
-          id?: string
-          ip_address?: unknown | null
-          last_accessed_at?: string | null
-          session_token?: string
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
       companies: {
         Row: {
           email: string
@@ -336,81 +300,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      otp_verifications: {
-        Row: {
-          created_at: string | null
-          email: string | null
-          expires_at: string
-          id: string
-          otp_code: string
-          otp_type: string
-          phone: string | null
-          user_id: string | null
-          verified: boolean | null
-        }
-        Insert: {
-          created_at?: string | null
-          email?: string | null
-          expires_at: string
-          id?: string
-          otp_code: string
-          otp_type: string
-          phone?: string | null
-          user_id?: string | null
-          verified?: boolean | null
-        }
-        Update: {
-          created_at?: string | null
-          email?: string | null
-          expires_at?: string
-          id?: string
-          otp_code?: string
-          otp_type?: string
-          phone?: string | null
-          user_id?: string | null
-          verified?: boolean | null
-        }
-        Relationships: []
-      }
-      profiles: {
-        Row: {
-          avatar_url: string | null
-          created_at: string | null
-          email: string | null
-          email_verified: boolean | null
-          full_name: string | null
-          id: string
-          phone: string | null
-          phone_verified: boolean | null
-          preferred_auth_method: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          avatar_url?: string | null
-          created_at?: string | null
-          email?: string | null
-          email_verified?: boolean | null
-          full_name?: string | null
-          id: string
-          phone?: string | null
-          phone_verified?: boolean | null
-          preferred_auth_method?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          avatar_url?: string | null
-          created_at?: string | null
-          email?: string | null
-          email_verified?: boolean | null
-          full_name?: string | null
-          id?: string
-          phone?: string | null
-          phone_verified?: boolean | null
-          preferred_auth_method?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
       }
       reportee_bank_accounts: {
         Row: {
