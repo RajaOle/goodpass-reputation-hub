@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import CountryCodeSelector from './CountryCodeSelector';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface PasswordValidation {
   minLength: boolean;
@@ -18,6 +18,7 @@ interface PasswordValidation {
 
 const SignUpForm = () => {
   const navigate = useNavigate();
+  const { signUp, signInWithGoogle } = useAuth();
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [countryCode, setCountryCode] = useState('+1');
@@ -54,9 +55,9 @@ const SignUpForm = () => {
   const isPasswordValid = Object.values(passwordValidation).every(Boolean);
   const doPasswordsMatch = password === confirmPassword && confirmPassword !== '';
 
-  const handleGoogleSignUp = () => {
+  const handleGoogleSignUp = async () => {
     console.log('Google sign up clicked');
-    // Implement Google OAuth here
+    await signInWithGoogle();
   };
 
   const handleCreateAccount = async (e: React.FormEvent) => {
@@ -65,12 +66,15 @@ const SignUpForm = () => {
       setIsCreatingAccount(true);
       console.log('Creating account with:', { email, phoneNumber: `${countryCode}${phoneNumber}` });
       
-      // Simulate account creation API call
-      setTimeout(() => {
-        setIsCreatingAccount(false);
+      const fullPhone = `${countryCode}${phoneNumber}`;
+      const { error } = await signUp(email, password, fullPhone);
+      
+      setIsCreatingAccount(false);
+      
+      if (!error) {
         // Navigate to signup success page
         navigate('/signup-success');
-      }, 1500);
+      }
     }
   };
 
