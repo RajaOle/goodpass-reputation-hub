@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface PhoneVerificationProps {
   phoneNumber: string;
@@ -13,9 +16,17 @@ interface PhoneVerificationProps {
 const PhoneVerification: React.FC<PhoneVerificationProps> = ({ phoneNumber, onVerified }) => {
   const [otp, setOtp] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
-  const [canResend, setCanResend] = useState(true);
-  const [countdown, setCountdown] = useState(0);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [canResend, setCanResend] = useState(false);
+  const [countdown, setCountdown] = useState(180); // 3 minutes
   const [showChangeNumber, setShowChangeNumber] = useState(false);
+  const { toast } = useToast();
+  const { user } = useAuth();
+
+  // Send initial OTP when component mounts
+  useEffect(() => {
+    sendOtp();
+  }, []);
 
   // Rate limiter countdown effect
   useEffect(() => {
@@ -27,6 +38,61 @@ const PhoneVerification: React.FC<PhoneVerificationProps> = ({ phoneNumber, onVe
     }
     return () => clearTimeout(timer);
   }, [countdown]);
+
+  const sendOtp = async () => {
+    if (isSendingOtp) return;
+    
+    setIsSendingOtp(true);
+    try {
+      console.log('Sending OTP to:', phoneNumber);
+      
+      const { data, error } = await supabase.functions.invoke('send-sms-otp', {
+        body: { 
+          phone: phoneNumber,
+          userId: user?.id 
+        }
+      });
+
+      if (error) {
+        console.error('Error sending OTP:', error);
+        toast({
+          title: "Error",
+          description: "Failed to send verification code. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      console.log('OTP sent successfully:', data);
+      
+      // Show the OTP in development mode
+      if (data?.otp) {
+        toast({
+          title: "Development Mode",
+          description: `Your verification code is: ${data.otp}`,
+          duration: 10000,
+        });
+      } else {
+        toast({
+          title: "Code Sent",
+          description: "Verification code sent to your phone number.",
+        });
+      }
+
+      setCanResend(false);
+      setCountdown(180); // Reset countdown to 3 minutes
+      
+    } catch (error) {
+      console.error('Error sending OTP:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send verification code. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSendingOtp(false);
+    }
+  };
 
   const handleOtpChange = (value: string) => {
     setOtp(value);
@@ -40,21 +106,61 @@ const PhoneVerification: React.FC<PhoneVerificationProps> = ({ phoneNumber, onVe
     if (otpValue.length !== 6) return;
     
     setIsVerifying(true);
-    // Simulate API call
-    setTimeout(() => {
-      console.log('Verifying OTP:', otpValue);
+    try {
+      console.log('Verifying OTP:', otpValue, 'for phone:', phoneNumber);
+      
+      const { data, error } = await supabase.functions.invoke('verify-sms-otp', {
+        body: { 
+          phone: phoneNumber, 
+          otpCode: otpValue,
+          userId: user?.id 
+        }
+      });
+
+      if (error) {
+        console.error('Error verifying OTP:', error);
+        toast({
+          title: "Verification Failed",
+          description: "Invalid or expired verification code. Please try again.",
+          variant: "destructive",
+        });
+        setOtp('');
+        return;
+      }
+
+      if (data?.success) {
+        console.log('OTP verified successfully');
+        toast({
+          title: "Success",
+          description: "Phone number verified successfully!",
+        });
+        onVerified();
+      } else {
+        toast({
+          title: "Verification Failed",
+          description: "Invalid or expired verification code. Please try again.",
+          variant: "destructive",
+        });
+        setOtp('');
+      }
+      
+    } catch (error) {
+      console.error('Error verifying OTP:', error);
+      toast({
+        title: "Error",
+        description: "Failed to verify code. Please try again.",
+        variant: "destructive",
+      });
+      setOtp('');
+    } finally {
       setIsVerifying(false);
-      onVerified();
-    }, 1500);
+    }
   };
 
   const handleResendOtp = () => {
-    if (!canResend) return;
-    
-    console.log('Resending OTP to:', phoneNumber);
-    setCanResend(false);
-    setCountdown(180); // 3 minutes
+    if (!canResend || isSendingOtp) return;
     setOtp('');
+    sendOtp();
   };
 
   return (
@@ -123,10 +229,12 @@ const PhoneVerification: React.FC<PhoneVerificationProps> = ({ phoneNumber, onVe
               <Button
                 variant="outline"
                 onClick={handleResendOtp}
-                disabled={!canResend}
+                disabled={!canResend || isSendingOtp}
                 className="text-blue-600 border-blue-600 hover:bg-blue-50"
               >
-                {canResend ? 'Resend code' : `Resend in ${Math.floor(countdown / 60)}:${(countdown % 60).toString().padStart(2, '0')}`}
+                {isSendingOtp ? 'Sending...' : 
+                 canResend ? 'Resend code' : 
+                 `Resend in ${Math.floor(countdown / 60)}:${(countdown % 60).toString().padStart(2, '0')}`}
               </Button>
             </div>
 

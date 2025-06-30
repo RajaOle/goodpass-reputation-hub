@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -72,8 +73,16 @@ const SignUpForm = () => {
       setIsCreatingAccount(false);
       
       if (!error) {
-        // Navigate to signup success page
-        navigate('/signup-success');
+        // Navigate to signup success page with the signup data
+        navigate('/signup-success', {
+          state: {
+            signUpData: {
+              email: email,
+              phoneNumber: phoneNumber,
+              countryCode: countryCode
+            }
+          }
+        });
       }
     }
   };
