@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -118,9 +119,9 @@ const SignInForm = () => {
               </div>
               
               <div className="text-right">
-                <a href="#" className="text-sm text-blue-600 hover:text-blue-500">
+                <Link to="/forgot-password" className="text-sm text-blue-600 hover:text-blue-500">
                   Forgot password?
-                </a>
+                </Link>
               </div>
               
               <Button 
