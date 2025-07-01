@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +7,8 @@ import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import CountryCodeSelector from './CountryCodeSelector';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface PasswordValidation {
   minLength: boolean;
@@ -20,6 +21,7 @@ interface PasswordValidation {
 const SignUpForm = () => {
   const navigate = useNavigate();
   const { signUp, signInWithGoogle } = useAuth();
+  const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [countryCode, setCountryCode] = useState('+1');
@@ -61,19 +63,57 @@ const SignUpForm = () => {
     await signInWithGoogle();
   };
 
+  // Helper to check if email or phone exists
+  const checkEmailOrPhoneExists = async (email: string, phone: string) => {
+    const { data: emailData } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (emailData) {
+      return { exists: true, field: 'email' };
+    }
+
+    const { data: phoneData } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('phone', phone)
+      .maybeSingle();
+
+    if (phoneData) {
+      return { exists: true, field: 'phone' };
+    }
+
+    return { exists: false };
+  };
+
   const handleCreateAccount = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isPasswordValid && doPasswordsMatch && email && phoneNumber) {
       setIsCreatingAccount(true);
-      console.log('Creating account with:', { email, phoneNumber: `${countryCode}${phoneNumber}` });
-      
       const fullPhone = `${countryCode}${phoneNumber}`;
+
+      // Check for existing email or phone
+      const check = await checkEmailOrPhoneExists(email, fullPhone);
+      if (check.exists) {
+        setIsCreatingAccount(false);
+        toast({
+          title: "Sign Up Failed",
+          description:
+            check.field === 'email'
+              ? "Email is already registered."
+              : "Phone number is already registered.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { error } = await signUp(email, password, fullPhone);
-      
+
       setIsCreatingAccount(false);
-      
+
       if (!error) {
-        // Navigate to signup success page with the signup data
         navigate('/signup-success', {
           state: {
             signUpData: {
