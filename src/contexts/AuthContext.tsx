@@ -8,10 +8,12 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, phone: string, fullName?: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, phone: string, fullName?: string) => Promise<{ error: any; data?: any }>;
   signInWithGoogle: () => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
+  sendSmsOtp: (phone: string, email: string) => Promise<{ error: any }>;
+  verifySmsOtp: (phone: string, email: string, otp: string) => Promise<{ error: any; data?: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -34,6 +36,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log('Auth state change:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
@@ -42,6 +45,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session check:', session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -52,9 +56,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUp = async (email: string, password: string, phone: string, fullName?: string) => {
     try {
+      console.log('Starting signup process for:', email, phone);
+      
       const redirectUrl = `${window.location.origin}/`;
       
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -67,24 +73,101 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (error) {
+        console.error('Signup error:', error);
+        
+        // Handle specific error cases
+        if (error.message.includes('User already registered')) {
+          toast({
+            title: "Account Already Exists",
+            description: "An account with this email already exists. Please sign in instead.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Sign Up Failed",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
+        return { error };
+      }
+
+      console.log('Signup successful, user created:', data.user?.id);
+
+      // Don't show success toast here - we'll show it after phone verification
+      return { error: null, data };
+    } catch (error: any) {
+      console.error('Signup exception:', error);
+      toast({
+        title: "Sign Up Error",
+        description: error.message,
+        variant: "destructive",
+      });
+      return { error };
+    }
+  };
+
+  const sendSmsOtp = async (phone: string, email: string) => {
+    try {
+      console.log('Sending SMS OTP to:', phone, 'for email:', email);
+      
+      const { data, error } = await supabase.functions.invoke('send-sms-otp', {
+        body: { phone, email }
+      });
+
+      if (error) {
+        console.error('SMS OTP send error:', error);
         toast({
-          title: "Sign Up Failed",
-          description: error.message,
+          title: "SMS Failed",
+          description: "Failed to send verification code. Please try again.",
           variant: "destructive",
         });
         return { error };
       }
 
-      toast({
-        title: "Sign Up Successful",
-        description: "Please check your email to verify your account.",
-      });
-
+      console.log('SMS OTP sent successfully');
       return { error: null };
     } catch (error: any) {
+      console.error('SMS OTP send exception:', error);
       toast({
-        title: "Sign Up Error",
-        description: error.message,
+        title: "SMS Error",
+        description: "Failed to send verification code. Please try again.",
+        variant: "destructive",
+      });
+      return { error };
+    }
+  };
+
+  const verifySmsOtp = async (phone: string, email: string, otp: string) => {
+    try {
+      console.log('Verifying SMS OTP for:', phone, email, otp);
+      
+      const { data, error } = await supabase.functions.invoke('verify-sms-otp', {
+        body: { phone, email, otp_code: otp }
+      });
+
+      if (error) {
+        console.error('SMS OTP verification error:', error);
+        toast({
+          title: "Verification Failed",
+          description: "Invalid or expired verification code. Please try again.",
+          variant: "destructive",
+        });
+        return { error };
+      }
+
+      console.log('SMS OTP verified successfully');
+      toast({
+        title: "Phone Verified",
+        description: "Your phone number has been verified successfully!",
+      });
+      
+      return { error: null, data };
+    } catch (error: any) {
+      console.error('SMS OTP verification exception:', error);
+      toast({
+        title: "Verification Error",
+        description: "Failed to verify code. Please try again.",
         variant: "destructive",
       });
       return { error };
@@ -176,6 +259,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signInWithGoogle,
     signIn,
     signOut,
+    sendSmsOtp,
+    verifySmsOtp,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

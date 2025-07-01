@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import CountryCodeSelector from './CountryCodeSelector';
+import PhoneVerificationIntegrated from './PhoneVerificationIntegrated';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface PasswordValidation {
@@ -28,6 +28,8 @@ const SignUpForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
+  const [showPhoneVerification, setShowPhoneVerification] = useState(false);
+  const [signUpData, setSignUpData] = useState<any>(null);
   const [passwordValidation, setPasswordValidation] = useState<PasswordValidation>({
     minLength: false,
     hasUpperCase: false,
@@ -68,24 +70,52 @@ const SignUpForm = () => {
       console.log('Creating account with:', { email, phoneNumber: `${countryCode}${phoneNumber}` });
       
       const fullPhone = `${countryCode}${phoneNumber}`;
-      const { error } = await signUp(email, password, fullPhone);
+      const { error, data } = await signUp(email, password, fullPhone);
       
       setIsCreatingAccount(false);
       
-      if (!error) {
-        // Navigate to signup success page with the signup data
-        navigate('/signup-success', {
-          state: {
-            signUpData: {
-              email: email,
-              phoneNumber: phoneNumber,
-              countryCode: countryCode
-            }
-          }
+      if (!error && data) {
+        // Store signup data and show phone verification
+        setSignUpData({
+          email: email,
+          phoneNumber: phoneNumber,
+          countryCode: countryCode,
+          fullPhone: fullPhone,
+          userId: data.user?.id
         });
+        setShowPhoneVerification(true);
       }
     }
   };
+
+  const handlePhoneVerificationSuccess = () => {
+    // Navigate to signup success page with the signup data
+    navigate('/signup-success', {
+      state: {
+        signUpData: signUpData
+      }
+    });
+  };
+
+  const handleBackFromVerification = () => {
+    setShowPhoneVerification(false);
+    setSignUpData(null);
+  };
+
+  if (showPhoneVerification && signUpData) {
+    return (
+      <Dialog open={true}>
+        <DialogContent className="sm:max-w-md mx-auto">
+          <PhoneVerificationIntegrated
+            phoneNumber={signUpData.fullPhone}
+            email={signUpData.email}
+            onVerificationSuccess={handlePhoneVerificationSuccess}
+            onBack={handleBackFromVerification}
+          />
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog>
