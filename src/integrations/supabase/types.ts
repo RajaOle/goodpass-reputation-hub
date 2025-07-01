@@ -236,6 +236,39 @@ export type Database = {
         }
         Relationships: []
       }
+      loan_info: {
+        Row: {
+          amount: number | null
+          id: number
+          interest_rate: number | null
+          purpose: string | null
+          repayment_due_date: string | null
+          repayment_frequency: number | null
+          repayment_type: string
+          term_months: number | null
+        }
+        Insert: {
+          amount?: number | null
+          id?: number
+          interest_rate?: number | null
+          purpose?: string | null
+          repayment_due_date?: string | null
+          repayment_frequency?: number | null
+          repayment_type?: string
+          term_months?: number | null
+        }
+        Update: {
+          amount?: number | null
+          id?: number
+          interest_rate?: number | null
+          purpose?: string | null
+          repayment_due_date?: string | null
+          repayment_frequency?: number | null
+          repayment_type?: string
+          term_months?: number | null
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string | null
@@ -299,7 +332,7 @@ export type Database = {
             foreignKeyName: "open_payments_loan_info_id_fkey"
             columns: ["loan_info_id"]
             isOneToOne: false
-            referencedRelation: "report_info"
+            referencedRelation: "loan_info"
             referencedColumns: ["id"]
           },
         ]
@@ -376,39 +409,6 @@ export type Database = {
           phone_verified?: boolean | null
           preferred_auth_method?: string | null
           updated_at?: string | null
-        }
-        Relationships: []
-      }
-      report_info: {
-        Row: {
-          amount: number | null
-          id: number
-          interest_rate: number | null
-          purpose: string | null
-          repayment_due_date: string | null
-          repayment_frequency: number | null
-          repayment_type: string
-          term_months: number | null
-        }
-        Insert: {
-          amount?: number | null
-          id?: number
-          interest_rate?: number | null
-          purpose?: string | null
-          repayment_due_date?: string | null
-          repayment_frequency?: number | null
-          repayment_type?: string
-          term_months?: number | null
-        }
-        Update: {
-          amount?: number | null
-          id?: number
-          interest_rate?: number | null
-          purpose?: string | null
-          repayment_due_date?: string | null
-          repayment_frequency?: number | null
-          repayment_type?: string
-          term_months?: number | null
         }
         Relationships: []
       }
@@ -557,7 +557,7 @@ export type Database = {
             foreignKeyName: "reports_loan_info_id_fkey"
             columns: ["loan_info_id"]
             isOneToOne: false
-            referencedRelation: "report_info"
+            referencedRelation: "loan_info"
             referencedColumns: ["id"]
           },
           {
