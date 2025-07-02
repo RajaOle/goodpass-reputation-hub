@@ -36,12 +36,11 @@ const ResetPassword = () => {
   const { updatePassword } = useAuth();
 
   useEffect(() => {
-    // Check if we have the necessary tokens from the URL
-    const accessToken = searchParams.get('access_token');
-    const refreshToken = searchParams.get('refresh_token');
+    // Check if this is a password recovery session
+    const type = searchParams.get('type');
     
-    if (!accessToken || !refreshToken) {
-      // Redirect to forgot password if tokens are missing
+    if (type !== 'recovery') {
+      // Redirect to forgot password if this is not a recovery session
       navigate('/forgot-password');
     }
   }, [searchParams, navigate]);
