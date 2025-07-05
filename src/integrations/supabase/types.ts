@@ -663,6 +663,76 @@ export type Database = {
         }
         Relationships: []
       }
+      third_party_reports: {
+        Row: {
+          created_at: string | null
+          fetched_at: string | null
+          id: number
+          loan_info_id: number | null
+          progress_status: string | null
+          report_code: string | null
+          reportee_info_id: number | null
+          source_data: Json | null
+          source_name: string
+          source_reportee_id: string | null
+          source_reporter_id: string | null
+          supporting_document_id: number | null
+          verification_status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          fetched_at?: string | null
+          id?: never
+          loan_info_id?: number | null
+          progress_status?: string | null
+          report_code?: string | null
+          reportee_info_id?: number | null
+          source_data?: Json | null
+          source_name: string
+          source_reportee_id?: string | null
+          source_reporter_id?: string | null
+          supporting_document_id?: number | null
+          verification_status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          fetched_at?: string | null
+          id?: never
+          loan_info_id?: number | null
+          progress_status?: string | null
+          report_code?: string | null
+          reportee_info_id?: number | null
+          source_data?: Json | null
+          source_name?: string
+          source_reportee_id?: string | null
+          source_reporter_id?: string | null
+          supporting_document_id?: number | null
+          verification_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "third_party_reports_loan_info_id_fkey"
+            columns: ["loan_info_id"]
+            isOneToOne: false
+            referencedRelation: "report_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "third_party_reports_reportee_info_id_fkey"
+            columns: ["reportee_info_id"]
+            isOneToOne: false
+            referencedRelation: "reportee_info"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "third_party_reports_supporting_document_id_fkey"
+            columns: ["supporting_document_id"]
+            isOneToOne: false
+            referencedRelation: "supporting_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_credits: {
         Row: {
           credit_package_id: number | null
@@ -727,7 +797,30 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      unified_reports: {
+        Row: {
+          backend_verification_required: boolean | null
+          backend_verification_status: string | null
+          created_at: string | null
+          fetched_at: string | null
+          id: number | null
+          loan_info_id: number | null
+          progress_status: string | null
+          report_code: string | null
+          report_source: string | null
+          reportee_id: string | null
+          reportee_info_id: number | null
+          reporter_id: string | null
+          review_notes: string | null
+          source_data: Json | null
+          source_name: string | null
+          source_reportee_id: string | null
+          source_reporter_id: string | null
+          supporting_document_id: number | null
+          verification_status: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
