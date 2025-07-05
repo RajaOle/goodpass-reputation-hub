@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Mail } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from "@/integrations/supabase/client";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -19,11 +19,32 @@ const ForgotPassword = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    const { error } = await resetPassword(email);
-    
-    setIsLoading(false);
-    
-    if (!error) {
+    try {
+      // First, try to sign in with the email to check if it exists
+      // We'll use a dummy password to trigger the "Invalid login credentials" error
+      // which indicates the email exists but password is wrong
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: 'dummy-password-for-email-check'
+      });
+
+      // If we get "Invalid login credentials", the email exists
+      // If we get "Email not confirmed" or other errors, the email might exist
+      // If we get "Invalid login credentials" with specific message about email, it might not exist
+      
+      // For now, we'll proceed with the reset password request
+      // Supabase will handle the security aspect of not revealing if an email exists
+      const { error } = await resetPassword(email);
+      
+      setIsLoading(false);
+      
+      if (!error) {
+        setIsSubmitted(true);
+      }
+    } catch (error: any) {
+      setIsLoading(false);
+      // Even if there's an error, we'll show the success message for security
+      // This prevents email enumeration attacks
       setIsSubmitted(true);
     }
   };
@@ -53,8 +74,8 @@ const ForgotPassword = () => {
                 <Mail className="h-16 w-16 text-blue-600 mx-auto mb-4" />
                 <h2 className="text-2xl font-bold text-gray-900 mb-2">Check your email</h2>
                 <p className="text-gray-600">
-                  We've sent password reset instructions to{' '}
-                  <span className="font-medium text-gray-900">{email}</span>
+                  If an account with <span className="font-medium text-gray-900">{email}</span> exists, 
+                  we've sent password reset instructions to that email address.
                 </p>
               </div>
               

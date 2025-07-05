@@ -24,6 +24,7 @@ const SettingsSection = () => {
   const [clientSecret, setClientSecret] = useState('sk_test_abcdef1234567890');
   const [idNumber, setIdNumber] = useState('');
   const { user } = useAuth();
+  const [userProfile, setUserProfile] = useState<any>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
@@ -42,6 +43,31 @@ const SettingsSection = () => {
       setKycStatus('pending' as KycStatus);
     }
   };
+
+  // Fetch user profile data
+  useEffect(() => {
+    async function fetchUserProfile() {
+      if (!user?.id) return;
+      
+      console.log('Fetching profile for user:', user.id);
+      console.log('Current user object:', user);
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      
+      console.log('Profile data:', data);
+      console.log('Profile error:', error);
+      
+      if (!error && data) {
+        setUserProfile(data);
+      }
+    }
+    
+    fetchUserProfile();
+  }, [user?.id]);
 
   // Fetch the real KYC status from the database on mount and after upload
   useEffect(() => {
@@ -118,17 +144,31 @@ const SettingsSection = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="firstName">First Name</Label>
-              <Input id="firstName" defaultValue="John" className="mt-1" />
+              <Input 
+                id="firstName" 
+                defaultValue={userProfile?.full_name?.split(' ')[0] || ''} 
+                className="mt-1" 
+              />
             </div>
             <div>
               <Label htmlFor="lastName">Last Name</Label>
-              <Input id="lastName" defaultValue="Doe" className="mt-1" />
+              <Input 
+                id="lastName" 
+                defaultValue={userProfile?.full_name?.split(' ').slice(1).join(' ') || ''} 
+                className="mt-1" 
+              />
             </div>
           </div>
           <div className="flex items-center gap-2">
             <div className="flex-1">
               <Label htmlFor="email">Email Address</Label>
-              <Input id="email" type="email" defaultValue="john@example.com" className="mt-1" disabled />
+              <Input 
+                id="email" 
+                type="email" 
+                defaultValue={user?.email || userProfile?.email || ''} 
+                className="mt-1" 
+                disabled 
+              />
             </div>
             <span className="flex items-center gap-1 text-green-600 text-xs font-semibold">
               <BadgeCheck className="h-4 w-4" /> Verified
@@ -137,10 +177,21 @@ const SettingsSection = () => {
           <div className="flex items-center gap-2">
             <div className="flex-1">
               <Label htmlFor="phone">Phone Number</Label>
-              <Input id="phone" type="tel" defaultValue="+1 (555) 123-4567" className="mt-1" disabled />
+              <Input 
+                id="phone" 
+                type="tel" 
+                defaultValue={user?.phone || userProfile?.phone || ''} 
+                className="mt-1" 
+                disabled 
+              />
             </div>
-            <span className="flex items-center gap-1 text-green-600 text-xs font-semibold">
-              <BadgeCheck className="h-4 w-4" /> Verified
+            <span className={`flex items-center gap-1 text-xs font-semibold ${
+              userProfile?.phone_verified 
+                ? 'text-green-600' 
+                : 'text-yellow-600'
+            }`}>
+              <BadgeCheck className="h-4 w-4" /> 
+              {userProfile?.phone_verified ? 'Verified' : 'Pending'}
             </span>
           </div>
           <Button className="bg-blue-600 hover:bg-blue-700">

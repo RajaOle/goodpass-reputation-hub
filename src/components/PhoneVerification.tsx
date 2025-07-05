@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
@@ -46,7 +45,8 @@ const PhoneVerification: React.FC<PhoneVerificationProps> = ({ phoneNumber, onVe
     try {
       console.log('Sending OTP to:', phoneNumber);
       
-      const { data, error } = await supabase.functions.invoke('send-sms-otp', {
+      // Use the new fixed endpoint
+      const { data, error } = await supabase.functions.invoke('send-sms-otp-fixed', {
         body: { 
           phone: phoneNumber,
           userId: user?.id 
@@ -109,36 +109,46 @@ const PhoneVerification: React.FC<PhoneVerificationProps> = ({ phoneNumber, onVe
     try {
       console.log('Verifying OTP:', otpValue, 'for phone:', phoneNumber);
       
-      const { data, error } = await supabase.functions.invoke('verify-sms-otp', {
-        body: { 
-          phone: phoneNumber, 
-          otpCode: otpValue,
-          userId: user?.id 
+      // Use the new fixed verification endpoint
+      if (user?.id) {
+        const { data, error } = await supabase.functions.invoke('verify-sms-otp-fixed', {
+          body: { 
+            userId: user.id,
+            phone: phoneNumber,
+            otpCode: otpValue
+          }
+        });
+
+        if (error) {
+          console.error('Error verifying OTP:', error);
+          toast({
+            title: "Verification Failed",
+            description: "Invalid or expired verification code. Please try again.",
+            variant: "destructive",
+          });
+          setOtp('');
+          return;
         }
-      });
 
-      if (error) {
-        console.error('Error verifying OTP:', error);
-        toast({
-          title: "Verification Failed",
-          description: "Invalid or expired verification code. Please try again.",
-          variant: "destructive",
-        });
-        setOtp('');
-        return;
-      }
-
-      if (data?.success) {
-        console.log('OTP verified successfully');
-        toast({
-          title: "Success",
-          description: "Phone number verified successfully!",
-        });
-        onVerified();
+        if (data?.success) {
+          console.log('Phone verification completed successfully');
+          toast({
+            title: "Success",
+            description: "Phone number verified and updated successfully!",
+          });
+          onVerified();
+        } else {
+          toast({
+            title: "Verification Failed",
+            description: data?.error || "Invalid or expired verification code. Please try again.",
+            variant: "destructive",
+          });
+          setOtp('');
+        }
       } else {
         toast({
-          title: "Verification Failed",
-          description: "Invalid or expired verification code. Please try again.",
+          title: "Error",
+          description: "User not found. Please try signing in again.",
           variant: "destructive",
         });
         setOtp('');

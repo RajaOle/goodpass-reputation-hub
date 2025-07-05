@@ -58,6 +58,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { error } = await supabase.auth.signUp({
         email,
         password,
+        phone, // Add phone number here
         options: {
           emailRedirectTo: redirectUrl,
           data: {

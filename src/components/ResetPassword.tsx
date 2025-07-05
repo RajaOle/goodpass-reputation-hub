@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Eye, EyeOff, CheckCircle } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from "@/integrations/supabase/client";
 
 interface PasswordValidation {
   minLength: boolean;
@@ -36,14 +36,40 @@ const ResetPassword = () => {
   const { updatePassword } = useAuth();
 
   useEffect(() => {
-    // Check if we have the necessary tokens from the URL
-    const accessToken = searchParams.get('access_token');
-    const refreshToken = searchParams.get('refresh_token');
+    // Parse hash fragment for tokens (Supabase sends tokens in hash fragment)
+    const hash = window.location.hash.substring(1); // Remove the # symbol
+    const params = new URLSearchParams(hash);
     
-    if (!accessToken || !refreshToken) {
+    const accessToken = params.get('access_token');
+    const refreshToken = params.get('refresh_token');
+    
+    // Also check query parameters as fallback
+    const queryAccessToken = searchParams.get('access_token');
+    const queryRefreshToken = searchParams.get('refresh_token');
+    
+    const finalAccessToken = accessToken || queryAccessToken;
+    const finalRefreshToken = refreshToken || queryRefreshToken;
+    
+    if (!finalAccessToken || !finalRefreshToken) {
       // Redirect to forgot password if tokens are missing
       navigate('/forgot-password');
+      return;
     }
+
+    // Set the session with the tokens
+    const setSession = async () => {
+      const { error } = await supabase.auth.setSession({
+        access_token: finalAccessToken,
+        refresh_token: finalRefreshToken,
+      });
+
+      if (error) {
+        console.error('Error setting session:', error);
+        navigate('/forgot-password');
+      }
+    };
+
+    setSession();
   }, [searchParams, navigate]);
 
   const validatePassword = (pwd: string) => {
