@@ -31,7 +31,6 @@ const SettingsSection = () => {
   // Handle radio selection
   const handleKycTypeChange = (value: string) => {
     setKycType(value);
-    setKycFile(null);
     setKycStatus('pending' as KycStatus);
   };
 
@@ -93,6 +92,18 @@ const SettingsSection = () => {
   };
 
   const handleKycSubmit = async () => {
+    // Debug logging to identify validation issues
+    console.log('KYC Submit Debug:', {
+      hasUser: !!user?.id,
+      hasFile: !!kycFile,
+      hasType: !!kycType,
+      hasIdNumber: !!idNumber.trim(),
+      userId: user?.id,
+      fileName: kycFile?.name,
+      documentType: kycType,
+      idNumberLength: idNumber.trim().length
+    });
+
     if (!user?.id || !kycFile || !kycType || !idNumber.trim()) {
       setUploadError('Please select a document type, upload a file, and enter the document number.');
       return;
@@ -120,6 +131,7 @@ const SettingsSection = () => {
       }
       setKycFile(null);
       setIdNumber('');
+      setKycType('');
     } else {
       setUploadError(result.error || 'Upload failed');
     }
@@ -224,18 +236,17 @@ const SettingsSection = () => {
               className="flex flex-row gap-6 mt-2"
               value={kycType}
               onValueChange={handleKycTypeChange}
-              disabled={!!kycFile}
             >
               <div className="flex items-center gap-2">
-                <RadioGroupItem value="idCard" id="idCard" disabled={!!kycFile} />
+                <RadioGroupItem value="idCard" id="idCard" />
                 <Label htmlFor="idCard" className="cursor-pointer">ID Card</Label>
               </div>
               <div className="flex items-center gap-2">
-                <RadioGroupItem value="driverLicense" id="driverLicense" disabled={!!kycFile} />
+                <RadioGroupItem value="driverLicense" id="driverLicense" />
                 <Label htmlFor="driverLicense" className="cursor-pointer">Driver License</Label>
               </div>
               <div className="flex items-center gap-2">
-                <RadioGroupItem value="passport" id="passport" disabled={!!kycFile} />
+                <RadioGroupItem value="passport" id="passport" />
                 <Label htmlFor="passport" className="cursor-pointer">Passport</Label>
               </div>
             </RadioGroup>
