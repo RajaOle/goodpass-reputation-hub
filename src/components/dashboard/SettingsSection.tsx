@@ -8,6 +8,10 @@ import { Separator } from "@/components/ui/separator";
 import { Bell, Shield, User, Mail, Phone, BadgeCheck, FileUp, Copy } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useKyc } from '@/contexts/KycContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { uploadKycDocument } from '@/lib/kycUtils';
+import { supabase } from '@/integrations/supabase/client';
+import { KycStatus } from '@/contexts/KycContext';
 
 const SettingsSection = () => {
   const [emailNotifications, setEmailNotifications] = useState(true);
@@ -19,12 +23,15 @@ const SettingsSection = () => {
   const [clientId] = useState('goodpass_demo_client_id_123456');
   const [clientSecret, setClientSecret] = useState('sk_test_abcdef1234567890');
   const [idNumber, setIdNumber] = useState('');
+  const { user } = useAuth();
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   // Handle radio selection
   const handleKycTypeChange = (value: string) => {
     setKycType(value);
     setKycFile(null);
-    setKycStatus('pending');
+    setKycStatus('pending' as KycStatus);
   };
 
   // Handle file upload
@@ -32,21 +39,64 @@ const SettingsSection = () => {
     const file = e.target.files?.[0] || null;
     if (file) {
       setKycFile(file);
-      setKycStatus('pending');
+      setKycStatus('pending' as KycStatus);
     }
   };
 
-  // Mock backend confirmation after upload
+  // Fetch the real KYC status from the database on mount and after upload
   useEffect(() => {
-    if (kycStatus === 'pending' && kycFile) {
-      const timer = setTimeout(() => setKycStatus('verified'), 1500);
-      return () => clearTimeout(timer);
+    async function fetchKycStatus() {
+      if (!user?.id) return;
+      const { data, error } = await supabase
+        .from('kyc_verifications')
+        .select('kyc_status')
+        .eq('user_id', user.id)
+        .single();
+      if (!error && data && data.kyc_status) {
+        setKycStatus(data.kyc_status as KycStatus);
+      } else {
+        setKycStatus('pending' as KycStatus);
+      }
     }
-  }, [kycStatus, kycFile]);
+    fetchKycStatus();
+  }, [user?.id]);
 
   // Copy to clipboard
   const handleCopy = (value: string) => {
     navigator.clipboard.writeText(value);
+  };
+
+  const handleKycSubmit = async () => {
+    if (!user?.id || !kycFile || !kycType || !idNumber.trim()) {
+      setUploadError('Please select a document type, upload a file, and enter the document number.');
+      return;
+    }
+    setIsUploading(true);
+    setUploadError(null);
+    const result = await uploadKycDocument({
+      file: kycFile,
+      documentType: kycType,
+      documentNumber: idNumber.trim(),
+      userId: user.id,
+    });
+    setIsUploading(false);
+    if (result.success) {
+      // Fetch the new status after upload
+      const { data, error } = await supabase
+        .from('kyc_verifications')
+        .select('kyc_status')
+        .eq('user_id', user.id)
+        .single();
+      if (!error && data && data.kyc_status) {
+        setKycStatus(data.kyc_status as KycStatus);
+      } else {
+        setKycStatus('pending' as KycStatus);
+      }
+      setKycFile(null);
+      setIdNumber('');
+    } else {
+      setUploadError(result.error || 'Upload failed');
+    }
   };
 
   return (
@@ -146,7 +196,7 @@ const SettingsSection = () => {
                 <Input
                   type="file"
                   accept="image/*,application/pdf"
-                  disabled={!!kycFile}
+                  disabled={isUploading}
                   onChange={handleKycUpload}
                 />
                 {kycFile && (
@@ -167,9 +217,26 @@ const SettingsSection = () => {
                   value={idNumber}
                   onChange={e => setIdNumber(e.target.value)}
                   className="mt-1"
-                  disabled={!!kycFile}
+                  disabled={isUploading}
                 />
               </div>
+              <div className="mt-4">
+                <Button
+                  onClick={handleKycSubmit}
+                  disabled={isUploading || !kycFile || !idNumber.trim()}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  {isUploading ? 'Uploading...' : 'Submit KYC Document'}
+                </Button>
+              </div>
+              {uploadError && (
+                <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="flex items-center gap-2 text-red-700">
+                    <span className="text-sm font-medium">Upload Error</span>
+                  </div>
+                  <p className="text-sm text-red-600 mt-1">{uploadError}</p>
+                </div>
+              )}
             </div>
           )}
           {kycStatus === 'verified' && (
