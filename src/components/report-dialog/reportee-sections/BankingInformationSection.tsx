@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Control } from 'react-hook-form';
 import {
@@ -11,6 +10,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ReportFormData } from '@/types/report';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { indonesianBanks } from '@/data/indonesianBanks';
 
 interface BankingInformationSectionProps {
   control: Control<ReportFormData>;
@@ -41,12 +42,30 @@ const BankingInformationSection: React.FC<BankingInformationSectionProps> = ({
               <FormItem>
                 <FormLabel>Bank Name</FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder="Enter bank name"
-                    {...field}
-                    readOnly={isReadOnly}
-                    className={isReadOnly ? "bg-gray-100" : isAddInfo ? "border-green-200 bg-green-50" : ""}
-                  />
+                  {isReadOnly ? (
+                    <Input
+                      placeholder="Enter bank name"
+                      {...field}
+                      readOnly
+                      className="bg-gray-100"
+                    />
+                  ) : (
+                    <Select
+                      value={field.value || ''}
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a bank" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {indonesianBanks.map((bank) => (
+                          <SelectItem key={bank.code} value={bank.name}>
+                            {bank.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </FormControl>
                 <FormMessage />
               </FormItem>

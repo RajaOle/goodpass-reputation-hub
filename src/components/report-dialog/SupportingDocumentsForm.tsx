@@ -1,4 +1,3 @@
-
 import React, { useCallback } from 'react';
 import { Control, UseFormSetValue } from 'react-hook-form';
 import {
@@ -14,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Upload, File, X, FileText, Info } from 'lucide-react';
 import { ReportFormData } from '@/types/report';
+import { toast } from '@/hooks/use-toast';
 
 interface SupportingDocumentsFormProps {
   control: Control<ReportFormData>;
@@ -21,6 +21,13 @@ interface SupportingDocumentsFormProps {
   isRestructure?: boolean;
   isAddInfo?: boolean;
 }
+
+const ALLOWED_TYPES = [
+  'application/pdf',
+  'image/jpeg',
+  'image/png',
+  'image/jpg',
+];
 
 const SupportingDocumentsForm: React.FC<SupportingDocumentsFormProps> = ({ 
   control, 
@@ -32,7 +39,25 @@ const SupportingDocumentsForm: React.FC<SupportingDocumentsFormProps> = ({
     if (files && !isRestructure) {
       const currentFiles = control._formValues.supportingDocuments?.documents || [];
       const newFiles = Array.from(files);
-      setValue('supportingDocuments.documents', [...currentFiles, ...newFiles]);
+
+      // Filter and warn for unsupported types
+      const validFiles = [];
+      const invalidFiles = [];
+      for (const file of newFiles) {
+        if (ALLOWED_TYPES.includes(file.type)) {
+          validFiles.push(file);
+        } else {
+          invalidFiles.push(file.name);
+        }
+      }
+      if (invalidFiles.length > 0) {
+        toast({
+          title: "Unsupported file type",
+          description: `These files are not allowed: ${invalidFiles.join(', ')}`,
+          variant: "destructive",
+        });
+      }
+      setValue('supportingDocuments.documents', [...currentFiles, ...validFiles]);
     }
   }, [control._formValues.supportingDocuments?.documents, setValue, isRestructure]);
 
@@ -99,7 +124,7 @@ const SupportingDocumentsForm: React.FC<SupportingDocumentsFormProps> = ({
               <input
                 type="file"
                 multiple
-                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
+                accept=".pdf,.jpg,.jpeg,.png"
                 onChange={(e) => handleFileUpload(e.target.files)}
                 className="hidden"
                 id="document-upload"
@@ -110,7 +135,7 @@ const SupportingDocumentsForm: React.FC<SupportingDocumentsFormProps> = ({
                   Click to upload or drag and drop files here
                 </p>
                 <p className="text-xs text-gray-400">
-                  Supported formats: PDF, DOC, DOCX, JPG, JPEG, PNG, TXT (Max 10MB each)
+                  Supported formats: PDF, JPG, JPEG, PNG (Max 10MB each)
                 </p>
               </label>
             </div>

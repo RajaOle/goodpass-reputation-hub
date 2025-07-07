@@ -22,6 +22,7 @@ import LoanInformationForm from './LoanInformationForm';
 import ReporteeInformationForm from './ReporteeInformationForm';
 import SupportingDocumentsForm from './SupportingDocumentsForm';
 import { DollarSign, User, FileText, Calendar } from 'lucide-react';
+import { uploadSupportingDocuments } from '@/services/supportingDocumentService';
 
 const reportSchema = z.object({
   loanInformation: z.object({
@@ -209,9 +210,55 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
 
   const onSubmit = async (data: ReportFormData) => {
     if (isSubmitting) return;
-    
     setIsSubmitting(true);
     try {
+      let uploadedDocuments = [];
+      const files = data.supportingDocuments.documents || [];
+      if (files.length > 0) {
+        let uploadResult;
+        try {
+          uploadResult = await uploadSupportingDocuments(files, data.supportingDocuments.additionalNotes || '');
+          console.log('uploadResult', uploadResult);
+        } catch (err) {
+          console.error('Document upload threw error:', err);
+          toast({
+            title: "❌ Document Upload Failed",
+            description: err?.message || 'Failed to upload document',
+            variant: "destructive",
+          });
+          setIsSubmitting(false);
+          return;
+        }
+        if (!uploadResult || !uploadResult.data || !Array.isArray(uploadResult.data.files)) {
+          console.error('Document upload missing files array:', uploadResult);
+          toast({
+            title: "❌ Document Upload Failed",
+            description: "Upload succeeded but response is missing files info. See console for details.",
+            variant: "destructive",
+          });
+          setIsSubmitting(false);
+          return;
+        }
+        for (const fileMeta of uploadResult.data.files) {
+          uploadedDocuments.push({
+            file_url: fileMeta.url,
+            file_type: fileMeta.type,
+            file_size: fileMeta.size,
+            description: data.supportingDocuments.additionalNotes || '',
+          });
+        }
+      }
+
+      // Prepare the report data with uploaded document metadata
+      const reportDataToSubmit = {
+        ...data,
+        supportingDocuments: {
+          ...data.supportingDocuments,
+          documents: uploadedDocuments,
+        },
+      };
+
+      // Continue with the original logic
       if (isRestructure && existingReport) {
         console.log('Restructure request submitted for report:', existingReport.id);
         toast({
@@ -225,11 +272,9 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
           description: `Additional information for ${data.reporteeInformation.fullName} has been updated successfully.`,
         });
       } else {
-        const result = await submitReport(data);
-        
+        const result = await submitReport(reportDataToSubmit);
         if (result.success) {
-          await refreshReports(); // Refresh the reports list
-          
+          await refreshReports();
           toast({
             title: "✅ Report submitted successfully",
             description: `Your loan report for ${data.reporteeInformation.fullName} has been submitted and is now under review.`,
@@ -238,7 +283,6 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
           throw new Error(result.error || 'Failed to submit report');
         }
       }
-      
       form.reset();
       setCurrentStep(1);
       onOpenChange(false);
