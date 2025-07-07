@@ -16,24 +16,37 @@ export const submitReport = async (formData: ReportFormData): Promise<SubmitRepo
     }
 
     // Step 1: Insert loan information
+    const repaymentTypeMap: Record<string, string> = {
+      'single-payment': 'single',
+      'installment': 'installment',
+      'open-payment': 'open',
+    };
+    const repaymentType = repaymentTypeMap[formData.loanInformation.repaymentPlan];
+    console.log('Repayment type being sent:', repaymentType);
+    if (!repaymentType) {
+      console.error('Invalid repayment plan value:', formData.loanInformation.repaymentPlan);
+      return { success: false, error: 'Invalid repayment plan selected. Please choose a valid option.' };
+    }
+    const loanInfoPayload = {
+      loan_name: formData.loanInformation.loanName,
+      amount: formData.loanInformation.loanAmount,
+      agreement_date: formData.loanInformation.agreementDate,
+      disbursement_date: formData.loanInformation.disbursementDate,
+      due_date: formData.loanInformation.dueDate || null,
+      purpose: formData.loanInformation.loanPurpose,
+      custom_loan_purpose: formData.loanInformation.customLoanPurpose || null,
+      repayment_type: repaymentType,
+      repayment_frequency: formData.loanInformation.installmentCount || null,
+      interest_rate: formData.loanInformation.applicationInterest,
+      late_fee_rate: formData.loanInformation.applicationLateFee,
+      collateral: formData.loanInformation.collateral !== 'none',
+      collateral_description: formData.loanInformation.collateralDescription || null,
+      collateral_value: formData.loanInformation.collateralValue || null,
+    };
+    console.log('Loan info payload:', loanInfoPayload);
     const { data: loanInfo, error: loanError } = await supabase
       .from('report_info')
-      .insert({
-        loan_name: formData.loanInformation.loanName,
-        amount: formData.loanInformation.loanAmount,
-        agreement_date: formData.loanInformation.agreementDate,
-        disbursement_date: formData.loanInformation.disbursementDate,
-        due_date: formData.loanInformation.dueDate || null,
-        purpose: formData.loanInformation.loanPurpose,
-        custom_loan_purpose: formData.loanInformation.customLoanPurpose || null,
-        repayment_type: formData.loanInformation.repaymentPlan,
-        repayment_frequency: formData.loanInformation.installmentCount || null,
-        interest_rate: formData.loanInformation.applicationInterest,
-        late_fee_rate: formData.loanInformation.applicationLateFee,
-        collateral: formData.loanInformation.collateral !== 'none',
-        collateral_description: formData.loanInformation.collateralDescription || null,
-        collateral_value: formData.loanInformation.collateralValue || null,
-      })
+      .insert(loanInfoPayload)
       .select()
       .single();
 
@@ -43,21 +56,33 @@ export const submitReport = async (formData: ReportFormData): Promise<SubmitRepo
     }
 
     // Step 2: Insert reportee information
+    const idTypeMap: Record<string, string> = {
+      'passport': 'passport',
+      'national-id': 'national_id',
+      'driver-license': 'driver_license',
+    };
+    const idType = idTypeMap[formData.reporteeInformation.idType] || null;
+    const nationalId = idType === 'national_id' ? formData.reporteeInformation.nationalId : null;
+    const passportNumber = idType === 'passport' ? formData.reporteeInformation.nationalId : null;
+    const driverLicenseNumber = idType === 'driver_license' ? formData.reporteeInformation.nationalId : null;
+    const reporteePayload = {
+      name: formData.reporteeInformation.fullName,
+      phone: formData.reporteeInformation.phoneNumber,
+      email: formData.reporteeInformation.email || null,
+      id_type: idType,
+      ktp_number: nationalId,
+      passport_number: passportNumber,
+      driver_license_number: driverLicenseNumber,
+    };
+    console.log('Reportee info payload:', reporteePayload);
     const { data: reporteeInfo, error: reporteeError } = await supabase
       .from('reportee_info')
-      .insert({
-        name: formData.reporteeInformation.fullName,
-        phone: formData.reporteeInformation.phoneNumber,
-        email: formData.reporteeInformation.email || null,
-        id_type: formData.reporteeInformation.idType || null,
-        ktp_number: formData.reporteeInformation.idType === 'national-id' ? formData.reporteeInformation.nationalId : null,
-        passport_number: formData.reporteeInformation.idType === 'passport' ? formData.reporteeInformation.nationalId : null,
-        driver_license_number: formData.reporteeInformation.idType === 'driver-license' ? formData.reporteeInformation.nationalId : null,
-      })
+      .insert(reporteePayload)
       .select()
       .single();
 
     if (reporteeError) {
+      console.error('Reportee info error (full):', reporteeError);
       console.error('Reportee info error:', reporteeError);
       return { success: false, error: 'Failed to save reportee information' };
     }
@@ -82,6 +107,8 @@ export const submitReport = async (formData: ReportFormData): Promise<SubmitRepo
     }
 
     // Step 4: Create the main report
+    const progressStatus = 'under_review'; // Always use underscore for DB
+    console.log('Progress status being sent:', progressStatus);
     const { data: report, error: reportError } = await supabase
       .from('reports')
       .insert({
@@ -89,10 +116,10 @@ export const submitReport = async (formData: ReportFormData): Promise<SubmitRepo
         loan_info_id: loanInfo.id,
         reportee_info_id: reporteeInfo.id,
         supporting_document_id: supportingDocumentId,
-        progress_status: 'under_review',
-        verification_status: 'not-verified',
-        reporter_verification_status: 'not-verified',
-        reportee_verification_status: 'not-verified',
+        progress_status: progressStatus,
+        verification_status: 'not_verified',
+        reporter_verification_status: 'not_verified',
+        reportee_verification_status: 'not_verified',
       })
       .select()
       .single();
