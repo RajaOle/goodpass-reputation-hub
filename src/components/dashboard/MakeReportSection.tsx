@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import NewReportDialog from '../report-dialog/NewReportDialog';
 import ReportDetailsDialog from './ReportDetailsDialog';
 import PaymentDialog from './PaymentDialog';
 import QuickActionsSection from './QuickActionsSection';
@@ -7,14 +6,13 @@ import RecentReportsSection from './RecentReportsSection';
 import { Report } from '@/types/report';
 import { useReports } from '@/contexts/ReportsContext';
 import { useKyc } from '@/contexts/KycContext';
+import NewReportDialog from '../report-dialog/NewReportDialog';
 
 const MakeReportSection = () => {
-  const [isReportDialogOpen, setIsReportDialogOpen] = useState(false);
+  const [dialogMode, setDialogMode] = useState<'new' | 'restructure' | 'addInfo' | null>(null);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
-  const [isRestructureOpen, setIsRestructureOpen] = useState(false);
-  const [isAddInfoOpen, setIsAddInfoOpen] = useState(false);
   const { reports, isLoading, error } = useReports();
   const { kycStatus } = useKyc();
 
@@ -25,7 +23,7 @@ const MakeReportSection = () => {
 
   const handleRestructure = (report: Report) => {
     setSelectedReport(report);
-    setIsRestructureOpen(true);
+    setDialogMode('restructure');
   };
 
   const handleProcessPayment = (report: Report) => {
@@ -36,10 +34,18 @@ const MakeReportSection = () => {
 
   const handleAddInfo = (report: Report) => {
     setSelectedReport(report);
-    setIsAddInfoOpen(true);
+    setDialogMode('addInfo');
   };
 
-  console.log('MakeReportSection render:', { isPaymentOpen, selectedReport });
+  const handleNewReport = () => {
+    setSelectedReport(null);
+    setDialogMode('new');
+  };
+
+  const handleDialogClose = () => {
+    setDialogMode(null);
+    setSelectedReport(null);
+  };
 
   if (kycStatus !== 'verified') {
     return (
@@ -79,19 +85,13 @@ const MakeReportSection = () => {
 
   return (
     <div className="space-y-6 lg:space-y-8">
-      <QuickActionsSection onNewReportClick={() => setIsReportDialogOpen(true)} />
-      
+      <QuickActionsSection onNewReportClick={handleNewReport} />
       <RecentReportsSection 
         reports={reports}
         onProcessReport={handleProcessReport}
         onRestructure={handleRestructure}
         onProcessPayment={handleProcessPayment}
         onAddInfo={handleAddInfo}
-      />
-
-      <NewReportDialog 
-        open={isReportDialogOpen} 
-        onOpenChange={setIsReportDialogOpen} 
       />
 
       {selectedReport && (
@@ -106,19 +106,17 @@ const MakeReportSection = () => {
             onOpenChange={setIsPaymentOpen}
             report={selectedReport}
           />
-          <NewReportDialog
-            open={isRestructureOpen}
-            onOpenChange={setIsRestructureOpen}
-            isRestructure={true}
-            existingReport={selectedReport}
-          />
-          <NewReportDialog
-            open={isAddInfoOpen}
-            onOpenChange={setIsAddInfoOpen}
-            isAddInfo={true}
-            existingReport={selectedReport}
-          />
         </>
+      )}
+
+      {dialogMode && (
+        <NewReportDialog
+          open={!!dialogMode}
+          onOpenChange={handleDialogClose}
+          isRestructure={dialogMode === 'restructure'}
+          isAddInfo={dialogMode === 'addInfo'}
+          existingReport={dialogMode !== 'new' ? selectedReport : undefined}
+        />
       )}
     </div>
   );

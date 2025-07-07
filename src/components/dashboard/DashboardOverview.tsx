@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import NewReportDialog from '../report-dialog/NewReportDialog';
 import ReportDetailsDialog from './ReportDetailsDialog';
 import PaymentDialog from './PaymentDialog';
 import RestructureDialog from './RestructureDialog';
@@ -7,6 +6,7 @@ import StatsCards from './StatsCards';
 import QuickActions from './QuickActions';
 import { Report, ReportStatus } from '@/types/report';
 import { useReports } from '@/contexts/ReportsContext';
+import NewReportDialog from '../report-dialog/NewReportDialog';
 
 // Mock report data for testing
 const mockReport = {

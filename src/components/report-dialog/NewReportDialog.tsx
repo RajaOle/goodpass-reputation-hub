@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -142,6 +142,8 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
 
   const todayISOString = new Date().toISOString().split('T')[0];
 
+  const isSubmittingRef = useRef(false);
+
   const getDefaultValues = () => {
     if ((isRestructure || isAddInfo) && existingReport) {
       return {
@@ -209,7 +211,9 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
   };
 
   const onSubmit = async (data: ReportFormData) => {
-    if (isSubmitting) return;
+    console.trace("Submitting report...");
+    if (isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
     setIsSubmitting(true);
     try {
       let uploadedDocuments = [];
@@ -227,6 +231,7 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
             variant: "destructive",
           });
           setIsSubmitting(false);
+          isSubmittingRef.current = false;
           return;
         }
         if (!uploadResult || !uploadResult.data || !Array.isArray(uploadResult.data.files)) {
@@ -237,6 +242,7 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
             variant: "destructive",
           });
           setIsSubmitting(false);
+          isSubmittingRef.current = false;
           return;
         }
         for (const fileMeta of uploadResult.data.files) {
@@ -295,6 +301,7 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
       });
     } finally {
       setIsSubmitting(false);
+      isSubmittingRef.current = false;
     }
   };
 

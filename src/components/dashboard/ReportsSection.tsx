@@ -1,14 +1,13 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Report, ReportStatus } from '@/types/report';
 import { useReports } from '@/contexts/ReportsContext';
-import NewReportDialog from '../report-dialog/NewReportDialog';
 import ReportDetailsDialog from './ReportDetailsDialog';
 import PaymentDialog from './PaymentDialog';
 import RestructureDialog from './RestructureDialog';
 import ReportsHeader from './reports/ReportsHeader';
 import ReportsTabContent from './reports/ReportsTabContent';
+import NewReportDialog from '../report-dialog/NewReportDialog';
 
 const ReportsSection = () => {
   const { reports, isLoading, error } = useReports();
@@ -109,13 +108,6 @@ const ReportsSection = () => {
         ))}
       </Tabs>
 
-      <NewReportDialog
-        open={isNewReportOpen}
-        onOpenChange={setIsNewReportOpen}
-        isDraft={selectedReport?.status === 'draft'}
-        reportId={selectedReport?.id}
-      />
-
       {selectedReport && (
         <>
           <ReportDetailsDialog
@@ -135,6 +127,13 @@ const ReportsSection = () => {
           />
         </>
       )}
+
+      <NewReportDialog
+        open={isNewReportOpen}
+        onOpenChange={setIsNewReportOpen}
+        isDraft={selectedReport?.status === 'draft'}
+        reportId={selectedReport?.id}
+      />
     </div>
   );
 };
