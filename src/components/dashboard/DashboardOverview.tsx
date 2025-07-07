@@ -40,7 +40,7 @@ const DashboardOverview = () => {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [isRestructureOpen, setIsRestructureOpen] = useState(false);
-  const { reports } = useReports();
+  const { reports, isLoading, error } = useReports();
 
   const handleProcessReport = (report: Report) => {
     setSelectedReport(report);

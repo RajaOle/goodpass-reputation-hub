@@ -39,6 +39,30 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_settings: {
+        Row: {
+          created_at: string | null
+          id: number
+          setting_name: string
+          setting_value: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: never
+          setting_name: string
+          setting_value: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: never
+          setting_name?: string
+          setting_value?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       api_credentials: {
         Row: {
           client_id: string | null
@@ -236,6 +260,81 @@ export type Database = {
         }
         Relationships: []
       }
+      loan_reports: {
+        Row: {
+          additional_notes: string | null
+          agreement_date: string | null
+          collateral_description: string | null
+          created_at: string | null
+          disbursement_date: string | null
+          due_date: string | null
+          evidence_urls: string[] | null
+          id: number
+          loan_amount: number | null
+          loan_name: string | null
+          loan_type: string | null
+          progress_status: string | null
+          report_code: string | null
+          reportee_address: string | null
+          reportee_email: string | null
+          reportee_id_number: string | null
+          reportee_id_type: string | null
+          reportee_name: string
+          reportee_phone: string
+          reporter_id: string | null
+          updated_at: string | null
+          verification_status: string | null
+        }
+        Insert: {
+          additional_notes?: string | null
+          agreement_date?: string | null
+          collateral_description?: string | null
+          created_at?: string | null
+          disbursement_date?: string | null
+          due_date?: string | null
+          evidence_urls?: string[] | null
+          id?: never
+          loan_amount?: number | null
+          loan_name?: string | null
+          loan_type?: string | null
+          progress_status?: string | null
+          report_code?: string | null
+          reportee_address?: string | null
+          reportee_email?: string | null
+          reportee_id_number?: string | null
+          reportee_id_type?: string | null
+          reportee_name: string
+          reportee_phone: string
+          reporter_id?: string | null
+          updated_at?: string | null
+          verification_status?: string | null
+        }
+        Update: {
+          additional_notes?: string | null
+          agreement_date?: string | null
+          collateral_description?: string | null
+          created_at?: string | null
+          disbursement_date?: string | null
+          due_date?: string | null
+          evidence_urls?: string[] | null
+          id?: never
+          loan_amount?: number | null
+          loan_name?: string | null
+          loan_type?: string | null
+          progress_status?: string | null
+          report_code?: string | null
+          reportee_address?: string | null
+          reportee_email?: string | null
+          reportee_id_number?: string | null
+          reportee_id_type?: string | null
+          reportee_name?: string
+          reportee_phone?: string
+          reporter_id?: string | null
+          updated_at?: string | null
+          verification_status?: string | null
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string | null
@@ -381,9 +480,18 @@ export type Database = {
       }
       report_info: {
         Row: {
+          agreement_date: string | null
           amount: number | null
+          collateral: boolean | null
+          collateral_description: string | null
+          collateral_value: number | null
+          custom_loan_purpose: string | null
+          disbursement_date: string | null
+          due_date: string | null
           id: number
           interest_rate: number | null
+          late_fee_rate: number | null
+          loan_name: string | null
           purpose: string | null
           repayment_due_date: string | null
           repayment_frequency: number | null
@@ -391,9 +499,18 @@ export type Database = {
           term_months: number | null
         }
         Insert: {
+          agreement_date?: string | null
           amount?: number | null
+          collateral?: boolean | null
+          collateral_description?: string | null
+          collateral_value?: number | null
+          custom_loan_purpose?: string | null
+          disbursement_date?: string | null
+          due_date?: string | null
           id?: number
           interest_rate?: number | null
+          late_fee_rate?: number | null
+          loan_name?: string | null
           purpose?: string | null
           repayment_due_date?: string | null
           repayment_frequency?: number | null
@@ -401,9 +518,18 @@ export type Database = {
           term_months?: number | null
         }
         Update: {
+          agreement_date?: string | null
           amount?: number | null
+          collateral?: boolean | null
+          collateral_description?: string | null
+          collateral_value?: number | null
+          custom_loan_purpose?: string | null
+          disbursement_date?: string | null
+          due_date?: string | null
           id?: number
           interest_rate?: number | null
+          late_fee_rate?: number | null
+          loan_name?: string | null
           purpose?: string | null
           repayment_due_date?: string | null
           repayment_frequency?: number | null
@@ -450,6 +576,8 @@ export type Database = {
           driver_license_number: string | null
           email: string | null
           id: number
+          id_picture_url: string | null
+          id_type: string | null
           ktp_number: string | null
           name: string
           passport_number: string | null
@@ -460,6 +588,8 @@ export type Database = {
           driver_license_number?: string | null
           email?: string | null
           id?: number
+          id_picture_url?: string | null
+          id_type?: string | null
           ktp_number?: string | null
           name: string
           passport_number?: string | null
@@ -470,6 +600,8 @@ export type Database = {
           driver_license_number?: string | null
           email?: string | null
           id?: number
+          id_picture_url?: string | null
+          id_type?: string | null
           ktp_number?: string | null
           name?: string
           passport_number?: string | null
@@ -517,10 +649,13 @@ export type Database = {
           report_code: string | null
           reportee_id: string | null
           reportee_info_id: number | null
+          reportee_verification_status: string | null
           reporter_id: string | null
+          reporter_verification_status: string | null
           review_notes: string | null
           supporting_document_id: number | null
           verification_status: string | null
+          verification_toggle: boolean | null
         }
         Insert: {
           backend_verification_required?: boolean | null
@@ -532,10 +667,13 @@ export type Database = {
           report_code?: string | null
           reportee_id?: string | null
           reportee_info_id?: number | null
+          reportee_verification_status?: string | null
           reporter_id?: string | null
+          reporter_verification_status?: string | null
           review_notes?: string | null
           supporting_document_id?: number | null
           verification_status?: string | null
+          verification_toggle?: boolean | null
         }
         Update: {
           backend_verification_required?: boolean | null
@@ -547,10 +685,13 @@ export type Database = {
           report_code?: string | null
           reportee_id?: string | null
           reportee_info_id?: number | null
+          reportee_verification_status?: string | null
           reporter_id?: string | null
+          reporter_verification_status?: string | null
           review_notes?: string | null
           supporting_document_id?: number | null
           verification_status?: string | null
+          verification_toggle?: boolean | null
         }
         Relationships: [
           {
@@ -626,6 +767,38 @@ export type Database = {
           value?: string | null
         }
         Relationships: []
+      }
+      supporting_document_notes: {
+        Row: {
+          created_at: string | null
+          id: number
+          notes: string | null
+          supporting_document_id: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: never
+          notes?: string | null
+          supporting_document_id?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: never
+          notes?: string | null
+          supporting_document_id?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supporting_document_notes_supporting_document_id_fkey"
+            columns: ["supporting_document_id"]
+            isOneToOne: false
+            referencedRelation: "supporting_documents"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       supporting_documents: {
         Row: {
@@ -768,6 +941,7 @@ export type Database = {
       user_profiles: {
         Row: {
           created_at: string | null
+          email: string | null
           id: string
           is_kyc_completed: boolean | null
           phone: string | null
@@ -777,6 +951,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          email?: string | null
           id: string
           is_kyc_completed?: boolean | null
           phone?: string | null
@@ -786,6 +961,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          email?: string | null
           id?: string
           is_kyc_completed?: boolean | null
           phone?: string | null
@@ -823,7 +999,22 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      get_current_user_role: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      set_report_live: {
+        Args: { report_id: number }
+        Returns: boolean
+      }
+      toggle_verification: {
+        Args: { report_id: number; toggle_value: boolean; admin_pin: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

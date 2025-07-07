@@ -17,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { ReportFormData, Report } from '@/types/report';
 import { useReports } from '@/contexts/ReportsContext';
+import { submitReport } from '@/services/reportService';
 import LoanInformationForm from './LoanInformationForm';
 import ReporteeInformationForm from './ReporteeInformationForm';
 import SupportingDocumentsForm from './SupportingDocumentsForm';
@@ -136,7 +137,7 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
-  const { addReport } = useReports();
+  const { refreshReports } = useReports();
 
   const todayISOString = new Date().toISOString().split('T')[0];
 
@@ -211,10 +212,6 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
     
     setIsSubmitting(true);
     try {
-      console.log('Submitting report:', data);
-      
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
       if (isRestructure && existingReport) {
         console.log('Restructure request submitted for report:', existingReport.id);
         toast({
@@ -228,33 +225,28 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
           description: `Additional information for ${data.reporteeInformation.fullName} has been updated successfully.`,
         });
       } else {
-        const newReport: Report = {
-          id: Date.now().toString(),
-          status: 'pending',
-          reportStatus: 'under-review',
-          loanInformation: data.loanInformation,
-          reporteeInformation: data.reporteeInformation,
-          supportingDocuments: data.supportingDocuments,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          submittedAt: new Date().toISOString()
-        };
-
-        addReport(newReport);
+        const result = await submitReport(data);
         
-        toast({
-          title: "✅ Report submitted successfully",
-          description: `Your loan report for ${data.reporteeInformation.fullName} has been submitted and is now under review.`,
-        });
+        if (result.success) {
+          await refreshReports(); // Refresh the reports list
+          
+          toast({
+            title: "✅ Report submitted successfully",
+            description: `Your loan report for ${data.reporteeInformation.fullName} has been submitted and is now under review.`,
+          });
+        } else {
+          throw new Error(result.error || 'Failed to submit report');
+        }
       }
       
       form.reset();
       setCurrentStep(1);
       onOpenChange(false);
     } catch (error) {
+      console.error('Report submission error:', error);
       toast({
         title: "❌ Submission Failed",
-        description: "Something went wrong. Please try again.",
+        description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
         variant: "destructive",
       });
     } finally {
