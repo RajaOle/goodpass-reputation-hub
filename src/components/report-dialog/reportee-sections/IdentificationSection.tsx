@@ -10,9 +10,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Upload } from 'lucide-react';
 import { ReportFormData } from '@/types/report';
 
 interface IdentificationSectionProps {
@@ -104,10 +102,6 @@ const IdentificationSection: React.FC<IdentificationSectionProps> = ({
                       }}
                       className={isAddInfo ? "border-green-200 bg-green-50 flex-1" : "flex-1"}
                     />
-                    <Button type="button" variant="outline" size="sm">
-                      <Upload className="h-4 w-4 mr-2" />
-                      Upload
-                    </Button>
                   </div>
                 </FormControl>
                 <FormMessage />
