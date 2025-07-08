@@ -22,7 +22,9 @@ const PaymentProgressBar: React.FC<PaymentProgressBarProps> = ({ report, formatC
   const totalAmount = totalPaid + remainingBalance;
   const percentage = totalAmount > 0 ? Math.round((totalPaid / totalAmount) * 100) : 0;
 
-  const paymentMethod = report.paymentInfo?.method || report.loanInformation.paymentMethod;
+  // Use repaymentPlan from loanInformation as the primary source
+  const paymentMethod = report.paymentInfo?.method || report.loanInformation.repaymentPlan;
+  console.log('PaymentProgressBar - paymentMethod:', paymentMethod, 'from report:', report.id);
 
   const renderInstallmentHistory = () => {
     if (!installments || installments.length === 0) return null;
@@ -104,7 +106,7 @@ const PaymentProgressBar: React.FC<PaymentProgressBarProps> = ({ report, formatC
   };
 
   const renderSinglePaymentStatus = () => {
-    if (paymentMethod !== 'full' && paymentMethod !== 'one-time') return null;
+    if (paymentMethod !== 'single-payment') return null;
 
     const isPaid = report.paymentInfo?.status === 'paid';
     
@@ -171,16 +173,16 @@ const PaymentProgressBar: React.FC<PaymentProgressBarProps> = ({ report, formatC
           paymentMethod === 'open-payment' ? 'bg-purple-100 text-purple-700' :
           'bg-green-100 text-green-700'
         }`}>
-          {paymentMethod === 'installment' || paymentMethod === 'installments' ? 'Installment' :
+          {paymentMethod === 'installment' ? 'Installment' :
            paymentMethod === 'open-payment' ? 'Open Payment' :
            'Single Payment'}
         </span>
       </div>
 
       {/* Payment History Based on Type */}
-      {paymentMethod === 'installment' || paymentMethod === 'installments' ? renderInstallmentHistory() : null}
+      {paymentMethod === 'installment' ? renderInstallmentHistory() : null}
       {paymentMethod === 'open-payment' ? renderOpenPaymentHistory() : null}
-      {(paymentMethod === 'full' || paymentMethod === 'one-time') ? renderSinglePaymentStatus() : null}
+      {paymentMethod === 'single-payment' ? renderSinglePaymentStatus() : null}
     </div>
   );
 };
