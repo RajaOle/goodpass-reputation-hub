@@ -87,6 +87,40 @@ export const submitReport = async (formData: ReportFormData): Promise<SubmitRepo
       return { success: false, error: 'Failed to save reportee information' };
     }
 
+    // Insert bank account info if provided
+    if (formData.reporteeInformation.bankName && formData.reporteeInformation.bankAccountNumber) {
+      const { data: bankAccount, error: bankError } = await supabase
+        .from('reportee_bank_accounts')
+        .insert({
+          reportee_info_id: reporteeInfo.id,
+          bank_name: formData.reporteeInformation.bankName,
+          account_number: formData.reporteeInformation.bankAccountNumber,
+          // Add other fields if you collect them
+        })
+        .select()
+        .single();
+      if (bankError) {
+        console.error('Bank account insert error:', bankError);
+        // Optionally handle error
+      }
+    }
+
+    // Insert social profiles if provided
+    if (formData.reporteeInformation.socialMediaLinks && formData.reporteeInformation.socialMediaLinks.length > 0) {
+      const socialProfiles = formData.reporteeInformation.socialMediaLinks.map(link => ({
+        reportee_info_id: reporteeInfo.id,
+        profile_url: link,
+        // Add platform, username, display_name, notes if you collect them
+      }));
+      const { data: socialData, error: socialError } = await supabase
+        .from('reportee_social_profiles')
+        .insert(socialProfiles);
+      if (socialError) {
+        console.error('Social profile insert error:', socialError);
+        // Optionally handle error
+      }
+    }
+
     // Step 3: Handle supporting documents (simplified for now)
     let supportingDocumentId = null;
     if (formData.supportingDocuments.documents.length > 0 || formData.supportingDocuments.additionalNotes) {
