@@ -67,16 +67,20 @@ const RepaymentInfoSection: React.FC<RepaymentInfoSectionProps> = ({
               <FormItem>
                 <FormLabel>Number of Installments *</FormLabel>
                 <FormControl>
-                  <Input
-                    type="number"
-                    placeholder="Enter number of installments"
-                    min={1}
-                    max={60}
-                    {...field}
-                    onChange={(e) => field.onChange(parseInt(e.target.value) || undefined)}
-                    readOnly={isRestructure || isAddInfo}
-                    className={(isRestructure || isAddInfo) ? "bg-gray-100" : ""}
-                  />
+                  <Select
+                    onValueChange={value => field.onChange(Number(value))}
+                    value={field.value ? String(field.value) : undefined}
+                    disabled={isRestructure || isAddInfo}
+                  >
+                    <SelectTrigger className={(isRestructure || isAddInfo) ? "bg-gray-100" : ""}>
+                      <SelectValue placeholder="Select number of installments" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 34 }, (_, i) => i + 3).map(num => (
+                        <SelectItem key={num} value={String(num)}>{num}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </FormControl>
                 <FormMessage />
               </FormItem>

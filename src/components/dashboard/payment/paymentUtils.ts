@@ -59,7 +59,14 @@ export const calculateInstallmentAmount = (report: any) => {
 export const generateInstallments = (report: any) => {
   const count = report.loanInformation.installmentCount || 1;
   const installmentAmount = calculateInstallmentAmount(report);
-  const startDate = new Date(report.loanInformation.disbursementDate);
+  const disbursementDateRaw = report.loanInformation.disbursementDate;
+  const startDate = new Date(disbursementDateRaw);
+
+  // Defensive: If disbursementDate is invalid, return empty array
+  if (!disbursementDateRaw || isNaN(startDate.getTime())) {
+    console.error('Invalid disbursementDate in report:', disbursementDateRaw, report);
+    return [];
+  }
 
   // Build a map of existing installments by number (if any)
   const existing = (report.paymentInfo?.installments || []).reduce((acc: any, inst: any) => {
@@ -72,13 +79,15 @@ export const generateInstallments = (report: any) => {
     const number = index + 1;
     const dueDate = new Date(startDate);
     dueDate.setMonth(dueDate.getMonth() + index + 1);
+    // Defensive: If dueDate is invalid, use empty string
+    const dueDateString = isNaN(dueDate.getTime()) ? '' : dueDate.toISOString().split('T')[0];
     const base = {
       id: `installment-${number}`,
       number,
       amount: installmentAmount,
-      dueDate: dueDate.toISOString().split('T')[0],
+      dueDate: dueDateString,
       status: 'unpaid',
-      isOverdue: new Date() > dueDate
+      isOverdue: dueDateString ? new Date() > dueDate : false
     };
     if (existing[number]) {
       return {

@@ -35,7 +35,7 @@ const LoanInformationForm: React.FC<LoanInformationFormProps> = ({
 
   // Handler for selecting a date
   const handleDateSelect = (date: Date | undefined) => {
-    if (date) {
+    if (date && !isNaN(date.getTime())) {
       setValue('loanInformation.dueDate', date.toISOString().split('T')[0]);
       setNoDueDate(false);
     }

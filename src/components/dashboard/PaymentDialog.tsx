@@ -78,10 +78,12 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({ open, onOpenChange, repor
   };
 
   const handleSubmitOpenPayment = () => {
+    const now = new Date();
+    const dateString = !isNaN(now.getTime()) ? now.toISOString() : '';
     const newPayment = {
       id: (openPayments.length + 1).toString(),
       amount: Number(openPaymentAmount),
-      date: new Date().toISOString(),
+      date: dateString,
       notes: paymentProof ? paymentProof.name : '',
       runningBalance: Math.max(outstandingAmount - Number(openPaymentAmount), 0)
     };
