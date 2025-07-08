@@ -55,7 +55,31 @@ export const submitReport = async (formData: ReportFormData): Promise<SubmitRepo
       return { success: false, error: 'Failed to save loan information' };
     }
 
-    // Step 2: Insert reportee information
+    // Step 2: Upload identification file to Supabase Storage if present
+    let nationalIdPictureUrl = null;
+    let passportPictureUrl = null;
+    let driverLicensePictureUrl = null;
+    if (formData.reporteeInformation.idPicture && formData.reporteeInformation.idType) {
+      const file = formData.reporteeInformation.idPicture;
+      const idType = formData.reporteeInformation.idType;
+      // Generate a unique file path: userId/idType-timestamp-filename
+      const filePath = `${user.id}/${idType}-${Date.now()}-${file.name}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('reportee-documents')
+        .upload(filePath, file, { upsert: true });
+      if (uploadError) {
+        console.error('Failed to upload identification file:', uploadError);
+        // Optionally handle error (e.g., return or continue)
+      } else {
+        // File uploaded, get the private URL (path)
+        const fileUrl = filePath;
+        if (idType === 'national-id') nationalIdPictureUrl = fileUrl;
+        if (idType === 'passport') passportPictureUrl = fileUrl;
+        if (idType === 'driver-license') driverLicensePictureUrl = fileUrl;
+      }
+    }
+
+    // Step 3: Insert reportee information (now Step 3, after file upload)
     const idTypeMap: Record<string, string> = {
       'passport': 'passport',
       'national-id': 'national_id',
@@ -73,6 +97,9 @@ export const submitReport = async (formData: ReportFormData): Promise<SubmitRepo
       ktp_number: nationalId,
       passport_number: passportNumber,
       driver_license_number: driverLicenseNumber,
+      national_id_picture_url: nationalIdPictureUrl,
+      passport_picture_url: passportPictureUrl,
+      driver_license_picture_url: driverLicensePictureUrl,
     };
     console.log('Reportee info payload:', reporteePayload);
     const { data: reporteeInfo, error: reporteeError } = await supabase
