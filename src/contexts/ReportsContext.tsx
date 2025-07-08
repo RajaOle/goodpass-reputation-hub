@@ -50,7 +50,26 @@ export const ReportsProvider: React.FC<ReportsProviderProps> = ({ children }) =>
           dueDate: dbReport.report_info?.due_date || '',
           loanPurpose: dbReport.report_info?.purpose || 'business-expansion',
           customLoanPurpose: dbReport.report_info?.custom_loan_purpose,
-          repaymentPlan: dbReport.report_info?.repayment_type || 'installment',
+          repaymentPlan: (() => {
+            const dbRepaymentType = dbReport.report_info?.repayment_type;
+            console.log('Database repayment_type:', dbRepaymentType, 'for report:', dbReport.id);
+            // Map database values to frontend enum values
+            switch (dbRepaymentType) {
+              case 'single-payment':
+              case 'single_payment':
+              case 'one-time':
+                return 'single-payment';
+              case 'installment':
+              case 'installments':
+                return 'installment';
+              case 'open-payment':
+              case 'open_payment':
+                return 'open-payment';
+              default:
+                console.warn('Unknown repayment type:', dbRepaymentType, 'defaulting to installment');
+                return 'installment';
+            }
+          })(),
           installmentCount: dbReport.report_info?.repayment_frequency,
           applicationInterest: Number(dbReport.report_info?.interest_rate) || 0,
           applicationLateFee: Number(dbReport.report_info?.late_fee_rate) || 0,
