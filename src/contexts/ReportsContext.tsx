@@ -53,8 +53,9 @@ export const ReportsProvider: React.FC<ReportsProviderProps> = ({ children }) =>
           repaymentPlan: (() => {
             const dbRepaymentType = dbReport.report_info?.repayment_type;
             console.log('Database repayment_type:', dbRepaymentType, 'for report:', dbReport.id);
-            // Map database values to frontend enum values
+            // Map all possible database values to frontend enum values
             switch (dbRepaymentType) {
+              case 'single':
               case 'single-payment':
               case 'single_payment':
               case 'one-time':
@@ -62,6 +63,7 @@ export const ReportsProvider: React.FC<ReportsProviderProps> = ({ children }) =>
               case 'installment':
               case 'installments':
                 return 'installment';
+              case 'open':
               case 'open-payment':
               case 'open_payment':
                 return 'open-payment';

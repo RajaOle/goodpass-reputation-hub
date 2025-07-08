@@ -174,8 +174,10 @@ const ReportCard: React.FC<ReportCardProps> = ({
         <div className="flex items-center justify-between text-sm mb-5 p-2 bg-gray-50 rounded-md">
           <span className="text-gray-600 font-medium">
             Payment: <span className="text-gray-900 capitalize">
-              {report.loanInformation.paymentMethod === 'installments' ? 'Installment' : 
-               report.loanInformation.paymentMethod === 'one-time' ? 'One-Time' : 'Open Payment'}
+              {report.loanInformation.repaymentPlan === 'installment' ? 'Installment' :
+               report.loanInformation.repaymentPlan === 'single-payment' ? 'Single Payment' :
+               report.loanInformation.repaymentPlan === 'open-payment' ? 'Open Payment' :
+               'Unknown'}
             </span>
           </span>
           <span className="text-gray-600 font-medium">
