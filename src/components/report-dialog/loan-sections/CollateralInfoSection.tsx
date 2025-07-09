@@ -101,7 +101,11 @@ const CollateralInfoSection: React.FC<CollateralInfoSectionProps> = ({
           render={({ field }) => {
             const collateral = control._formValues.loanInformation?.collateral;
             if (collateral === 'none') return null;
-            
+            // Format with thousand separators
+            const formatNumber = (value: number | string) =>
+              value
+                ? Number(value).toLocaleString('id-ID', { maximumFractionDigits: 0 })
+                : '';
             return (
               <FormItem>
                 <FormLabel>
@@ -111,11 +115,18 @@ const CollateralInfoSection: React.FC<CollateralInfoSectionProps> = ({
                 </FormLabel>
                 <FormControl>
                   <Input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     placeholder="Enter estimated value"
-                    min={0}
-                    {...field}
-                    onChange={(e) => field.onChange(parseFloat(e.target.value) || undefined)}
+                    value={field.value ? formatNumber(field.value) : ''}
+                    onChange={e => {
+                      // Remove all non-digit characters
+                      const raw = e.target.value.replace(/[^0-9]/g, '');
+                      // Prevent leading zero
+                      const normalized = raw.replace(/^0+/, '');
+                      // Update form state as number, or '' if empty
+                      field.onChange(normalized ? parseInt(normalized, 10) : '');
+                    }}
                     readOnly={isAddInfo}
                     className={isRestructure ? "border-orange-200 bg-orange-50" : isAddInfo ? "bg-gray-100" : ""}
                   />

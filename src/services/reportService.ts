@@ -257,3 +257,35 @@ export const fetchUserReports = async () => {
     throw error;
   }
 };
+
+export async function restructureReport(reportId: string, fields: {
+  loanType: string;
+  dueDate?: string;
+  loanPurpose: string;
+  customLoanPurpose?: string;
+  repaymentPlan: string;
+  installmentCount?: number;
+  collateral: string;
+  collateralDescription?: string;
+  collateralValue?: number;
+}) {
+  // Map frontend fields to DB columns
+  const updateFields: any = {
+    loan_type: fields.loanType,
+    due_date: fields.dueDate || null,
+    loan_purpose: fields.loanPurpose,
+    custom_loan_purpose: fields.customLoanPurpose || null,
+    repayment_plan: fields.repaymentPlan,
+    installment_count: fields.installmentCount || null,
+    collateral: fields.collateral,
+    collateral_description: fields.collateralDescription || null,
+    collateral_value: fields.collateralValue || null,
+    is_restructured: true,
+    updated_at: new Date().toISOString(),
+  };
+  const { error } = await supabase
+    .from('reports')
+    .update(updateFields)
+    .eq('id', reportId);
+  return { success: !error, error: error?.message };
+}

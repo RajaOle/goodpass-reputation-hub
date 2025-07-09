@@ -17,7 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { ReportFormData, Report } from '@/types/report';
 import { useReports } from '@/contexts/ReportsContext';
-import { submitReport } from '@/services/reportService';
+import { submitReport, restructureReport } from '@/services/reportService';
 import LoanInformationForm from './LoanInformationForm';
 import ReporteeInformationForm from './ReporteeInformationForm';
 import SupportingDocumentsForm from './SupportingDocumentsForm';
@@ -25,6 +25,16 @@ import { DollarSign, User, FileText, Calendar } from 'lucide-react';
 import { uploadSupportingDocuments } from '@/services/supportingDocumentService';
 import axios from 'axios'; // Add this import for API calls
 import { supabase } from '@/integrations/supabase/client';
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from '@/components/ui/alert-dialog';
 
 const reportSchema = z.object({
   loanInformation: z.object({
@@ -144,6 +154,7 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const { refreshReports } = useReports();
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const todayISOString = new Date().toISOString().split('T')[0];
 
@@ -302,6 +313,34 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
     isSubmittingRef.current = true;
     setIsSubmitting(true);
     try {
+      if (isRestructure && existingReport) {
+        // Only send the allowed fields
+        const restructureFields = {
+          loanType: data.loanInformation.loanType,
+          dueDate: data.loanInformation.dueDate,
+          loanPurpose: data.loanInformation.loanPurpose,
+          customLoanPurpose: data.loanInformation.customLoanPurpose,
+          repaymentPlan: data.loanInformation.repaymentPlan,
+          installmentCount: data.loanInformation.installmentCount,
+          collateral: data.loanInformation.collateral,
+          collateralDescription: data.loanInformation.collateralDescription,
+          collateralValue: data.loanInformation.collateralValue,
+        };
+        const result = await restructureReport(existingReport.id, restructureFields);
+        if (result.success) {
+          await refreshReports();
+          toast({
+            title: "✅ Report Restructured",
+            description: `The report for ${data.reporteeInformation.fullName} has been restructured.`,
+          });
+          form.reset();
+          onOpenChange(false);
+        } else {
+          throw new Error(result.error || 'Failed to restructure report');
+        }
+        return;
+      }
+
       let uploadedDocuments = [];
       const files = data.supportingDocuments.documents || [];
       if (files.length > 0) {
@@ -351,13 +390,7 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
       };
 
       // Continue with the original logic
-      if (isRestructure && existingReport) {
-        console.log('Restructure request submitted for report:', existingReport.id);
-        toast({
-          title: "✅ Restructure Request Submitted",
-          description: `Your restructure request for ${data.reporteeInformation.fullName} has been submitted for admin approval.`,
-        });
-      } else if (isAddInfo && existingReport) {
+      if (isAddInfo && existingReport) {
         // Compare and POST new bank account if changed
         const currentBank = {
           bankName: data.reporteeInformation.bankName,
@@ -537,6 +570,80 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
     if (isAddInfo) return 'bg-green-600 hover:bg-green-700';
     return 'bg-green-600 hover:bg-green-700';
   };
+
+  if (isRestructure) {
+    return (
+      <>
+        <Dialog open={open} onOpenChange={onOpenChange}>
+          <DialogContent className="max-w-2xl max-h-[95vh] overflow-hidden p-0">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-3 border-b">
+              <DialogHeader>
+                <DialogTitle className="text-lg font-semibold text-gray-900">
+                  Restructure Report
+                </DialogTitle>
+                <DialogDescription className="text-gray-600 text-sm mt-1">
+                  You can only edit the allowed fields below.
+                </DialogDescription>
+              </DialogHeader>
+            </div>
+            <div className="p-6 overflow-y-auto max-h-[70vh]">
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  <div className="bg-white rounded-xl shadow-sm border p-4">
+                    <LoanInformationForm
+                      control={form.control}
+                      isRestructure={true}
+                      isAddInfo={false}
+                    />
+                  </div>
+                  <div className="flex justify-end pt-3 border-t bg-gray-50 -mx-6 px-6 -mb-6 pb-3">
+                    <Button
+                      type="button"
+                      disabled={isSubmitting}
+                      className="bg-orange-600 hover:bg-orange-700"
+                      onClick={() => setShowConfirm(true)}
+                    >
+                      {isSubmitting ? "Restructuring..." : "Restructure"}
+                    </Button>
+                  </div>
+                </form>
+              </Form>
+            </div>
+          </DialogContent>
+        </Dialog>
+        <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirm Restructure</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to restructure this report? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel asChild>
+                <Button type="button" variant="outline" onClick={() => setShowConfirm(false)}>
+                  Cancel
+                </Button>
+              </AlertDialogCancel>
+              <AlertDialogAction asChild>
+                <Button
+                  type="button"
+                  className="bg-orange-600 hover:bg-orange-700"
+                  onClick={async () => {
+                    setShowConfirm(false);
+                    await form.handleSubmit(onSubmit)();
+                  }}
+                  disabled={isSubmitting}
+                >
+                  Confirm
+                </Button>
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

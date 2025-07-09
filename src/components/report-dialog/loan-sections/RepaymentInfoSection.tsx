@@ -38,10 +38,10 @@ const RepaymentInfoSection: React.FC<RepaymentInfoSectionProps> = ({
               <Select 
                 onValueChange={field.onChange} 
                 defaultValue={field.value}
-                disabled={isRestructure || isAddInfo}
+                disabled={isAddInfo}
               >
                 <FormControl>
-                  <SelectTrigger className={(isRestructure || isAddInfo) ? "bg-gray-100" : ""}>
+                  <SelectTrigger className={isRestructure ? "border-orange-200 bg-orange-50" : isAddInfo ? "bg-gray-100" : ""}>
                     <SelectValue placeholder="Select repayment plan" />
                   </SelectTrigger>
                 </FormControl>
@@ -70,9 +70,9 @@ const RepaymentInfoSection: React.FC<RepaymentInfoSectionProps> = ({
                   <Select
                     onValueChange={value => field.onChange(Number(value))}
                     value={field.value ? String(field.value) : ''}
-                    disabled={isRestructure || isAddInfo}
+                    disabled={isAddInfo}
                   >
-                    <SelectTrigger className={(isRestructure || isAddInfo) ? "bg-gray-100" : ""}>
+                    <SelectTrigger className={isRestructure ? "border-orange-200 bg-orange-50" : isAddInfo ? "bg-gray-100" : ""}>
                       <SelectValue placeholder="Select number of installments" />
                     </SelectTrigger>
                     <SelectContent>

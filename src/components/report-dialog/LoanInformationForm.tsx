@@ -61,7 +61,7 @@ const LoanInformationForm: React.FC<LoanInformationFormProps> = ({
               type="checkbox"
               checked={noDueDate}
               onChange={e => handleNoDueDateChange(e.target.checked)}
-              disabled={isRestructure || isAddInfo}
+              disabled={isAddInfo}
               className="accent-blue-600"
             />
             No due date
@@ -72,15 +72,15 @@ const LoanInformationForm: React.FC<LoanInformationFormProps> = ({
             <PopoverTrigger asChild>
               <button
                 type="button"
-                disabled={noDueDate || isRestructure || isAddInfo}
-                className={`border rounded px-3 py-2 text-sm flex items-center gap-2 ${noDueDate || isRestructure || isAddInfo ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : ''}`}
+                disabled={noDueDate || isAddInfo}
+                className={`border rounded px-3 py-2 text-sm flex items-center gap-2 ${noDueDate || isAddInfo ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : ''}`}
               >
                 <CalendarIcon className="h-4 w-4" />
                 {dueDate
                   ? format(new Date(dueDate), 'PPP')
                   : <span className="text-gray-400">Pick a date</span>
                 }
-                {dueDate && !noDueDate && !isRestructure && !isAddInfo && (
+                {dueDate && !noDueDate && !isAddInfo && (
                   <X
                     className="ml-2 h-3 w-3 text-gray-400 hover:text-red-500 cursor-pointer"
                     onClick={e => {

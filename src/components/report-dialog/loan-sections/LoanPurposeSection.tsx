@@ -39,10 +39,10 @@ const LoanPurposeSection: React.FC<LoanPurposeSectionProps> = ({
               <Select 
                 onValueChange={field.onChange} 
                 defaultValue={field.value}
-                disabled={isRestructure || isAddInfo}
+                disabled={isAddInfo}
               >
                 <FormControl>
-                  <SelectTrigger className={(isRestructure || isAddInfo) ? "bg-gray-100" : ""}>
+                  <SelectTrigger className={isRestructure ? "border-orange-200 bg-orange-50" : isAddInfo ? "bg-gray-100" : ""}>
                     <SelectValue placeholder="Select loan purpose" />
                   </SelectTrigger>
                 </FormControl>
@@ -78,8 +78,8 @@ const LoanPurposeSection: React.FC<LoanPurposeSectionProps> = ({
                   <Textarea
                     placeholder="Please describe the loan purpose in detail..."
                     {...field}
-                    readOnly={isRestructure || isAddInfo}
-                    className={(isRestructure || isAddInfo) ? "bg-gray-100" : ""}
+                    readOnly={isAddInfo}
+                    className={isRestructure ? "border-orange-200 bg-orange-50" : isAddInfo ? "bg-gray-100" : ""}
                   />
                 </FormControl>
                 <FormMessage />
