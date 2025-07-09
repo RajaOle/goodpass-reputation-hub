@@ -43,8 +43,8 @@ const IdentificationSection: React.FC<IdentificationSectionProps> = ({
               <FormItem>
                 <FormLabel>ID Type</FormLabel>
                 <Select 
-                  onValueChange={field.onChange} 
-                  defaultValue={field.value}
+                  onValueChange={value => field.onChange(value || undefined)} // allow clearing
+                  value={field.value || ''} // allow empty
                   disabled={isReadOnly}
                 >
                   <FormControl>
@@ -73,7 +73,7 @@ const IdentificationSection: React.FC<IdentificationSectionProps> = ({
                   <Input
                     placeholder="Enter ID number"
                     {...field}
-                    value={isRestructure && !showSensitiveData && field.value ? '***-***-***' : field.value}
+                    value={isRestructure && !showSensitiveData && field.value ? '***-***-***' : (field.value || '')}
                     readOnly={isReadOnly}
                     className={isReadOnly ? "bg-gray-100" : isAddInfo ? "border-green-200 bg-green-50" : ""}
                   />

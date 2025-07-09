@@ -14,13 +14,15 @@ interface ReporteeInformationFormProps {
   setValue: UseFormSetValue<ReportFormData>;
   isRestructure?: boolean;
   isAddInfo?: boolean;
+  fetchedBankAccounts?: { bankName: string, bankAccountNumber: string }[];
 }
 
 const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({ 
   control, 
   setValue,
   isRestructure = false,
-  isAddInfo = false
+  isAddInfo = false,
+  fetchedBankAccounts = []
 }) => {
   const [showSensitiveData, setShowSensitiveData] = useState(false);
 
@@ -84,6 +86,7 @@ const ReporteeInformationForm: React.FC<ReporteeInformationFormProps> = ({
         isRestructure={isRestructure}
         isAddInfo={isAddInfo}
         showSensitiveData={showSensitiveData}
+        fetchedBankAccounts={fetchedBankAccounts}
       />
     </div>
   );

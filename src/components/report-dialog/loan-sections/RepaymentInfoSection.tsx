@@ -69,7 +69,7 @@ const RepaymentInfoSection: React.FC<RepaymentInfoSectionProps> = ({
                 <FormControl>
                   <Select
                     onValueChange={value => field.onChange(Number(value))}
-                    value={field.value ? String(field.value) : undefined}
+                    value={field.value ? String(field.value) : ''}
                     disabled={isRestructure || isAddInfo}
                   >
                     <SelectTrigger className={(isRestructure || isAddInfo) ? "bg-gray-100" : ""}>

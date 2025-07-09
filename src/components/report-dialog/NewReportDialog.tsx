@@ -23,6 +23,8 @@ import ReporteeInformationForm from './ReporteeInformationForm';
 import SupportingDocumentsForm from './SupportingDocumentsForm';
 import { DollarSign, User, FileText, Calendar } from 'lucide-react';
 import { uploadSupportingDocuments } from '@/services/supportingDocumentService';
+import axios from 'axios'; // Add this import for API calls
+import { supabase } from '@/integrations/supabase/client';
 
 const reportSchema = z.object({
   loanInformation: z.object({
@@ -80,7 +82,10 @@ const reportSchema = z.object({
     phoneNumber: z.string().min(10, 'Please enter a valid phone number'),
     email: z.string().email('Please enter a valid email address').optional().or(z.literal('')),
     nationalId: z.string().optional(),
-    idType: z.enum(['national-id', 'passport', 'driver-license']).optional(),
+    idType: z.enum([
+      'national-id', 'passport', 'driver-license',
+      'national_id', 'driver_license'
+    ]).optional(),
     idPicture: z.instanceof(File).optional(),
     socialMediaLinks: z.array(z.string()).optional(),
     bankName: z.string().optional(),
@@ -135,7 +140,7 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
   isAddInfo = false,
   existingReport
 }) => {
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(isAddInfo ? 2 : 1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const { refreshReports } = useReports();
@@ -151,6 +156,8 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
           ...existingReport.loanInformation,
           agreementDate: existingReport.loanInformation.agreementDate || todayISOString,
           disbursementDate: existingReport.loanInformation.disbursementDate || todayISOString,
+          customLoanPurpose: existingReport.loanInformation.customLoanPurpose ?? '',
+          collateralDescription: existingReport.loanInformation.collateralDescription ?? '',
         },
         reporteeInformation: existingReport.reporteeInformation,
         supportingDocuments: existingReport.supportingDocuments,
@@ -199,12 +206,91 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
     defaultValues: getDefaultValues(),
   });
 
+  const [fetchedBankAccounts, setFetchedBankAccounts] = useState<{ bankName: string, bankAccountNumber: string }[]>([]);
+  const [fetchedSocialProfiles, setFetchedSocialProfiles] = useState<string[]>([]);
+
   // Reset form when dialog opens/closes or mode changes
   useEffect(() => {
     if (open) {
-      form.reset(getDefaultValues());
+      const defaultValues = getDefaultValues();
+      form.reset(defaultValues);
+      setCurrentStep(isAddInfo ? 2 : 1); // Ensure correct step on open/mode change
     }
   }, [open, isRestructure, isAddInfo, existingReport]);
+
+  // Fetch existing info every time the dialog opens in Add Info mode
+  useEffect(() => {
+    const fetchAdditionalInfo = async () => {
+      if (open && isAddInfo && existingReport?.id) {
+        try {
+          // Get Supabase access token
+          const { data: { session } } = await supabase.auth.getSession();
+          const token = session?.access_token;
+          const supabaseUrl = "https://nnkeqdvbkudgfrtkskae.supabase.co";
+          // Fetch bank accounts
+          const bankRes = await fetch(
+            `${supabaseUrl}/functions/v1/submit-reportee-bank-account?reportId=${existingReport.id}&cb=${Date.now()}`,
+            {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache',
+              },
+            }
+          );
+          let banks = [];
+          if (bankRes.ok) {
+            const bankJson = await bankRes.json();
+            banks = Array.isArray(bankJson) ? bankJson : (bankJson.data || []);
+          }
+          if (banks.length > 0) {
+            // Map API fields to frontend fields
+            const mappedBanks = banks.map(b => ({
+              bankName: b.bankName || b.bank_name,
+              bankAccountNumber: b.bankAccountNumber || b.account_number,
+            }));
+            setFetchedBankAccounts(mappedBanks);
+            form.setValue('reporteeInformation.bankName', mappedBanks[0]?.bankName || '');
+            form.setValue('reporteeInformation.bankAccountNumber', mappedBanks[0]?.bankAccountNumber || '');
+          }
+          // Fetch social profiles
+          const socialRes = await fetch(
+            `${supabaseUrl}/functions/v1/submit-reportee-social-profile?reportId=${existingReport.id}&cb=${Date.now()}`,
+            {
+              method: 'GET',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache',
+              },
+            }
+          );
+          let socials = [];
+          if (socialRes.ok) {
+            const socialJson = await socialRes.json();
+            socials = Array.isArray(socialJson) ? socialJson : (socialJson.data || []);
+          }
+          if (socials.length > 0) {
+            // Extract profile_url from each social profile object
+            const socialUrls = socials.map(social => social.profile_url || social);
+            setFetchedSocialProfiles(socialUrls);
+            form.setValue('reporteeInformation.socialMediaLinks', socialUrls);
+          }
+        } catch (err) {
+          toast({
+            title: "Failed to fetch additional info",
+            description: "Could not load previously registered bank accounts or social profiles.",
+            variant: "destructive",
+          });
+        }
+      }
+    };
+    fetchAdditionalInfo();
+    // eslint-disable-next-line
+  }, [open, isAddInfo, existingReport?.id]);
 
   const getProgress = () => {
     return (currentStep / steps.length) * 100;
@@ -272,6 +358,64 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
           description: `Your restructure request for ${data.reporteeInformation.fullName} has been submitted for admin approval.`,
         });
       } else if (isAddInfo && existingReport) {
+        // Compare and POST new bank account if changed
+        const currentBank = {
+          bankName: data.reporteeInformation.bankName,
+          bankAccountNumber: data.reporteeInformation.bankAccountNumber,
+        };
+        const hasNewBank =
+          currentBank.bankName &&
+          currentBank.bankAccountNumber &&
+          !fetchedBankAccounts.some(
+            b =>
+              b.bankName === currentBank.bankName &&
+              b.bankAccountNumber === currentBank.bankAccountNumber
+          );
+        if (hasNewBank) {
+          const supabaseUrl = "https://nnkeqdvbkudgfrtkskae.supabase.co";
+          const { data: { session } } = await supabase.auth.getSession();
+          const token = session?.access_token;
+          await axios.post(`${supabaseUrl}/functions/v1/submit-reportee-bank-account`, {
+            report_id: existingReport.id,
+            bank_name: currentBank.bankName,
+            account_number: currentBank.bankAccountNumber,
+          }, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            }
+          });
+        }
+
+        // Compare and POST new social profiles
+        const newSocials = (data.reporteeInformation.socialMediaLinks || []).filter(
+          link => !fetchedSocialProfiles.includes(link)
+        );
+        for (const link of newSocials) {
+          const supabaseUrl = "https://nnkeqdvbkudgfrtkskae.supabase.co";
+          const { data: { session } } = await supabase.auth.getSession();
+          const token = session?.access_token;
+          // Extract platform name from the URL
+          let platform_name = '';
+          try {
+            const urlObj = new URL(link);
+            platform_name = urlObj.hostname.split('.').slice(-2, -1)[0]; // e.g., 'instagram'
+          } catch {
+            platform_name = 'unknown';
+          }
+          await axios.post(`${supabaseUrl}/functions/v1/submit-reportee-social-profile`, {
+            report_id: existingReport.id,
+            platform_name,
+            profile_url: link,
+          }, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            }
+          });
+        }
+
+        // Continue with the original Add Info submit logic
         console.log('Additional information submitted for report:', existingReport.id);
         toast({
           title: "✅ Information Updated",
@@ -356,6 +500,11 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
 
   const isCurrentStepValid = () => {
     return isStepValid(currentStep);
+  };
+
+  const isAddInfoFormValid = () => {
+    // Only require reporteeInformation and supportingDocuments to be valid
+    return isStepValid(2) && isStepValid(3);
   };
 
   const currentStepData = steps[currentStep - 1];
@@ -525,6 +674,7 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
                       setValue={form.setValue}
                       isRestructure={isRestructure}
                       isAddInfo={isAddInfo}
+                      fetchedBankAccounts={fetchedBankAccounts}
                     />
                   )}
 
@@ -542,7 +692,7 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
               {/* Navigation */}
               <div className="flex items-center justify-between pt-3 border-t bg-gray-50 -mx-6 px-6 -mb-6 pb-3">
                 <div className="flex space-x-3">
-                  {currentStep > 1 && (
+                  {currentStep > 1 && (!isAddInfo || currentStep > 2) && (
                     <Button 
                       type="button" 
                       variant="outline" 
@@ -555,7 +705,6 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
                     </Button>
                   )}
                 </div>
-                
                 <div className="flex space-x-3">
                   <Button 
                     type="button" 
@@ -565,7 +714,11 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
                   >
                     Cancel
                   </Button>
-                  
+                  {isAddInfo && (
+                    <pre style={{ maxWidth: 400, maxHeight: 120, overflow: 'auto', background: '#f8f8f8', color: '#c00', fontSize: 12 }}>
+                      {JSON.stringify(form.formState.errors, null, 2)}
+                    </pre>
+                  )}
                   {currentStep < steps.length ? (
                     <Button 
                       type="button" 
@@ -579,7 +732,7 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
                   ) : (
                     <Button 
                       type="submit" 
-                      disabled={!form.formState.isValid || isSubmitting}
+                      disabled={isAddInfo ? !isAddInfoFormValid() || isSubmitting : !form.formState.isValid || isSubmitting}
                       className={`${getSubmitButtonColor()} flex items-center space-x-2`}
                     >
                       <span>{getSubmitButtonText()}</span>

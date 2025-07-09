@@ -18,13 +18,15 @@ interface BankingInformationSectionProps {
   isRestructure?: boolean;
   isAddInfo?: boolean;
   showSensitiveData?: boolean;
+  fetchedBankAccounts?: { bankName: string, bankAccountNumber: string }[];
 }
 
 const BankingInformationSection: React.FC<BankingInformationSectionProps> = ({
   control,
   isRestructure = false,
   isAddInfo = false,
-  showSensitiveData = false
+  showSensitiveData = false,
+  fetchedBankAccounts = [],
 }) => {
   const isReadOnly = isRestructure;
 
@@ -34,6 +36,24 @@ const BankingInformationSection: React.FC<BankingInformationSectionProps> = ({
         <CardTitle className="text-base">Banking Information (Optional)</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Divider and colored box for previously registered bank info */}
+        {fetchedBankAccounts.length > 0 && (
+          <div className="my-2">
+            <div className="text-xs font-semibold text-green-700 mb-1">Previously Registered</div>
+            <div className="border-t border-green-200 mb-2" />
+            <div className="bg-green-50 p-3 rounded">
+              {fetchedBankAccounts.map((bank, idx) => (
+                <div key={idx} className="mb-1">
+                  <span className="font-medium">Bank Name: </span>
+                  <span>{bank.bankName}</span>
+                  <span className="ml-4 font-medium">Account Number: </span>
+                  <span>{bank.bankAccountNumber}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={control}
@@ -82,7 +102,7 @@ const BankingInformationSection: React.FC<BankingInformationSectionProps> = ({
                   <Input
                     placeholder="Enter account number"
                     {...field}
-                    value={isRestructure && !showSensitiveData && field.value ? '***-***-***' : field.value}
+                    value={isRestructure && !showSensitiveData && field.value ? '***-***-***' : (field.value || '')}
                     readOnly={isReadOnly}
                     className={isReadOnly ? "bg-gray-100" : isAddInfo ? "border-green-200 bg-green-50" : ""}
                   />

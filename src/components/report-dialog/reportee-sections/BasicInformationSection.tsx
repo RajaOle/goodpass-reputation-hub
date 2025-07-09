@@ -63,7 +63,7 @@ const BasicInformationSection: React.FC<BasicInformationSectionProps> = ({
                   <Input
                     placeholder="Enter phone number"
                     {...field}
-                    value={isRestructure && !showSensitiveData ? '***-***-****' : field.value}
+                    value={isRestructure && !showSensitiveData ? '***-***-****' : (field.value || '')}
                     readOnly={isBasicInfoReadOnly}
                     className={isBasicInfoReadOnly ? "bg-gray-100" : ""}
                   />
@@ -85,7 +85,7 @@ const BasicInformationSection: React.FC<BasicInformationSectionProps> = ({
                   type="email"
                   placeholder="Enter email address"
                   {...field}
-                  value={isRestructure && !showSensitiveData && field.value ? '***@***.***' : field.value}
+                  value={isRestructure && !showSensitiveData && field.value ? '***@***.***' : (field.value || '')}
                   readOnly={isBasicInfoReadOnly}
                   className={isBasicInfoReadOnly ? "bg-gray-100" : ""}
                 />
