@@ -36,11 +36,7 @@ const CollateralInfoSection: React.FC<CollateralInfoSectionProps> = ({
           name="loanInformation.collateral"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>
-                Collateral Type 
-                {isRestructure && <span className="text-orange-600">(Editable)</span>}
-                {isAddInfo && <span className="text-gray-500">(Read-only)</span>}
-              </FormLabel>
+              <FormLabel>Collateral Type</FormLabel>
               <Select 
                 onValueChange={field.onChange} 
                 defaultValue={field.value}
@@ -76,11 +72,7 @@ const CollateralInfoSection: React.FC<CollateralInfoSectionProps> = ({
             
             return (
               <FormItem>
-                <FormLabel>
-                  Collateral Description (min 10 characters) * 
-                  {isRestructure && <span className="text-orange-600">(Editable)</span>}
-                  {isAddInfo && <span className="text-gray-500">(Read-only)</span>}
-                </FormLabel>
+                <FormLabel>Collateral Description (min 10 characters) *</FormLabel>
                 <FormControl>
                   <Textarea
                     placeholder="Please provide detailed description of the collateral..."
@@ -108,11 +100,7 @@ const CollateralInfoSection: React.FC<CollateralInfoSectionProps> = ({
                 : '';
             return (
               <FormItem>
-                <FormLabel>
-                  Estimated Collateral Value (IDR) 
-                  {isRestructure && <span className="text-orange-600">(Editable)</span>}
-                  {isAddInfo && <span className="text-gray-500">(Read-only)</span>}
-                </FormLabel>
+                <FormLabel>Estimated Collateral Value (IDR)</FormLabel>
                 <FormControl>
                   <Input
                     type="text"

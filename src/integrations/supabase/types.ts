@@ -641,40 +641,72 @@ export type Database = {
         Row: {
           address: string | null
           driver_license_number: string | null
+          driver_license_picture_url: string | null
           email: string | null
+          first_reported_at: string | null
           id: number
           id_picture_url: string | null
           id_type: string | null
+          is_unique_record: boolean | null
           ktp_number: string | null
+          last_reported_at: string | null
+          master_record_id: number | null
           name: string
+          national_id_picture_url: string | null
           passport_number: string | null
+          passport_picture_url: string | null
           phone: string
+          total_reports: number | null
         }
         Insert: {
           address?: string | null
           driver_license_number?: string | null
+          driver_license_picture_url?: string | null
           email?: string | null
+          first_reported_at?: string | null
           id?: number
           id_picture_url?: string | null
           id_type?: string | null
+          is_unique_record?: boolean | null
           ktp_number?: string | null
+          last_reported_at?: string | null
+          master_record_id?: number | null
           name: string
+          national_id_picture_url?: string | null
           passport_number?: string | null
+          passport_picture_url?: string | null
           phone: string
+          total_reports?: number | null
         }
         Update: {
           address?: string | null
           driver_license_number?: string | null
+          driver_license_picture_url?: string | null
           email?: string | null
+          first_reported_at?: string | null
           id?: number
           id_picture_url?: string | null
           id_type?: string | null
+          is_unique_record?: boolean | null
           ktp_number?: string | null
+          last_reported_at?: string | null
+          master_record_id?: number | null
           name?: string
+          national_id_picture_url?: string | null
           passport_number?: string | null
+          passport_picture_url?: string | null
           phone?: string
+          total_reports?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "reportee_info_master_record_id_fkey"
+            columns: ["master_record_id"]
+            isOneToOne: false
+            referencedRelation: "reportee_info"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       reportee_social_profiles: {
         Row: {
@@ -711,6 +743,7 @@ export type Database = {
           backend_verification_status: string | null
           created_at: string | null
           id: number
+          is_restructured: boolean
           loan_info_id: number | null
           progress_status: string | null
           report_code: string | null
@@ -719,6 +752,7 @@ export type Database = {
           reportee_verification_status: string | null
           reporter_id: string | null
           reporter_verification_status: string | null
+          restructure_count: number
           review_notes: string | null
           supporting_document_id: number | null
           updated_at: string | null
@@ -730,6 +764,7 @@ export type Database = {
           backend_verification_status?: string | null
           created_at?: string | null
           id?: number
+          is_restructured?: boolean
           loan_info_id?: number | null
           progress_status?: string | null
           report_code?: string | null
@@ -738,6 +773,7 @@ export type Database = {
           reportee_verification_status?: string | null
           reporter_id?: string | null
           reporter_verification_status?: string | null
+          restructure_count?: number
           review_notes?: string | null
           supporting_document_id?: number | null
           updated_at?: string | null
@@ -749,6 +785,7 @@ export type Database = {
           backend_verification_status?: string | null
           created_at?: string | null
           id?: number
+          is_restructured?: boolean
           loan_info_id?: number | null
           progress_status?: string | null
           report_code?: string | null
@@ -757,6 +794,7 @@ export type Database = {
           reportee_verification_status?: string | null
           reporter_id?: string | null
           reporter_verification_status?: string | null
+          restructure_count?: number
           review_notes?: string | null
           supporting_document_id?: number | null
           updated_at?: string | null
@@ -1041,6 +1079,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: number
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: never
+          role: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: never
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       unified_reports: {
@@ -1080,6 +1139,10 @@ export type Database = {
       is_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      move_temp_documents_to_reportee: {
+        Args: { p_user_id: string; p_reportee_id: string }
+        Returns: Json
       }
       set_report_live: {
         Args: { report_id: number }

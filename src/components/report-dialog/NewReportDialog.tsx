@@ -326,7 +326,7 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
           collateralDescription: data.loanInformation.collateralDescription,
           collateralValue: data.loanInformation.collateralValue,
         };
-        const result = await restructureReport(existingReport.id, restructureFields);
+        const result = await restructureReport(Number(existingReport.id), restructureFields);
         if (result.success) {
           await refreshReports();
           toast({

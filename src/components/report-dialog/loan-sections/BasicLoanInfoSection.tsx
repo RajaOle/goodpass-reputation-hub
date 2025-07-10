@@ -35,11 +35,7 @@ const BasicLoanInfoSection: React.FC<BasicLoanInfoSectionProps> = ({
             name="loanInformation.loanName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>
-                  Loan Name * 
-                  {isRestructure && <span className="text-orange-600">(Editable)</span>}
-                  {isAddInfo && <span className="text-gray-500">(Read-only)</span>}
-                </FormLabel>
+                <FormLabel>Loan Name *</FormLabel>
                 <FormControl>
                   <Input 
                     placeholder="Enter loan name"
@@ -58,11 +54,7 @@ const BasicLoanInfoSection: React.FC<BasicLoanInfoSectionProps> = ({
             name="loanInformation.loanType"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>
-                  Loan Type * 
-                  {isRestructure && <span className="text-orange-600">(Editable)</span>}
-                  {isAddInfo && <span className="text-gray-500">(Read-only)</span>}
-                </FormLabel>
+                <FormLabel>Loan Type *</FormLabel>
                 <Select 
                   onValueChange={field.onChange} 
                   defaultValue={field.value}

@@ -258,7 +258,7 @@ export const fetchUserReports = async () => {
   }
 };
 
-export async function restructureReport(reportId: string, fields: {
+export async function restructureReport(reportId: number, fields: {
   loanType: string;
   dueDate?: string;
   loanPurpose: string;
