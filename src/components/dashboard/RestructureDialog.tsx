@@ -110,19 +110,19 @@ const RestructureDialog: React.FC<RestructureDialogProps> = ({
 
           {/* Due Date Change */}
           {restructureType === 'due-date' && (
-            <Card>
+            <Card className="border-red-300 bg-red-100">
               <CardHeader>
                 <CardTitle>New Due Date</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label>Select New Due Date</Label>
+                  <Label>Select New Due Date <span className="text-orange-600">(Editable)</span></Label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
                         className={cn(
-                          "w-full justify-start text-left font-normal",
+                          "w-full justify-start text-left font-normal border-red-300 bg-red-100 hover:bg-red-200",
                           !newDueDate && "text-muted-foreground"
                         )}
                       >

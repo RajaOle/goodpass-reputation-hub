@@ -35,13 +35,17 @@ const BasicLoanInfoSection: React.FC<BasicLoanInfoSectionProps> = ({
             name="loanInformation.loanName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Loan Name *</FormLabel>
+                <FormLabel>
+                  Loan Name * 
+                  {isRestructure && <span className="text-orange-600">(Editable)</span>}
+                  {isAddInfo && <span className="text-gray-500">(Read-only)</span>}
+                </FormLabel>
                 <FormControl>
                   <Input 
                     placeholder="Enter loan name"
                     {...field}
-                    readOnly={isRestructure || isAddInfo}
-                    className={(isRestructure || isAddInfo) ? "bg-gray-100" : ""}
+                    readOnly={isAddInfo}
+                    className={isRestructure ? "border-orange-200 bg-orange-50" : isAddInfo ? "bg-gray-100" : ""}
                   />
                 </FormControl>
                 <FormMessage />
