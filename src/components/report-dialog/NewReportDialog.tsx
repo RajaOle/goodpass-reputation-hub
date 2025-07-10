@@ -308,12 +308,16 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
   };
 
   const onSubmit = async (data: ReportFormData) => {
-    console.trace("Submitting report...");
-    if (isSubmittingRef.current) return;
+    console.trace("[DEBUG] onSubmit called");
+    if (isSubmittingRef.current) {
+      console.warn("[DEBUG] Submission blocked: isSubmittingRef.current is true");
+      return;
+    }
     isSubmittingRef.current = true;
     setIsSubmitting(true);
     try {
       if (isRestructure && existingReport) {
+        console.log("[DEBUG] Restructure mode, preparing fields", data);
         // Only send the allowed fields
         const restructureFields = {
           loanType: data.loanInformation.loanType,
@@ -326,7 +330,20 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
           collateralDescription: data.loanInformation.collateralDescription,
           collateralValue: data.loanInformation.collateralValue,
         };
+
+        // Mock outstanding and installment calculation
+        let newInstallment = undefined;
+        if (data.loanInformation.repaymentPlan === 'installment' && data.loanInformation.installmentCount) {
+          // TODO: Replace with real outstanding calculation when repayment tracking is ready
+          const outstanding = data.loanInformation.loanAmount; // Mock: use loanAmount as outstanding
+          newInstallment = Math.round(outstanding / data.loanInformation.installmentCount);
+          restructureFields['installmentAmount'] = newInstallment;
+          console.log(`[DEBUG] Calculated newInstallment: ${newInstallment}`);
+        }
+
+        console.log("[DEBUG] Calling restructureReport with fields:", restructureFields);
         const result = await restructureReport(Number(existingReport.id), restructureFields);
+        console.log("[DEBUG] restructureReport result:", result);
         if (result.success) {
           await refreshReports();
           toast({
@@ -630,6 +647,7 @@ const NewReportDialog: React.FC<NewReportDialogProps> = ({
                   type="button"
                   className="bg-orange-600 hover:bg-orange-700"
                   onClick={async () => {
+                    console.log("[DEBUG] Confirm button clicked");
                     setShowConfirm(false);
                     await form.handleSubmit(onSubmit)();
                   }}

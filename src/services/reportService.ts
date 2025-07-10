@@ -265,6 +265,7 @@ export async function restructureReport(reportId: number, fields: {
   customLoanPurpose?: string;
   repaymentPlan: string;
   installmentCount?: number;
+  installmentAmount?: number;
   collateral: string;
   collateralDescription?: string;
   collateralValue?: number;
@@ -281,8 +282,13 @@ export async function restructureReport(reportId: number, fields: {
     collateral_description: fields.collateralDescription || null,
     collateral_value: fields.collateralValue || null,
     is_restructured: true,
+    // TODO: Increment restructure_count in a single query if supported by Supabase/Postgres
     updated_at: new Date().toISOString(),
   };
+  if (fields.installmentAmount !== undefined) {
+    updateFields.installment_amount = fields.installmentAmount;
+  }
+  // This will just set is_restructured and update fields; increment restructure_count should be handled in DB trigger or with a separate query if needed
   const { error } = await supabase
     .from('reports')
     .update(updateFields)
