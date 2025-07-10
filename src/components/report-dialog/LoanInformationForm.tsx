@@ -53,7 +53,7 @@ const LoanInformationForm: React.FC<LoanInformationFormProps> = ({
       
       <BasicLoanInfoSection control={control} isRestructure={isRestructure} isAddInfo={isAddInfo} />
       {/* Due Date Field (Optional) */}
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
+      <div className={isAddInfo ? "bg-gray-100 border border-gray-200 rounded-lg p-4" : "bg-orange-50 border border-orange-200 rounded-lg p-4"}>
         <div className="mb-2 flex items-center gap-3">
           <label className="block text-sm font-medium text-gray-700 mb-1">Due Date <span className="text-gray-400">(optional)</span></label>
           <label className="flex items-center gap-1 text-xs cursor-pointer">
