@@ -270,28 +270,56 @@ export async function restructureReport(reportId: number, fields: {
   collateralDescription?: string;
   collateralValue?: number;
 }) {
-  // Map frontend fields to DB columns
-  const updateFields: any = {
-    loan_type: fields.loanType,
+  // 1. Get the loan_info_id for this report
+  const { data: report, error: reportError } = await supabase
+    .from('reports')
+    .select('loan_info_id, restructure_count')
+    .eq('id', reportId)
+    .single();
+
+  if (reportError || !report) {
+    return { success: false, error: 'Failed to find report for restructure' };
+  }
+
+  const loanInfoId = report.loan_info_id;
+
+  // 2. Update the report_info table with the new loan details
+  const updateLoanInfo: any = {
     due_date: fields.dueDate || null,
-    loan_purpose: fields.loanPurpose,
+    purpose: fields.loanPurpose,
     custom_loan_purpose: fields.customLoanPurpose || null,
-    repayment_plan: fields.repaymentPlan,
-    installment_count: fields.installmentCount || null,
-    collateral: fields.collateral,
+    repayment_type: fields.repaymentPlan,
+    repayment_frequency: fields.installmentCount || null,
+    collateral: fields.collateral !== 'none',
     collateral_description: fields.collateralDescription || null,
     collateral_value: fields.collateralValue || null,
-    is_restructured: true,
-    // TODO: Increment restructure_count in a single query if supported by Supabase/Postgres
-    updated_at: new Date().toISOString(),
   };
   if (fields.installmentAmount !== undefined) {
-    updateFields.installment_amount = fields.installmentAmount;
+    updateLoanInfo.installment_amount = fields.installmentAmount;
   }
-  // This will just set is_restructured and update fields; increment restructure_count should be handled in DB trigger or with a separate query if needed
-  const { error } = await supabase
+
+  const { error: loanInfoError } = await supabase
+    .from('report_info')
+    .update(updateLoanInfo)
+    .eq('id', loanInfoId);
+
+  if (loanInfoError) {
+    return { success: false, error: 'Failed to update loan information' };
+  }
+
+  // 3. Update the reports table with restructure flags and increment count
+  const { error: reportsError } = await supabase
     .from('reports')
-    .update(updateFields)
+    .update({
+      is_restructured: true,
+      restructure_count: (report.restructure_count || 0) + 1,
+      updated_at: new Date().toISOString(),
+    })
     .eq('id', reportId);
-  return { success: !error, error: error?.message };
+
+  if (reportsError) {
+    return { success: false, error: 'Failed to update report restructure status' };
+  }
+
+  return { success: true };
 }
